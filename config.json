@@ -1,0 +1,14 @@
+{
+  "networks": {
+    "main": {
+      "configUrl": "https://main.net955305.contentfabric.io/config",
+      "siteSelectorId": "iq__3NyAFhDaQ4E3VbnJW98Zp1Vh3Frv",
+      "staticToken": "eyJxc3BhY2VfaWQiOiJpc3BjMlJVb1JlOWVSMnYzM0hBUlFVVlNwMXJZWHp3MSJ9Cgo="
+    },
+    "demo": {
+      "configUrl": "https://demov3.net955210.contentfabric.io/config",
+      "siteSelectorId": "iq__3fJqV5XABk3bwQ3xBgirK8cDe4Fi",
+      "staticToken": "eyJxc3BhY2VfaWQiOiJpc3BjM0FOb1ZTek5BM1A2dDdhYkxSNjlobzVZUFBaVSJ9"
+    }
+  }
+}
