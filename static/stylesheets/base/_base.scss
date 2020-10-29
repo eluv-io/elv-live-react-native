@@ -1,0 +1,100 @@
+@import "~elv-components-js/src/stylesheets/defaults";
+@import "~elv-components-js/src/stylesheets/styles";
+
+:root {
+  --color-primary: #eb2f64;
+  --color-primary-light: #f36;
+  --color-primary-dark: #ba265d;
+  --color-grey-light-1: #faf9f9;
+  --color-grey-light-2: #f4f2f2;
+  --color-grey-light-3: #f0eeee;
+  --color-grey-light-4: #ccc;
+  --color-grey-dark-1: #333;
+  --color-grey-dark-2: #777;
+  --color-grey-dark-3: #999;
+  --shadow-dark: 0 2rem 6rem rgba(0, 0, 0, .3);
+
+  --bgColor: black; //var(--bgColor)
+  --pText: white; //var(--pText)
+  --sText: rgb(136, 136, 136); //var(--sText)
+}
+
+.app-version {
+  display: none;
+}
+
+.app {
+
+}
+
+html,
+body,
+.app,
+.app-container {
+  min-height: 100vh;
+  @media only screen and (max-width: 750px) {
+    // overflow: hidden;
+
+    // height: calc(var(--vh, 1vh) * 100) !important;
+    min-height: calc(var(--vh, 1vh) * 100) !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    ::-webkit-scrollbar {
+      width: 0;  /* Remove scrollbar space */
+      background: transparent;  /* Optional: just make scrollbar invisible */
+    }
+  }
+}
+
+html {  
+  box-sizing: border-box;
+  font-size: 62.5%; //1rem = 10px, 10px/16px = 62.5%
+}
+
+::-webkit-scrollbar {
+  width: 0;  /* Remove scrollbar space */
+  background: transparent;  /* Optional: just make scrollbar invisible */
+}
+
+body {
+  font-family: sans-serif;
+  box-sizing: border-box;
+  // overflow: hidden;
+}
+
+// RESPONSIVE BREAKPOINTS
+$bp-huge-2: 125em;   // 2000px
+$bp-huge: 93.75em;   // 1500px
+$bp-large-3: 84.5em;   // 1350px
+$bp-large-2: 75em;   // 1200px
+$bp-large: 68.7em;   // 1100px
+$bp-medium-2: 59.375em;    // 950px;
+$bp-medium: 50em;    // 800px;
+$bp-small-2: 43.75em;   // 700px;
+$bp-small-3: 37.5em;   // 600px;
+$bp-small: 31.25em;   // 500px;
+$bp-tiny-2: 27.6em;   // 440px;
+$bp-tiny: 21.875em;   // 350px;
+
+.container {
+  display: flex;
+  flex-direction: column;
+  margin: 0 4vw;
+}
+
+.error-message {
+  position: fixed;
+  width: 200px;
+  height: 50px;
+  // margin: auto;
+  top: 50px;
+  padding-top: 10px;
+  font-size: 20px;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-align: center;
+  color: red;
+  background-color: white;
+  z-index: 10000;
+  border-radius: 5px;
+}

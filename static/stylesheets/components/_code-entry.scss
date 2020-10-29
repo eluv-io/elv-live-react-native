@@ -1,0 +1,79 @@
+.code-entry-container {
+  display: grid;  
+  grid-template-rows: 30vh; 
+}
+
+.code-entry {
+  align-items: center;
+  background-color: #fff;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  height: MIN(40rem, 90vh); 
+  justify-content: center;
+  margin: auto;
+  width: MIN(424px, 90vw);
+  z-index: 100;
+  @media only screen and (max-width: 750px) {
+    margin: auto;
+    margin-top: -50px !important;
+  }
+  
+
+  &--logo {
+    height: 68.6px;
+    margin-bottom: 2rem;
+    width: 280px;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10+ and Edge */
+    user-select: none; /* Standard syntax */
+    @media only screen and (max-width: 415px) {
+      height: 5rem;
+      margin-bottom: 2rem;
+      width: auto;
+    } 
+  }
+
+  &__title {
+    color: #000;
+    font-weight: 500;
+  }
+
+  input {
+    border-radius: 1px;
+    font-size: 2.2rem;
+    height: 48px;
+    letter-spacing: 1.5px;
+    margin-top: 1rem;
+
+    text-align: center;
+    width: MIN(35rem, 90vw);
+    @media only screen and (max-width: 415px) {
+      font-size: 2rem;
+      width: 280px;
+    } 
+
+    &::placeholder {
+      font-variant: all-small-caps;
+    }
+  }
+
+  button {
+    background-color: #d7bb73;
+    border: 0;
+    border-radius: 2px;
+    color: #000;
+    cursor: pointer;
+    font-weight: 500;
+    height: 48px;
+    letter-spacing: 2px;
+    line-height: 18px;
+    margin-top: 3rem;
+    text-align: center;
+    width: MIN(35rem, 90vw);
+    @media only screen and (max-width: 415px) {
+      width: 280px;
+    } 
+
+  }
+}

@@ -5,17 +5,22 @@
  * @format
  * @flow strict-local
  */
-
+// import 'react-native-gesture-handler';
 import React, {useState, useEffect} from 'react';
 import ReactNative, {
   SafeAreaView,
+  Button,
   StyleSheet,
   ScrollView,
   Platform,
   View,
+  ImageBackground,
   Text,
 } from 'react-native';
-
+import FastImage from 'react-native-fast-image'
+import Modal from 'react-native-modal';
+//import { NavigationContainer } from '@react-navigation/native';
+//import { createStackNavigator } from '@react-navigation/stack';
 import {
   Header,
   LearnMoreLinks,
@@ -24,117 +29,72 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
+import Login from './components/login'
+import SitePage from './pages/sitepage'
 import Fabric from './fabric';
 import Config from './config.json';
 import {JQ} from './utils';
 
-const StatusBar = Platform.isTV ? View : ReactNative.StatusBar;
-
-const App: () => React$Node = () => {
-  const [mnemonic, setNnemonic] = useState('');
-  const [isInit, setIsInit] = useState(false);
-  useEffect(() => {
-    async function initFabric() {
-      console.log('initFabric');
-      try {
-        var configUrl = Config.networks.main.configUrl;
-        var fabric = new Fabric();
-        var newNnemonic = await fabric.init({configUrl});
-        console.log('Mnemonic generated ' + newNnemonic);
-        setNnemonic(newNnemonic);
-        setIsInit(true);
-      } catch (e) {
-        console.error('Error Initializing fabric: ' + e + JQ(e));
-      }
-    }
-    if (!isInit) {
-      initFabric();
-    }
-  });
-
+function LoginPage(props) {
+  let image = require('./static/images/codeAccess/concert.jpg');
   return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
-          )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>App.js</Text> {mnemonic}
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
+    <View style={styles.container}>
+      <ImageBackground
+        source={image}
+        style={styles.image}
+      >
+      <Login {...props}/>
+      </ImageBackground>
+  </View>
   );
-};
+}
 
+//const Stack = createStackNavigator();
+
+
+async function initFabric() {
+  console.log('initFabric');
+  try {
+    var configUrl = Config.networks.main.configUrl;
+    var fabric = new Fabric();
+    var newNnemonic = await fabric.init({configUrl});
+    console.log('Mnemonic generated ' + newNnemonic);
+    setNnemonic(newNnemonic);
+    setIsInit(true);
+  } catch (e) {
+    console.error('Error Initializing fabric: ' + e + JQ(e));
+  }
+}
+
+export default class App extends React.Component {
+  render() {
+    return (
+      /*
+      <NavigationContainer>{
+        <Stack.Navigator initialRouteName="login">
+          <Stack.Screen name="login" component={LoginPage} />
+          <Stack.Screen name="site" component={SitePage} />
+        </Stack.Navigator>
+      }</NavigationContainer>
+      */
+      <LoginPage />
+    );
+  }
+}
+  
 const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'black'
   },
-  engine: {
-    position: 'absolute',
-    right: 0,
-  },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
+  image: {
+    flex: 1,
+    resizeMode: "cover",
+    alignItems: 'center',
+    justifyContent: "center",
+    width: "100%",
+    height: "100%"
   },
 });
-
-export default App;
