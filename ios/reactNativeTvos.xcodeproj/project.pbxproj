@@ -19,6 +19,7 @@
 		41BF5F3596F87FEE707DDD11 /* libPods-reactNativeTvos-reactNativeTvosTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F21F13455730034D850CD1C /* libPods-reactNativeTvos-reactNativeTvosTests.a */; };
 		47EB63F3390701B2260096C6 /* libPods-reactNativeTvos-tvOS-reactNativeTvos-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A0216F1136BF7C90703C880F /* libPods-reactNativeTvos-tvOS-reactNativeTvos-tvOSTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		B012C58E254FC34700993400 /* libRNExitApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B012C58D254FC34700993400 /* libRNExitApp.a */; };
 		EE57DEA5314790D63C074D03 /* libPods-reactNativeTvos-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EA54FCF2086BA3B4678F8237 /* libPods-reactNativeTvos-tvOS.a */; };
 /* End PBXBuildFile section */
 
@@ -62,6 +63,9 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = reactNativeTvos/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8DC2855AB2CCC04BED0978AE /* libPods-reactNativeTvos.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-reactNativeTvos.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0216F1136BF7C90703C880F /* libPods-reactNativeTvos-tvOS-reactNativeTvos-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-reactNativeTvos-tvOS-reactNativeTvos-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B012C58D254FC34700993400 /* libRNExitApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libRNExitApp.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		B012C593254FC35300993400 /* libRNExitApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libRNExitApp.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		B012C599254FC41200993400 /* libRNExitApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libRNExitApp.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CCE9A90FED9D09047497AB6D /* Pods-reactNativeTvos-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-reactNativeTvos-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-reactNativeTvos-tvOS/Pods-reactNativeTvos-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		E8891750AE2DFBD87A5BDB74 /* Pods-reactNativeTvos-tvOS-reactNativeTvos-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-reactNativeTvos-tvOS-reactNativeTvos-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-reactNativeTvos-tvOS-reactNativeTvos-tvOSTests/Pods-reactNativeTvos-tvOS-reactNativeTvos-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
 		EA54FCF2086BA3B4678F8237 /* libPods-reactNativeTvos-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-reactNativeTvos-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -82,6 +86,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B012C58E254FC34700993400 /* libRNExitApp.a in Frameworks */,
 				269984920579226908D49904 /* libPods-reactNativeTvos.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -139,6 +144,9 @@
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B012C599254FC41200993400 /* libRNExitApp.a */,
+				B012C593254FC35300993400 /* libRNExitApp.a */,
+				B012C58D254FC34700993400 /* libRNExitApp.a */,
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
 				8DC2855AB2CCC04BED0978AE /* libPods-reactNativeTvos.a */,

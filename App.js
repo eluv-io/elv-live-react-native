@@ -7,6 +7,8 @@
  */
 // import 'react-native-gesture-handler';
 import React, {useState, useEffect} from 'react';
+import { Navigation, Route } from './components/navigation';
+
 import ReactNative, {
   SafeAreaView,
   Button,
@@ -19,8 +21,7 @@ import ReactNative, {
 } from 'react-native';
 import FastImage from 'react-native-fast-image'
 import Modal from 'react-native-modal';
-//import { NavigationContainer } from '@react-navigation/native';
-//import { createStackNavigator } from '@react-navigation/stack';
+
 import {
   Header,
   LearnMoreLinks,
@@ -49,8 +50,6 @@ function LoginPage(props) {
   );
 }
 
-//const Stack = createStackNavigator();
-
 
 async function initFabric() {
   console.log('initFabric');
@@ -69,19 +68,14 @@ async function initFabric() {
 export default class App extends React.Component {
   render() {
     return (
-      /*
-      <NavigationContainer>{
-        <Stack.Navigator initialRouteName="login">
-          <Stack.Screen name="login" component={LoginPage} />
-          <Stack.Screen name="site" component={SitePage} />
-        </Stack.Navigator>
-      }</NavigationContainer>
-      */
-      <LoginPage />
+      <Navigation default="login">
+          <Route name="login" component={LoginPage} />
+          <Route name="site" component={SitePage} />
+      </Navigation>
     );
   }
 }
-  
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

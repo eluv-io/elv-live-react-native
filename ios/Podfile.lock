@@ -229,6 +229,11 @@ PODS:
   - React-jsinspector (0.63.1-2)
   - react-native-get-random-values (1.5.0):
     - React
+  - react-native-video (5.1.0-alpha8):
+    - React
+    - react-native-video/Video (= 5.1.0-alpha8)
+  - react-native-video/Video (5.1.0-alpha8):
+    - React
   - React-RCTAnimation (0.63.1-2):
     - FBReactNativeSpec (= 0.63.1-2)
     - Folly (= 2020.01.13.00)
@@ -281,6 +286,10 @@ PODS:
     - React-Core (= 0.63.1-2)
     - React-cxxreact (= 0.63.1-2)
     - React-jsi (= 0.63.1-2)
+  - RNExit (1.0.0):
+    - React
+  - RNExitApp (1.1.0):
+    - React
   - RNFastImage (8.3.2):
     - React
     - SDWebImage (~> 5.8)
@@ -319,6 +328,7 @@ DEPENDENCIES:
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
+  - react-native-video (from `../node_modules/react-native-video`)
   - React-RCTAnimation (from `../node_modules/react-native/Libraries/NativeAnimation`)
   - React-RCTBlob (from `../node_modules/react-native/Libraries/Blob`)
   - React-RCTImage (from `../node_modules/react-native/Libraries/Image`)
@@ -327,6 +337,8 @@ DEPENDENCIES:
   - React-RCTSettings (from `../node_modules/react-native/Libraries/Settings`)
   - React-RCTText (from `../node_modules/react-native/Libraries/Text`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - RNExit (from `../node_modules/react-native-tv-exit/ios`)
+  - RNExitApp (from `../node_modules/react-native-exit-app`)
   - RNFastImage (from `../node_modules/react-native-fast-image`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -382,6 +394,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
   react-native-get-random-values:
     :path: "../node_modules/react-native-get-random-values"
+  react-native-video:
+    :path: "../node_modules/react-native-video"
   React-RCTAnimation:
     :path: "../node_modules/react-native/Libraries/NativeAnimation"
   React-RCTBlob:
@@ -398,6 +412,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/Text"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNExit:
+    :path: "../node_modules/react-native-tv-exit/ios"
+  RNExitApp:
+    :path: "../node_modules/react-native-exit-app"
   RNFastImage:
     :path: "../node_modules/react-native-fast-image"
   Yoga:
@@ -432,6 +450,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 9d9f200f614c2c186924ae0b5366b9d526adcb7b
   React-jsinspector: d72425c330a7508e4eca6824bbb5fb4f84bf79e4
   react-native-get-random-values: 1404bd5cc0ab0e287f75ee1c489555688fc65f89
+  react-native-video: 8d97379f3c2322a569f1e27542ad1a646cad9444
   React-RCTAnimation: f564ec8cb9c0a200b7423379ad58575d8562d513
   React-RCTBlob: 8c4b339cb8fb3ed539597a443431ad711897db62
   React-RCTImage: 7a138d3ffb018565293c2940489a02e733ce5207
@@ -440,12 +459,14 @@ SPEC CHECKSUMS:
   React-RCTSettings: 71815aede13e9d591aee229e1fcb21470818fc43
   React-RCTText: 99aeacbf3365f9895ac52973613ed8076c51ffdf
   ReactCommon: b476159a2990216c5ace2cf8633ee9af67db58d4
+  RNExit: e3aad44229ae7bd6cd359f3309923db3dcfe3f4b
+  RNExitApp: 7d81855142a4d11eb75f4f06fdebf5a950d7aef2
   RNFastImage: e19ba191922e7dab9d932a4d59d62d76660aa222
   SDWebImage: b69257f4ab14e9b6a2ef53e910fdf914d8f757c1
   SDWebImageWebPCoder: d0dac55073088d24b2ac1b191a71a8f8d0adac21
   Yoga: 48a73b9ca7628b35fe11c767ed17b42c25628b50
   YogaKit: 1e22bf2228b3a5ac8cc88965153061ae92c494b5
 
-PODFILE CHECKSUM: a7c1685efe900f39fc51db6945b3ca027f350602
+PODFILE CHECKSUM: e804afc66abf15cb897e4b4c1c1eb0d7da286d4e
 
 COCOAPODS: 1.9.3

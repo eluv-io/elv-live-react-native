@@ -28,8 +28,8 @@ const LoginButton = ({ onPress, title }) => (
 
 
 const Login = (props) => {
-  const [value, setValue] = useState(0);
   const {navigation} = props;
+  const [value, setValue] = useState(0);
   return (
     <View style={styles.container}>
       <Image
