@@ -2,6 +2,21 @@
 
 Watch premier and live events on the Eluvio Live Platform for TVOS
 
+## Development
+
+Install packages and run metro server:
+
+```
+yarn install
+yarn start
+```
+
+Launch AppleTV Simulator and build/load app:
+
+```
+yarn run tvos
+```
+
 ## Steps to make Elv-client-js work for React Native TVOS
 
 1. Use https://github.com/react-native-community/react-native-tvos instead of regular react-native for creating a new project

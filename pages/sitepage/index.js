@@ -64,7 +64,6 @@ class SitePage extends React.Component {
   }
 
   render() {
-    let image = require('../../static/images/VideoPage.png');
     const {site,setState} = this.context;
     //console.log("SitePage: site " + JQ(site.siteInfo));
     let {videoUrl} = this.state;
