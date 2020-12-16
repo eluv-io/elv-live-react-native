@@ -15,6 +15,7 @@
   "dependencies": {
     "@expo/browser-polyfill": "^0.1.0",
     "@react-navigation/stack": "^5.11.0",
+    "dateformat": "^3.0.3",
     "elv-components-js": "git+https://github.com/eluv-io/elv-components-js.git#645165da87ec42845a908a9ce0817db202523866",
     "react": "16.13.1",
     "react-native": "npm:react-native-tvos@0.63.1-2",
@@ -23,6 +24,8 @@
     "react-native-modal": "^11.5.6",
     "react-native-unimodules": "^0.11.0",
     "react-native-video": "^5.1.0-alpha8",
+    "stream": "0.0.2",
+    "urijs": "^1.19.2",
     "webassemblyjs": "^1.9.1"
   },
   "devDependencies": {

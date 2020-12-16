@@ -7,7 +7,6 @@
  */
 // import 'react-native-gesture-handler';
 import React, {useState, useEffect} from 'react';
-import { Navigation, Route } from './components/navigation';
 
 import ReactNative, {
   SafeAreaView,
@@ -19,22 +18,15 @@ import ReactNative, {
   ImageBackground,
   Text,
 } from 'react-native';
-import FastImage from 'react-native-fast-image'
-import Modal from 'react-native-modal';
-
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
 
 import Login from './components/login'
 import SitePage from './pages/sitepage'
 import Fabric from './fabric';
 import Config from './config.json';
-import {JQ} from './utils';
+import AppContext, {initialState} from './AppContext'
+
+import { Navigation, Route } from './components/navigation';
+import {JQ} from './utils'
 
 function LoginPage(props) {
   let image = require('./static/images/codeAccess/concert.jpg');
@@ -51,27 +43,51 @@ function LoginPage(props) {
 }
 
 
-async function initFabric() {
-  console.log('initFabric');
-  try {
-    var configUrl = Config.networks.main.configUrl;
-    var fabric = new Fabric();
-    var newNnemonic = await fabric.init({configUrl});
-    console.log('Mnemonic generated ' + newNnemonic);
-    setNnemonic(newNnemonic);
-    setIsInit(true);
-  } catch (e) {
-    console.error('Error Initializing fabric: ' + e + JQ(e));
-  }
+function initFabric() {
+  return new Promise(async (resolve, reject) => {
+    console.log('initFabric');
+    try {
+      var configUrl = Config.networks.demo.configUrl;
+      var fabric = new Fabric();
+      //TODO:
+      var newNnemonic = await fabric.initFromKey({configUrl, privateKey:"0x06407eef6fa8c78afb550b4e24a88956f1a07b4a74ff76ffaacdacb4187892d6"});
+      resolve(fabric);
+    } catch (e) {
+      reject(e)
+    }
+  })
 }
 
 export default class App extends React.Component {
+  state = initialState
+  constructor(props) {
+    super(props);
+
+    initFabric().then(
+      fabric => {
+        console.log("Successfully initialized the Fabric client.");
+        this.setState({fabric})
+      },
+      error=>{
+        console.log("Could not initialize the Fabric client: " + JQ(error))
+      }
+    )
+  }
+
+  handleSetState  = (state) => {
+    this.setState(state);
+  }
+
   render() {
+    console.log("appstate: " + this.state)
+    const {fabric, site} = this.state;
     return (
-      <Navigation default="login">
-          <Route name="login" component={LoginPage} />
-          <Route name="site" component={SitePage} />
-      </Navigation>
+      <AppContext.Provider value={{fabric, site, setState:this.handleSetState}}>
+        <Navigation default="login">
+            <Route name="login" component={LoginPage} />
+            <Route name="site" component={SitePage} />
+        </Navigation>
+      </AppContext.Provider>
     );
   }
 }

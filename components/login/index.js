@@ -10,6 +10,9 @@ import {
 } 
 from 'react-native';
 import {theme, colorByComponent} from '../../AppTheme'
+import AppContext from '../../AppContext'
+import {Site} from '../../fabric/site'
+import { JQ } from '../../utils';
 
 const LoginInput = (props) => {
     return (
@@ -30,6 +33,10 @@ const LoginButton = ({ onPress, title }) => (
 const Login = (props) => {
   const {navigation} = props;
   const [value, setValue] = useState(0);
+  const {fabric,setState} = React.useContext(AppContext);
+  console.log("fabric: " + fabric);
+  console.log("setState: " + setState);
+
   return (
     <View style={styles.container}>
       <Image
@@ -58,9 +65,23 @@ const Login = (props) => {
         </View>
         <LoginButton
           title="Next"
-          onPress={() => { 
+          onPress={async () => { 
             console.log("Submit button")
-            navigation.navigate('site')
+            //TODO: Move onPress to App and pass in
+            //try{
+              let siteId = await fabric.redeemCode("test@test","GY4UkZ","dude");
+              if(siteId != false){
+                console.log("Creating new Site");
+                let site = new Site({fabric, siteId});
+                console.log("loadSite");
+                await site.loadSite();
+                console.log("set State");
+                setState({site});
+                navigation.navigate('site')
+              }
+            //}catch(e){
+            //  console.error(JQ(e));
+            //}
           }}
           style={styles.submitButton}
         />

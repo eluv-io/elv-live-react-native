@@ -4,25 +4,14 @@ if (!global.WebAssembly) {
 import 'react-native-get-random-values';
 import '@expo/browser-polyfill';
 import {ElvClient} from '../ElvClient-min';
-
-// let loadWebassembly = require('../ElvCrypto');
+import {JQ} from '../utils'
 
 export default class Fabric {
   async init({configUrl}) {
-    /*
-    let wasmResult = loadWebassembly();
-    wasmResult.onload(() => {
-      console.log("ElvCrypto loaded. " + JSON.stringify(wasmResult));
-    });
-
-    let wasm = await WebAssembly.instantiate(wasmResult.buffer);
-    let ElvCrypto = wasm.instance;
-    console.log("ElvCrypto loaded. " + JSON.stringify(ElvCrypto.exports));
-*/
     this.client = await ElvClient.FromConfigurationUrl({
       configUrl,
     });
-
+    this.client.ToggleLogging(true);
     let crypto = JSON.stringify(await this.client.Crypto.GeneratePrimaryConk());
     console.log('crypto: ' + crypto);
     const wallet = this.client.GenerateWallet();
@@ -111,5 +100,59 @@ export default class Fabric {
     );
 
     return sites.filter((value, index, list) => list.indexOf(value) === index);
+  }
+
+  async redeemCode(email, Token, name){
+    try {
+      // HERE: Function to check OTP password
+
+      //let client = yield ElvClient.FromConfigurationUrl({configUrl: "https://demov3.net955210.contentfabric.io/config"});
+      let client = this.client;
+      /*
+      const wallet = client.GenerateWallet();
+
+      const signer = wallet.AddAccount({privateKey: "0x06407eef6fa8c78afb550b4e24a88956f1a07b4a74ff76ffaacdacb4187892d6"});
+
+      client.SetSigner({signer});
+      */
+
+      this.accessCode = await client.RedeemCode({
+        issuer: "/otp/ntp/iten3Ag8TH7xwjyjkvTRqThtsUSSP1pN/QOTPM59kMU5trgj",
+        code: Token
+      });
+
+      console.log("this.accessCode: ");
+      console.log(JQ(this.accessCode));
+
+      if(!this.accessCode) {
+        //this.SetError("Invalid code");
+        return false;
+      }
+
+      //const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      //if (!re.test(String(email).toLowerCase())) {
+        //this.SetError("Invalid email");
+      //  return false;
+      //}
+      const letterNumber = /^[0-9a-zA-Z]+$/;
+      if (!(name.match(letterNumber))) {
+        //this.SetError("Invalid Chat Name");
+        return false;
+      }
+
+      this.email = email;
+      this.name = name;
+      let siteId = this.accessCode; ///iq__uwWvF1Wy9EeqWXiRU9bR3zRSJe1
+
+      return siteId;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Error redeeming code:");
+      // eslint-disable-next-line no-console
+      console.error(error);
+
+      this.SetError("Invalid code");
+      return false;
+    }
   }
 }

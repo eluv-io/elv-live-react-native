@@ -31,6 +31,7 @@ export class Navigation extends React.Component {
       stack: [sceneConfig[initialSceneName]],
     };
 
+    //Needed so BackHandler can detect the menu button on ios
     TVMenuControl.enableTVMenuKey();
 
     BackHandler.addEventListener('hardwareBackPress', () => {
@@ -68,7 +69,9 @@ export class Navigation extends React.Component {
           stack: stack.slice(0, stack.length - 1),
         };
       }else{
-        console.log("disable tv menu")
+        //Disabling the Menu on ios allows the the default action of exiting the app
+        //For some reason the user has to press twice but this could possibly be a feature
+        //So they don't accidentally exit?
         TVMenuControl.disableTVMenuKey();
         BackHandler.exitApp();
       }

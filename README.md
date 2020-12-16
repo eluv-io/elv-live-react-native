@@ -1,11 +1,11 @@
-# REACTNATIVE TVOS
+# ELUVIO LIVE TVOS
 
-A sample project to get ElvClientjs working under react native and tvos
+Watch premier and live events on the Eluvio Live Platform for TVOS
 
-## Steps to make it work
+## Steps to make Elv-client-js work for React Native TVOS
 
 1. Use https://github.com/react-native-community/react-native-tvos instead of regular react-native for creating a new project
-2. ElvClientjs must be packaged so that it recognizes react-native as a browser environment.
+2. Currently, must use the packaged version ElvClient-min.js included in the project.
 3. Install required dependencies.
 
 ```
