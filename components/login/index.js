@@ -32,10 +32,13 @@ const LoginButton = ({ onPress, title }) => (
 
 const Login = (props) => {
   const {navigation} = props;
-  const [value, setValue] = useState(0);
-  const {fabric,setState} = React.useContext(AppContext);
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+
+  const {fabric, setAppState} = React.useContext(AppContext);
   console.log("fabric: " + fabric);
-  console.log("setState: " + setState);
+  console.log("code: " + JQ(code));
+  console.log("email: " + JQ(email));
 
   return (
     <View style={styles.container}>
@@ -45,15 +48,11 @@ const Login = (props) => {
       />
       <View style={styles.formContainer}>
         <View style={styles.inputContainer}>
-          <Text style={styles.formLabel}> USERNAME </Text>
-          <LoginInput 
-            placeholder="ENTER YOUR CHAT NAME" 
-          />
-        </View>
-        <View style={styles.inputContainer}>
           <Text style={styles.formLabel}> EMAIL </Text>
           <LoginInput 
-            placeholder="ENTER YOUR EMAIL" 
+            placeholder="ENTER YOUR EMAIL"
+            value = {email}
+            onChangeText = {text => setEmail(text)}
           />
           </View>
         <View style={styles.inputContainer}>
@@ -61,6 +60,8 @@ const Login = (props) => {
           <LoginInput
             secureTextEntry={true}
             placeholder="REDEEM YOUR TICKET CODE"
+            value = {code}
+            onChangeText = {text => setCode(text)}
           />
         </View>
         <LoginButton
@@ -69,15 +70,14 @@ const Login = (props) => {
             console.log("Submit button")
             //TODO: Move onPress to App and pass in
             //try{
-              let siteId = await fabric.redeemCode("test@test","GY4UkZ","dude");
+              let siteId = await fabric.redeemCode(email,code);
               if(siteId != false){
                 console.log("Creating new Site");
                 let site = new Site({fabric, siteId});
                 console.log("loadSite");
                 await site.loadSite();
-                console.log("set State");
-                setState({site});
-                navigation.navigate('site')
+                setAppState({site});
+                navigation.navigate('site');
               }
             //}catch(e){
             //  console.error(JQ(e));
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width:'40%',
-    maxHeight:'70%',
+    maxHeight:'55%',
     borderRadius:20
   },
   formLabel: {

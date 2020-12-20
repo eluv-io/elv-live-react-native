@@ -39,10 +39,10 @@ class Site {
           "title",
           "display_title",
           "channels",
-          "episodes",
-          "playlists",
-          "seasons",
-          "series",
+          //"episodes",
+          //"playlists",
+          //"seasons",
+          //"series",
           "titles"
         ]
       });
@@ -74,9 +74,9 @@ class Site {
       );
       
       this.siteInfo.playlists = await this.loadPlaylists(versionHash, this.siteInfo.playlists);
-      this.siteInfo.series = await this.loadTitles(versionHash, "series", this.siteInfo.series);
-      this.siteInfo.seasons = await this.loadTitles(versionHash, "seasons", this.siteInfo.seasons);
-      this.siteInfo.episodes = await this.loadTitles(versionHash, "episodes", this.siteInfo.episodes);
+      //this.siteInfo.series = await this.loadTitles(versionHash, "series", this.siteInfo.series);
+      //this.siteInfo.seasons = await this.loadTitles(versionHash, "seasons", this.siteInfo.seasons);
+      //this.siteInfo.episodes = await this.loadTitles(versionHash, "episodes", this.siteInfo.episodes);
       this.siteInfo.titles = await this.loadTitles(versionHash, "titles", this.siteInfo.titles);
       this.siteInfo.channels = await this.loadTitles(versionHash, "channels", this.siteInfo.channels);
       //this.siteInfo.customizations = await this.loadCustomization();
@@ -99,8 +99,6 @@ class Site {
 
     title.versionHash = title["."] ? title["."].source : params.versionHash;
     title.objectId = client.utils.DecodeVersionHash(title.versionHash).objectId;
-
-    //title.titleId = Id.next();
 
     title.baseLinkPath = baseLinkPath;
     title.playoutOptionsLinkPath = UrlJoin(title.baseLinkPath, "sources", "default");
@@ -313,14 +311,14 @@ class Site {
             await this.client.LinkUrl({versionHash, linkPath});
 
           //For lazy loading the offerings
-          console.log("setting getAvailableOfferings");
           title.getAvailableOfferings = async () =>{
-            console.log("title " + title.displayTitle + " getAvaiableOfferings");
+            console.log("title.getAvailableOfferings " + title.displayTitle + " getAvaiableOfferings");
             title.availableOfferings = await this.getAvailableOfferings(title);
             return title.availableOfferings;
           }
 
           title.getVideoUrl = async (offeringKey) => {
+            console.log("title.getVideoUrl() ");
             if(isEmpty(offeringKey)){
               offeringKey = "default";
             }
@@ -330,16 +328,16 @@ class Site {
             }
 
             let offering = title.availableOfferings[offeringKey];
+            console.log("offering: " + JQ(offering));
             let videoUrl = null;
             
             if(offering){
               videoUrl = offering.videoUrl;
-            }else{
-
             }
 
             if(!videoUrl){
               videoUrl = await offering.getVideoUrl(offeringKey);
+              console.log("getVideoUrl finished: " + JQ(videoUrl));
             }
             return videoUrl;
           }

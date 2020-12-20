@@ -53,7 +53,7 @@ function initFabric() {
       var newNnemonic = await fabric.initFromKey({configUrl, privateKey:"0x06407eef6fa8c78afb550b4e24a88956f1a07b4a74ff76ffaacdacb4187892d6"});
       resolve(fabric);
     } catch (e) {
-      reject(e)
+      reject(e);
     }
   })
 }
@@ -82,7 +82,7 @@ export default class App extends React.Component {
     console.log("appstate: " + this.state)
     const {fabric, site} = this.state;
     return (
-      <AppContext.Provider value={{fabric, site, setState:this.handleSetState}}>
+      <AppContext.Provider value={{fabric, site, setAppState:this.handleSetState}}>
         <Navigation default="login">
             <Route name="login" component={LoginPage} />
             <Route name="site" component={SitePage} />

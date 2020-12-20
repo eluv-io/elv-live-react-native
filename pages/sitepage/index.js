@@ -33,7 +33,7 @@ class SitePage extends React.Component {
     //try{
       if(keys.length== 0){
         //TODO:
-      }else if(keys.length== 1){
+      }else if(keys.length >= 1){
         let title = site.siteInfo.titles[keys[0]];
         console.log("Loading " + JQ(title));
         let offerings = await title.getAvailableOfferings();
