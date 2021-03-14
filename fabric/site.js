@@ -11,14 +11,15 @@ const DEFAULT_SITE_CUSTOMIZATION = {
 };
 
 class Site {
-  constructor({fabric, siteId}) {
+  constructor({fabric, libraryId, siteId}) {
     this.fabric = fabric;
     this.client = fabric.client;
     this.siteId = siteId;
+    this.siteLibraryId = libraryId;
     this.titleStore = {};
   }
 
-  async loadSite() {
+  async loadSite(subtree = "/public",select=[]) {
     try {
       if(!this.siteLibraryId){
         this.siteLibraryId = await this.client.ContentObjectLibraryId({objectId: this.siteId});
@@ -28,23 +29,23 @@ class Site {
       const versionHash = await this.client.LatestVersionHash({objectId: this.siteId});
       console.log("versionHash: " + versionHash);
 
+      if(!select){
+        select = [
+          "title",
+          "display_title",
+          "streams",
+          "titles"
+        ];
+      }
+
       this.siteInfo = await this.client.ContentObjectMetadata({
         siteId: this.siteId,
         versionHash,
-        metadataSubtree: "public/asset_metadata",
+        metadataSubtree: subtree,
         resolveLinks: true,
         resolveIncludeSource: true,
         resolveIgnoreErrors: true,
-        select: [
-          "title",
-          "display_title",
-          "channels",
-          //"episodes",
-          //"playlists",
-          //"seasons",
-          //"series",
-          "titles"
-        ]
+        select
       });
 
       //console.log("asset_metadata: " + JQ(this.siteInfo));
@@ -73,12 +74,18 @@ class Site {
         "images/main_background/default"
       );
       
-      this.siteInfo.playlists = await this.loadPlaylists(versionHash, this.siteInfo.playlists);
-      //this.siteInfo.series = await this.loadTitles(versionHash, "series", this.siteInfo.series);
-      //this.siteInfo.seasons = await this.loadTitles(versionHash, "seasons", this.siteInfo.seasons);
-      //this.siteInfo.episodes = await this.loadTitles(versionHash, "episodes", this.siteInfo.episodes);
-      this.siteInfo.titles = await this.loadTitles(versionHash, "titles", this.siteInfo.titles);
-      this.siteInfo.channels = await this.loadTitles(versionHash, "channels", this.siteInfo.channels);
+      if(this.siteInfo.playlists){
+        this.siteInfo.playlists = await this.loadPlaylists(versionHash, this.siteInfo.playlists);
+      }
+
+      if(this.siteInfo.titles){
+        this.siteInfo.titles = await this.loadTitles(versionHash, "titles", this.siteInfo.titles);
+      }
+
+      if(this.siteInfo.streams){
+        this.siteInfo.streams = await this.loadTitles(versionHash, "streams", this.siteInfo.streams);
+      }
+
       //this.siteInfo.customizations = await this.loadCustomization();
       console.log("Site loaded. ");
 

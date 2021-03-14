@@ -29,6 +29,7 @@ export class Navigation extends React.Component {
     this.state = {
       sceneConfig,
       stack: [sceneConfig[initialSceneName]],
+      data:null
     };
 
     //Needed so BackHandler can detect the menu button on ios
@@ -43,14 +44,15 @@ export class Navigation extends React.Component {
     
   }
 
-  navigate = (sceneName) => {
-    if(sceneName != "login"){
-      TVMenuControl.enableTVMenuKey();
+  navigate = (sceneName, data=null) => {
+    if(sceneName != "main"){
+      //TVMenuControl.enableTVMenuKey();
     }
 
     this.setState(state => ({
       ...state,
       stack: [...state.stack, state.sceneConfig[sceneName]],
+      data
     }),() =>{
       this._animatedValue.setValue(width);
       Animated.timing(this._animatedValue, {
@@ -84,11 +86,14 @@ export class Navigation extends React.Component {
     return (
       <View style={styles.container}>
         {this.state.stack.map((scene, index) => {
+          console.log(`Navigation render: ${index} ${scene}`);
           const CurrentScene = scene.component;
           return (
-            <FadeInView key={scene.key} style={styles.scene}>
+            <FadeInView key={index} style={styles.scene}>
               <CurrentScene
                 navigation={this}
+                isActive={index == this.state.stack.length-1}
+                data={this.state.data}
               />
             </FadeInView>
           );

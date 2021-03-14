@@ -3,7 +3,6 @@ import {
   Text, 
   StyleSheet, 
   View, 
-  Image,
   TouchableOpacity,
   Button,
   TVFocusGuideView,
@@ -13,60 +12,43 @@ from 'react-native';
 import Swiper from 'react-native-swiper'
 import reactNativeTvosController from "react-native-tvos-controller"
 import AppContext from '../../AppContext'
-import {Site} from '../../fabric/site'
+import Gallery from '../../components/gallery'
+
 import { isEmpty, JQ, dateCountdown } from '../../utils';
 import { Icon } from 'react-native-elements'
 import LinearGradient from 'react-native-linear-gradient';
-import Extras from './extras'
-import Gallery from '../../components/gallery'
-var URI = require("urijs");
-var UrlJoin = require("url-join");
+
+//import { subscribeRemoteEvents, cancelRemoteSubscriptions } from '../../utils/tvos';
 
 const BLUR_OPACITY = 0.3;
 
-const defaultExtras = Extras;
-
-class SitePage extends React.Component {
+class MainPage extends React.Component {
   static contextType = AppContext
-
   constructor(props) {
     super(props);
     this.state = {
-      currentViewIndex : 0,
-      currentExtrasIndex: 0,
-      extras: []
+      currentViewIndex : 0
     }
     this.tvEventHandler = null;
+    this.sites = [];
     this.swiperRef = React.createRef();
     this.subscribed = false;
 
     this.next = this.next.bind(this);
     this.previous = this.previous.bind(this);
     this.select = this.select.bind(this);
-    //setInterval(()=>{if(this.props.isActive)this.forceUpdate()},60000);
+    setInterval(()=>{if(this.props.isActive)this.forceUpdate()},60000);
   }
 
   async componentDidMount() {
-    const {site} = this.context;
-    try{
-      let extras = [];
-      console.log("SitePage componentDidMount: site " + JQ(site.info.extras));
-      for(index in site.info.extras){
-        let extra = site.info.extras[index];
-        extra.package = await extra.resolvePackageLink();
-        extras.push(extra);
-        console.log("Found extra: " + JQ(extra));        
-      }
-      this.setState({extras});
-    }catch(error){
-      console.log(error);
-    }
-
-    //this.enableTVEventHandler();
+    console.log("MainPage componentDidMount");
+    console.log(" sites: "+ this.sites.length);
+    this.enableTVEventHandler();
   }
 
   componentWillUnmount(){
-    //this.disableTVEventHandler();
+    console.log("MainPage componentWillUnmount");
+    this.disableTVEventHandler();
   }
 
   enableTVEventHandler() {
@@ -103,25 +85,26 @@ class SitePage extends React.Component {
     if(!isActive){
       return;
     }
-
-    let {extras,currentViewIndex, isPackagesVisible} = this.state;
-    if(!isPackagesVisible){
-      return;
-    }
-
-    console.log("next() sites: " + extras);
-    if(!extras){
+    console.log("next() sites: " + this.sites);
+    if(!this.sites){
       console.log("No sites for next()");
       return;
     }
 
-    if(currentViewIndex >= extras.length - 1){
+    if(!this.swiperRef.current){
+      console.log("No swiper ref.")
+      return;
+    }
+
+    const {currentViewIndex} = this.state;
+    if(currentViewIndex >= this.sites.length - 1){
       return;
     }
     
     console.log("next " + currentViewIndex + " sites: " + extras.length);
     currentViewIndex++;
     this.setState({currentViewIndex});
+
   }
   
   previous(){
@@ -130,103 +113,142 @@ class SitePage extends React.Component {
       return;
     }
 
-    let {extras,currentViewIndex, isPackagesVisible} = this.state;
-    if(!isPackagesVisible){
-      return;
-    }
-
-    if(!extras){
+    if(!this.sites){
       console.log("No sites for previous");
       return;
     }
 
-    if(currentViewIndex == 0){
+    if(!this.swiperRef.current){
+      console.log("No swiper ref.")
       return;
     }
 
+    const {currentViewIndex} = this.state;
+    
+    if(currentViewIndex == 0){
+      return;
+    }
     console.log("previous " + currentViewIndex);
     currentViewIndex--;
     this.setState({currentViewIndex});
   }
 
-  select(item){
-    console.log("Sitepage " + JQ(item.package));
+  select(){
     const {isActive} = this.props;
     if(!isActive){
       return;
     }
 
+    if(!this.sites){
+      console.log("No sites");
+      return;
+    }
 
     const {setAppState} = this.context;
     const {navigation} = this.props;
+    const {currentViewIndex} = this.state;
 
-    let {extras,currentViewIndex, isPackagesVisible} = this.state;
-
+    console.log("select " + currentViewIndex);
     try{
-      let data = [];
-      for(const index in item.package.info.gallery){
-        let galleryItem = item.package.info.gallery[index];
-        if(galleryItem.image.url != undefined){
-          galleryItem.image = galleryItem.image.url;
-        }
-        console.log("selected item found " + JQ(galleryItem.image));
-        data.push(galleryItem);
-      }
-      navigation.navigate('gallery', data);
+      let site = this.sites[currentViewIndex];
+      setAppState({site});
+      navigation.navigate('redeem')
     }catch(e){
       console.error(e);
     }
   }
 
-  RenderPagination = ({views,currentViewIndex, isVisible}) => {
-    if(!views || !isVisible) return null;
+  RedeemButton = ({title}) => (
+      <View 
+        style={[styles.button,styles.buttonFocused]}
+        >
+        <Text style={styles.buttonText}>{title}</Text>
+      </View>
+  );
+
+  renderPagination = (index, total, context) => {
 
     const items = [];
-    for (var i = 0; i < views.length; i++){
-      console.log("paginate: " + i);
-      let view = views[i];
+    for (var i = 0; i < total; i++){
       items.push(
-        <Image
-          key = {i}
-          style={i == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}
-          source={{
-            uri: view.image_uri ,
-          }}
-        />
+        <View key={i} style={i==index ? styles.paginationActive : styles.paginationItem} />
       );
     }
 
     return (
-      <View style={styles.paginationStyle}>
+      <View style={styles.paginationStyle} >
         {items}
       </View>
     )
   }
 
-  //Create mosaic album cover
-  getGalleryCoverImage(extra){
-    const {platform} = this.context;
-    let uri = new URI(platform.getCurrentHost() + "" + extra.image);
-    //let uri = extra.images["landscape"];
-    return uri.toString();
-  }
 
   render() {
     const {platform,setAppState} = this.context;
     const {navigation, isActive} = this.props;
-    const {currentViewIndex, extras} = this.state;
+    const {currentViewIndex} = this.state;
+    const sites = platform.getSites();
+    if(isEmpty(sites)){
+      console.log("no sites");
+      return (
+        <View style={styles.container}>
+          <Text>Loading...</Text>
+        </View>
+      );
+    }
 
-    const views = [];
-    const extra = extras[currentViewIndex];
+    this.sites = [];
 
-    let data = extras;
+    let index = 0;
+    const data = [];
+    for (const key in sites){
+      let site = sites[key];
+      this.sites.push(site);
+
+      let eventTitle = null;
+      try{
+        eventTitle = site.info.event_info.event_title;
+      }catch(e){}
+
+      let eventHeader = null;
+      try{
+        eventHeader = site.info.event_info.event_header;
+      }catch(e){}
+
+      console.log("event_header: " + site.info.event_info.event_header);
+
+      let eventSub = null;
+      try{
+        eventSub = site.info.event_info.event_subheader;
+      }catch(e){}
+      console.log("event_subheader: " + site.info.event_info.event_subheader);
+
+      let date = null;
+      let countDown = null;
+      try{
+        date = site.info.event_info.date;
+        countDown = dateCountdown(date);
+      }catch(e){}
+
+      let releaseDate = null;
+      try{
+        releaseDate = site.info.event_info.date;
+      }catch(e){}
+
+      let item = {};
+      item.title = eventTitle;
+      item.description = eventSub;
+      item.image = site.tv_main_background;
+      item.logo = site.tv_main_logo;
+      item.release_date = countDown;
+      data.push(item);
+
+      index++;
+    }
+
     return (
       <View style={styles.container}>
-        <Gallery 
-          isActive={isActive} 
-          layout={0} data={extras}
-          select={this.select}
-          />
+        <Gallery isActive={isActive} layout={1} data={data}/>
       </View>
     );
   }
@@ -242,6 +264,7 @@ const styles = StyleSheet.create({
   background: {
     position: "absolute",
     alignItems: 'center',
+    left:'20%',
     justifyContent: "center",
     backgroundColor: 'rgba(0,0,0,0)',
     width: "100%",
@@ -415,4 +438,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SitePage;
+export default MainPage;

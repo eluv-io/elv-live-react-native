@@ -1,3 +1,5 @@
+import { intervalToDuration,formatDuration, format, isAfter } from "date-fns";
+
 export const JQ =  obj => JSON.stringify(obj, null, 2);
 
 export const isEmpty = obj => {
@@ -13,4 +15,24 @@ export const CreateID = num => {
 
 export const RandomInt = max => {
   return Math.floor(Math.random() * Math.floor(max));
+}
+
+export const dateCountdown = (str) =>{
+
+  //try{
+    let date = new Date(str);
+    if(isAfter(new Date(),date)){
+      return null;
+    }
+
+    console.log("Date: " + JQ(date));
+    let duration = intervalToDuration({
+      start: new Date(),
+      end: date
+    });
+    return formatDuration(duration,{format:["years","months","days","hours","minutes"]}).replace("minutes","minutes\n");
+  //}catch(e){
+  //  console.log("Could not convert date: " + str + " error:" + JQ(e));
+  //}
+  return null;
 }
