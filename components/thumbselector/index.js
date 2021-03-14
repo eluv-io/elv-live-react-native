@@ -7,7 +7,9 @@ import {
   TouchableOpacity,
   Button,
   TVFocusGuideView,
-  TVEventHandler
+  TVEventHandler,
+  FlatList,
+  SafeAreaView
 } 
 from 'react-native';
 import AppContext from '../../AppContext'
@@ -35,7 +37,7 @@ class ThumbSelector extends React.Component {
       showText: props.showText === undefined? true : props.showText
     }
     this.tvEventHandler = null;
-    this.swiperRef = React.createRef();
+    this.flatlist = React.createRef();
     this.subscribed = false;
 
     this.showControls = this.showControls.bind(this);
@@ -138,6 +140,10 @@ class ThumbSelector extends React.Component {
       this.controlsTimer.start();
     }
 
+    if(this.flatlist.current){
+      this.flatlist.current.scrollToIndex({index:currentViewIndex});
+    }
+
     if(next){
       next();
     }
@@ -171,6 +177,10 @@ class ThumbSelector extends React.Component {
       this.controlsTimer.start();
     }
 
+    if(this.flatlist.current){
+      this.flatlist.current.scrollToIndex({index:currentViewIndex});
+    }
+
     if(previous){
       previous();
     }
@@ -195,13 +205,27 @@ class ThumbSelector extends React.Component {
     }
   }
 
-  RenderContent= ({title,description}) => {
+  RenderItem = ({ item, index }) => {
+    let {currentViewIndex,isShowingControls} = this.state;
+    console.log("RenderItem " + index);
+    return (
+      <FadeInView key={isShowingControls} duration={1500} fadeOut={isShowingControls == false} >
+      <Image
+        style={index == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}
+        source={{
+          uri: item.image,
+        }} />
+      </FadeInView>
+    );
+  }
+
+  RenderContent = ({title,description}) => {
     let {currentViewIndex, data, isShowingControls, showText} = this.state;
     if(!data) return null;
 
     const items = [];
+    /*
     for (var i = 0; i < data.length; i++){
-      console.log("paginate: " + i);
       let view = data[i];
       items.push(
         <Image
@@ -213,46 +237,68 @@ class ThumbSelector extends React.Component {
         />
       );
     }
+    */
+    
+    for (var i = 0; i < data.length; i++){
+      let item = data[i];
+      item.index = i;
+      item.id = item.image;
+      items.push(
+        item
+      );
+    }
 
     return (
-    <FadeInView key={isShowingControls} duration={1500} fadeOut={isShowingControls == false} style={styles.controlsContainer}>
+      <View style={styles.controlsContainer}>
+        <FadeInView key={isShowingControls} duration={1500} fadeOut={isShowingControls == false} style={styles.controlsContainer}>
           {showText? <View style={styles.contentContainer}>
               {title ? <Text numberOfLines={1} style={styles.headerText}>{title}</Text> : null }
               {description? <Text numberOfLines={3} style={styles.subheaderText}>{description}</Text> : null }
           </View> : null }
+          </FadeInView>
+          {/*
             <View 
               style={styles.nextContainer}
             >
-              <Icon
-                iconStyle={this.state.focused != "next" ? styles.nextButton: styles.buttonFocused}
-                name='chevron-right'
-                type='fontawesome'
-                color='#ffffff'
-                size={70}
-              />
-            </View>
+          <Icon
+            iconStyle={this.state.focused != "next" ? styles.nextButton: styles.buttonFocused}
+            name='chevron-right'
+            type='fontawesome'
+            color='#ffffff'
+            size={70}
+          />
+        </View>
 
-            <View 
-              style={styles.previousContainer} 
-            >
-              <Icon
-                iconStyle={this.state.focused != "previous" ? styles.previousButton: styles.buttonFocused}
-                name='chevron-left'
-                type='fontawesome'
-                color='#ffffff'
-                size={70}
-              />
-            </View>
-
-      <View style={styles.paginationStyle}>
-        {items}
+        <View 
+          style={styles.previousContainer} 
+        >
+          <Icon
+            iconStyle={this.state.focused != "previous" ? styles.previousButton: styles.buttonFocused}
+            name='chevron-left'
+            type='fontawesome'
+            color='#ffffff'
+            size={70}
+          />
+        </View>
+        */}
+        <View style={styles.paginationStyle}>
+          <FlatList
+            data={items}
+            renderItem={({item,index,separator}) => {
+              return this.RenderItem({item,index,separator});
+            }}
+            keyExtractor={item => item.id}
+            horizontal={true}
+            ref = {this.flatlist}
+            />
+          </View>
       </View>
-      </FadeInView>
+      
     )
   }
 
   render() {
-    const {currentViewIndex,data,showBackground} = this.state;
+    const {currentViewIndex,data,showBackground,isShowingControls} = this.state;
     console.log("Thumbselector render current index: " + JQ(currentViewIndex));
     const views = [];
 
@@ -276,11 +322,9 @@ class ThumbSelector extends React.Component {
       imageUrl = item.image;
     }catch(e){}
 
-    console.log("Current image: " + JQ(imageUrl));
-
     return (
         <View style={styles.container}>
-          <FadeInView key={currentViewIndex} duration={1500} start={.5} end={1} style={styles.container}>
+          <FadeInView key={currentViewIndex} duration={1500} start={.1} end={1} style={styles.container}>
           {showBackground? <Image
             style={styles.mainImage}
             source={{
@@ -400,11 +444,14 @@ const styles = StyleSheet.create({
   },  
   paginationStyle: {
     position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
+    //alignItems: 'center',
+    //justifyContent: 'center',
+    flex: 1,
     bottom: 60,
-    flexDirection: 'row',
-    width: "100%"
+    //flexDirection: 'row',
+    width: "100%",
+    paddingLeft: 160,
+    paddingRight: 160
   },
   paginationImage: {
     marginRight:5,

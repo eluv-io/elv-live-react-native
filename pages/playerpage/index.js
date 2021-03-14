@@ -23,7 +23,7 @@ class PlayerPage extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = SitePage.defaultState;
+    this.state = PlayerPage.defaultState;
 
     this.tvEventHandler = null;
     this.showControls = this.showControls.bind(this);
@@ -211,12 +211,16 @@ class PlayerPage extends React.Component {
 
   async reload(){
     console.log("player reload");
-    this.setState(SitePage.defaultState);    
-    this.disableTVEventHandler();
-    const {appReload} = this.context;
-    await appReload();
-    this.enableTVEventHandler();
-    await this.init();
+    try{
+      this.setState(PlayerPage.defaultState);    
+      this.disableTVEventHandler();
+      const {appReload} = this.context;
+      await appReload();
+      this.enableTVEventHandler();
+      await this.init();
+    }catch(e){
+      console.log("Error reloading: "+JQ(e));
+    }
   }
 
   async componentDidMount() {

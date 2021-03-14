@@ -2,7 +2,20 @@ import React, { useRef, useEffect } from 'react';
 import { Animated, Text, View } from 'react-native';
 
 export default FadeInView = (props) => {
-
+/*
+  console.log("FadeInView: " + props.run);
+  if(props.run === false){
+    return (
+        <View                 // Special animatable View
+          style={{
+            ...props.style
+          }}
+        >
+          {props.children}
+        </View>
+      );
+  }
+*/
   let start = props.start === undefined ? 0 : props.start;
   let end = props.end === undefined ?  1 : props.end;
   let duration = props.duration === undefined ? 1000 : props.duration;

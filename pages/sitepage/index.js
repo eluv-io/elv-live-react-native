@@ -50,6 +50,16 @@ class SitePage extends React.Component {
     const {site} = this.context;
     try{
       let extras = [];
+
+      //Push the main event site as the first extra
+      let main = {};
+      main.title = site.info.event_info.event_title;
+      main.description = site.info.event_info.event_subheader;
+      main.image = site.tv_main_background;
+      main.release_date = site.info.event_info.date;
+      main.channels = site.channels;
+      extras.push(main);
+
       console.log("SitePage componentDidMount: site " + JQ(site.info.extras));
       for(index in site.info.extras){
         let extra = site.info.extras[index];
@@ -150,7 +160,7 @@ class SitePage extends React.Component {
   }
 
   select(item){
-    console.log("Sitepage " + JQ(item.package));
+    console.log("Sitepage " + JQ(item));
     const {isActive} = this.props;
     if(!isActive){
       return;
@@ -161,18 +171,27 @@ class SitePage extends React.Component {
     const {navigation} = this.props;
 
     let {extras,currentViewIndex, isPackagesVisible} = this.state;
+    try{
+      if(item.channels != undefined){
+        navigation.navigate('player');
+      }
+    }catch(e){
+      console.error(e);
+    }
 
     try{
-      let data = [];
-      for(const index in item.package.info.gallery){
-        let galleryItem = item.package.info.gallery[index];
-        if(galleryItem.image.url != undefined){
-          galleryItem.image = galleryItem.image.url;
+      if(item.package != undefined){
+        let data = [];
+        for(const index in item.package.info.gallery){
+          let galleryItem = item.package.info.gallery[index];
+          if(galleryItem.image.url != undefined){
+            galleryItem.image = galleryItem.image.url;
+          }
+          console.log("selected item found " + JQ(galleryItem.image));
+          data.push(galleryItem);
         }
-        console.log("selected item found " + JQ(galleryItem.image));
-        data.push(galleryItem);
+        navigation.navigate('gallery', data);
       }
-      navigation.navigate('gallery', data);
     }catch(e){
       console.error(e);
     }
@@ -220,11 +239,12 @@ class SitePage extends React.Component {
     const extra = extras[currentViewIndex];
 
     let data = extras;
+    console.log("SitePage render() " + JQ(extras));
     return (
       <View style={styles.container}>
         <Gallery 
           isActive={isActive} 
-          layout={0} data={extras}
+          layout={0} data={data}
           select={this.select}
           />
       </View>

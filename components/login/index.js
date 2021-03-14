@@ -70,6 +70,9 @@ class Login extends React.Component {
   const {navigation, isActive} = this.props;
   let {code, focused} = this.state;
 
+  //XXX:
+  code = "RLnkQi9";
+
   const {fabric, platform, site, setAppState} = this.context;
   let tenantId = site.info.tenant_id;
   let siteId = site.objectId;

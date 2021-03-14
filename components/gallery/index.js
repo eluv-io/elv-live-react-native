@@ -109,6 +109,8 @@ class Gallery extends React.Component {
     
     console.log("next " + currentViewIndex + " sites: " + data.length);
     this.swiperRef.current.scrollBy(1, true);
+    currentViewIndex++;
+    this.setState({currentViewIndex});
     if(next){
       next();
     }
@@ -120,7 +122,7 @@ class Gallery extends React.Component {
       return;
     }
 
-    const {currentViewIndex} = this.state;
+    let {currentViewIndex} = this.state;
 
     if(!data){
       console.log("No sites for previous");
@@ -138,6 +140,9 @@ class Gallery extends React.Component {
 
     console.log("previous " + currentViewIndex);
     this.swiperRef.current.scrollBy(-1, true);
+    currentViewIndex--;
+    this.setState({currentViewIndex});
+
     if(previous){
       previous();
     }
@@ -161,10 +166,11 @@ class Gallery extends React.Component {
   }
 
   renderPagination = (index, total, context) => {
+    const {currentViewIndex} = this.state;
     const items = [];
     for (var i = 0; i < total; i++){
       items.push(
-        <View key={i} style={i==index ? stylesCommon.paginationActive : stylesCommon.paginationItem} />
+        <View key={i} style={i==currentViewIndex ? stylesCommon.paginationActive : stylesCommon.paginationItem} />
       );
     }
 
@@ -191,6 +197,7 @@ class Gallery extends React.Component {
     const views = [];
 
     let index = 0;
+
     for (const key in data){
       let item = data[key];
       //console.log("New item: " + JQ(item));
@@ -229,14 +236,9 @@ class Gallery extends React.Component {
     return (
       <View style={styles.container}>
           <Swiper
-            style={styles.wrapper} 
             showsButtons={false}
             loop={false}
-            onIndexChanged={
-              (index) => {
-                console.log("Swiper view changed: " + index);
-                this.setState({currentViewIndex:index});
-            }}
+            index={currentViewIndex}
             ref={this.swiperRef}
             renderPagination={this.renderPagination}
             >
@@ -308,7 +310,9 @@ class Gallery extends React.Component {
       }catch(e){}
 
       let buttonText = "Enter Event";
-
+      changeViewIndex=(index)=>{
+        this.setState({currentViewIndex:index});
+      }
       views.push(
         <View key = {key} style={styles.container}>
           <Image
@@ -348,14 +352,9 @@ class Gallery extends React.Component {
     return (
       <View style={styles.container}>
           <Swiper
-            style={styles.wrapper} 
             showsButtons={false}
             loop={false}
-            onIndexChanged={
-              (index) => {
-                console.log("Swiper view changed: " + index);
-                this.setState({currentViewIndex:index});
-            }}
+            index={currentViewIndex}
             ref={this.swiperRef}
             renderPagination={this.renderPagination}
             >
