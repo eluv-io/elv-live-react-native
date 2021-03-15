@@ -57,9 +57,13 @@ class Gallery extends React.Component {
     this.imageWidths = [];
     let width=0;
     let totalWidth = WINDOWWIDTH;
-    for (let i = 0; i < 10; i++){
-      width = RandomInt(WINDOWWIDTH*.2,WINDOWWIDTH*.8);
-      if(totalWidth - width > WINDOWWIDTH*.25){
+    for (let i = 0; i < 20; i++){
+      width = RandomInt(WINDOWWIDTH*.2,WINDOWWIDTH*.6);
+      if(width > WINDOWWIDTH *.5){
+        width = WINDOWWIDTH;
+      }
+
+      if(totalWidth - width > WINDOWWIDTH*.2){
         totalWidth -= width;
       }else{
         width = totalWidth;
@@ -209,43 +213,47 @@ class Gallery extends React.Component {
     try{
       let gallery = item.package.info.gallery;
 
-      if(gallery.length > 4){
+      if(gallery.length > 3){
         height = "50%"
       }
 
       if(gallery.length > 0){
-        let items = [];
+        let items = this.items;
         let index = 0;
-        for (key in gallery){
-          if(index > this.imageWidths.length-1){
-            break;
-          }
+        if(!items){
+          items = [];
+          for (key in gallery){
+            if(index > this.imageWidths.length-1){
+              break;
+            }
 
-          let galleryItem = gallery[key];
-          let width = this.imageWidths[index];
-          console.log("RenderBackground galleryItem: " + galleryItem.image);
-          let image = galleryItem.image.url !== undefined ? galleryItem.image.url : galleryItem.image;
-          items.push(
-          <View 
-            style={{
-              width,
-              height,
-              padding:5
+            let galleryItem = gallery[key];
+            let width = this.imageWidths[index];
+            console.log("RenderBackground galleryItem: " + galleryItem.image);
+            let image = galleryItem.image.url !== undefined ? galleryItem.image.url : galleryItem.image;
+            items.push(
+            <View 
+              style={{
+                width,
+                height,
+                padding:5
+                }}
+                key={key}
+            >
+            <Image
+              key={image}
+              style={{width:"100%",height:"100%"}}
+              source={{
+                uri: image
               }}
-              key={key}
-          >
-          <Image
-            key={image}
-            style={{width:"100%",height:"100%"}}
-            source={{
-              uri: image,
-            }}
-            resizeMode="cover"
-          />
-          </View>
-          );
-          index++;
+              resizeMode="cover"
+            />
+            </View>
+            );
+            index++;
+          }
         }
+        this.items = items;
 
         return(
 
@@ -272,7 +280,7 @@ class Gallery extends React.Component {
         <Image
           style={styles.mainImage}
           source={{
-            uri: item.image,
+            uri: item.image
           }}
         />
         </FadeInView>
