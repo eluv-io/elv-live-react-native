@@ -31,8 +31,7 @@ class ThumbSelector extends React.Component {
     this.state = {
       currentViewIndex : 0,
       layout: props.layout || 0,
-      data: props.data || null,
-      isShowingControls: true,
+      isShowingControls: false,
       showBackground: props.showBackground === undefined? true : props.showBackground,
       showText: props.showText === undefined? true : props.showText
     }
@@ -47,24 +46,22 @@ class ThumbSelector extends React.Component {
   }
   
   async componentDidMount() {
-    this.controlsTimer = Timer(() => {
-      console.log("timeout!");
-      this.setState({
-        isShowingControls: false
-      });
-    }, FADE_MS);
-    this.enableTVEventHandler();
+    await this.enableTVEventHandler();
+    if(this.props.showControls){
+      this.showControls();
+    }
+
   }
 
   componentWillUnmount(){
     this.disableTVEventHandler();
   }
 
-  enableTVEventHandler() {
+  async enableTVEventHandler() {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
-      const {currentViewIndex, views, isShowingControls} = page.state;
-      console.log(evt.eventType);
+      const {isShowingControls} = page.state;
+      console.log("isShowingControls " + isShowingControls + " " + evt.eventType);
       if(!isShowingControls){
         await page.showControls();
         return;
@@ -81,7 +78,7 @@ class ThumbSelector extends React.Component {
       } else if (evt && evt.eventType === 'playPause') {
 
       } else if (evt && evt.eventType === 'select') {
-        page._select();
+        await page._select();
       }
     });
   }
@@ -90,20 +87,35 @@ class ThumbSelector extends React.Component {
     if (this.tvEventHandler) {
       this.tvEventHandler.disable();
       delete this.tvEventHandler;
+      this.tvEventHandler = null;
     }
   }
 
   async showControls(){
     const {platform,fabric} = this.context;
     let {isShowingControls, currentViewIndex} = this.state;
+    let {onShowControls, isActive} = this.props;
     if(isShowingControls){
-      return;
+        return;
     }
 
     console.log("Show controls")
     isShowingControls = true;
     this.setState({isShowingControls});
-    this.controlsTimer.start();
+    if(this.controlsTimer){
+      this.controlsTimer.start();
+    }else{
+      this.controlsTimer = Timer(() => {
+        if(!isActive) return;
+        console.log("timeout!");
+        this.setState({
+          isShowingControls: false
+        });
+      }, FADE_MS);
+    }
+    if(onShowControls != undefined){
+      onShowControls();
+    }
   }
   
   hideControls(){
@@ -112,20 +124,19 @@ class ThumbSelector extends React.Component {
   }
 
   _next(){
-    const {isActive, next} = this.props;
+    const {isActive, data,next} = this.props;
     if(!isActive){
       return;
     }
 
-    let {currentViewIndex,data,isShowingControls} = this.state;
+    let {currentViewIndex,isShowingControls} = this.state;
     if(!isShowingControls){
       console.log("Not showing controls");
       return;
     }
 
-    console.log("next() data: " + data);
     if(!data){
-      console.log("No sites for next()");
+      console.log("No data for next()");
       return;
     }
 
@@ -150,12 +161,12 @@ class ThumbSelector extends React.Component {
   }
   
   _previous(){
-    const {isActive, previous} = this.props;
+    const {isActive, data, previous} = this.props;
     if(!isActive){
       return;
     }
 
-    let {currentViewIndex,data,isShowingControls} = this.state;
+    let {currentViewIndex,isShowingControls} = this.state;
 
     if(!isShowingControls){
       return;
@@ -187,19 +198,19 @@ class ThumbSelector extends React.Component {
   }
 
   _select(){
-    const {isActive,select} = this.props;
-    if(!isActive || !select){
+    const {isActive,data,select} = this.props;
+    if(!isActive || !select || !data){
       return;
     }
 
-    const {currentViewIndex,data,isShowingControls} = this.state;
+    const {currentViewIndex,isShowingControls} = this.state;
     if(!isShowingControls){
       return;
     }
-    console.log("select " + currentViewIndex);
     try{
       let selected = data[currentViewIndex];
-      select(selected);
+      console.log("Thumb select " + currentViewIndex);
+      select({item:selected,index:currentViewIndex});
     }catch(e){
       console.error(e);
     }
@@ -220,24 +231,11 @@ class ThumbSelector extends React.Component {
   }
 
   RenderContent = ({title,description}) => {
-    let {currentViewIndex, data, isShowingControls, showText} = this.state;
+    let {currentViewIndex, isShowingControls, showText} = this.state;
+    let {data} = this.props;
     if(!data) return null;
 
     const items = [];
-    /*
-    for (var i = 0; i < data.length; i++){
-      let view = data[i];
-      items.push(
-        <Image
-          key = {i}
-          style={i == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}
-          source={{
-            uri: view.image,
-          }}
-        />
-      );
-    }
-    */
     
     for (var i = 0; i < data.length; i++){
       let item = data[i];
@@ -250,37 +248,12 @@ class ThumbSelector extends React.Component {
 
     return (
       <View style={styles.controlsContainer}>
-        <FadeInView key={isShowingControls} duration={1500} fadeOut={isShowingControls == false} style={styles.controlsContainer}>
+        <FadeInView key={isShowingControls} duration={isShowingControls? 500:1500} fadeOut={isShowingControls == false} style={styles.controlsContainer}>
           {showText? <View style={styles.contentContainer}>
               {title ? <Text numberOfLines={1} style={styles.headerText}>{title}</Text> : null }
               {description? <Text numberOfLines={3} style={styles.subheaderText}>{description}</Text> : null }
           </View> : null }
           </FadeInView>
-          {/*
-            <View 
-              style={styles.nextContainer}
-            >
-          <Icon
-            iconStyle={this.state.focused != "next" ? styles.nextButton: styles.buttonFocused}
-            name='chevron-right'
-            type='fontawesome'
-            color='#ffffff'
-            size={70}
-          />
-        </View>
-
-        <View 
-          style={styles.previousContainer} 
-        >
-          <Icon
-            iconStyle={this.state.focused != "previous" ? styles.previousButton: styles.buttonFocused}
-            name='chevron-left'
-            type='fontawesome'
-            color='#ffffff'
-            size={70}
-          />
-        </View>
-        */}
         <View style={styles.paginationStyle}>
           <FlatList
             data={items}
@@ -290,16 +263,17 @@ class ThumbSelector extends React.Component {
             keyExtractor={item => item.id}
             horizontal={true}
             ref = {this.flatlist}
+            contentContainerStyle={styles.flatListContainer}
             />
           </View>
       </View>
-      
     )
   }
 
   render() {
-    const {currentViewIndex,data,showBackground,isShowingControls} = this.state;
-    console.log("Thumbselector render current index: " + JQ(currentViewIndex));
+    const {currentViewIndex,showBackground,isShowingControls} = this.state;
+    const {data} = this.props;
+    console.log("Thumbselector render current index: " + JQ(data));
     const views = [];
 
     if(!data){
@@ -323,7 +297,7 @@ class ThumbSelector extends React.Component {
     }catch(e){}
 
     return (
-        <View style={styles.container}>
+        <View style={showBackground?[styles.container,styles.blackBackground]:styles.container}>
           <FadeInView key={currentViewIndex} duration={1500} start={.1} end={1} style={styles.container}>
           {showBackground? <Image
             style={styles.mainImage}
@@ -331,6 +305,8 @@ class ThumbSelector extends React.Component {
               uri: imageUrl
             }}
           /> : null }
+          </FadeInView>
+          <FadeInView key={isShowingControls} duration={isShowingControls? 500:1500} fadeOut={isShowingControls == false} style={styles.controlsContainer}>
           <LinearGradient 
             start={{x: 0, y: 1}} end={{x: 0, y: 0}} 
             colors={['rgba(0,0,0,.9)', 'rgba(0,0,0,.5)', 'rgba(0,0,0,0)']} 
@@ -354,19 +330,24 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    position: "absolute",
+    alignItems: 'center',
+    justifyContent: "center",
+    width: "100%",
+    height: "100%",
+    backgroundColor: "transparent",
+  },
+  blackBackground: {
+    backgroundColor: "black",
+  },
+  background: {
     backgroundColor: "black",
     position: "absolute",
     alignItems: 'center',
     justifyContent: "center",
     width: "100%",
-    height: "100%"
-  },
-  background: {
-    position: "absolute",
-    alignItems: 'center',
-    justifyContent: "center",
-    width: "100%",
-    height: "100%"
+    height: "100%",
+    flex: 1,
   },
   noborder: {
     borderWidth: 0,
@@ -441,14 +422,20 @@ const styles = StyleSheet.create({
   },
   noOpacity: {
     opacity:0
-  },  
+  },
+  flatListContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexGrow: 1,
+  },
   paginationStyle: {
     position: 'absolute',
-    //alignItems: 'center',
-    //justifyContent: 'center',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     flex: 1,
     bottom: 60,
-    //flexDirection: 'row',
+    flexDirection: 'row',
     width: "100%",
     paddingLeft: 160,
     paddingRight: 160
@@ -518,7 +505,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 36,
     fontWeight: "300"
-  },
+  }
 });
 
 export default ThumbSelector;

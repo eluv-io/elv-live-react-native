@@ -160,7 +160,7 @@ class SitePage extends React.Component {
   }
 
   select(item){
-    console.log("Sitepage " + JQ(item));
+    console.log("Sitepage select" + JQ(item));
     const {isActive} = this.props;
     if(!isActive){
       return;
@@ -183,11 +183,10 @@ class SitePage extends React.Component {
       if(item.package != undefined){
         let data = [];
         for(const index in item.package.info.gallery){
-          let galleryItem = item.package.info.gallery[index];
+          let galleryItem = {...item.package.info.gallery[index]};
           if(galleryItem.image.url != undefined){
             galleryItem.image = galleryItem.image.url;
           }
-          console.log("selected item found " + JQ(galleryItem.image));
           data.push(galleryItem);
         }
         navigation.navigate('gallery', data);

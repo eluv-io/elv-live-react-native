@@ -39,6 +39,7 @@ class GalleryPage extends React.Component {
     this.subscribed = false;
 
     this.showControls = this.showControls.bind(this);
+    this.hideControls = this.hideControls.bind(this);
     this._next = this._next.bind(this);
     this._previous = this._previous.bind(this);
     this._select = this._select.bind(this);
@@ -176,7 +177,7 @@ class GalleryPage extends React.Component {
     }
   }
 
-  _select(){
+  _select({item,index}){
     const {isActive,select} = this.props;
     if(!isActive || !select){
       return;
@@ -188,8 +189,7 @@ class GalleryPage extends React.Component {
     }
     console.log("select " + currentViewIndex);
     try{
-      let selected = data[currentViewIndex];
-      select(selected);
+      
     }catch(e){
       console.error(e);
     }
@@ -224,7 +224,7 @@ class GalleryPage extends React.Component {
 
     return (
         <View style={styles.container}>
-          <ThumbSelector isActive data={data} showBackground={true}/>
+          <ThumbSelector isActive data={data} showBackground={true} showControls={true}/>
         </View>
     );
   }

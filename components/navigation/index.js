@@ -28,8 +28,7 @@ export class Navigation extends React.Component {
 
     this.state = {
       sceneConfig,
-      stack: [sceneConfig[initialSceneName]],
-      data:null
+      stack: [{scene:sceneConfig[initialSceneName],data:null}],
     };
 
     //Needed so BackHandler can detect the menu button on ios
@@ -51,8 +50,7 @@ export class Navigation extends React.Component {
 
     this.setState(state => ({
       ...state,
-      stack: [...state.stack, state.sceneConfig[sceneName]],
-      data
+      stack: [...state.stack, {scene:state.sceneConfig[sceneName],data}],
     }),() =>{
       this._animatedValue.setValue(width);
       Animated.timing(this._animatedValue, {
@@ -65,10 +63,10 @@ export class Navigation extends React.Component {
 
   goBack = () => {
     this.setState(state => {
-      const { stack } = state;
+      const { stack} = state;
       if (stack.length > 1) {
         return {
-          stack: stack.slice(0, stack.length - 1),
+          stack: stack.slice(0, stack.length - 1)
         };
       }else{
         //Disabling the Menu on ios allows the the default action of exiting the app
@@ -85,7 +83,7 @@ export class Navigation extends React.Component {
   render() {
     return (
       <View style={styles.container}>
-        {this.state.stack.map((scene, index) => {
+        {this.state.stack.map(({scene,data}, index) => {
           console.log(`Navigation render: ${index} ${scene}`);
           const CurrentScene = scene.component;
           return (
@@ -93,7 +91,7 @@ export class Navigation extends React.Component {
               <CurrentScene
                 navigation={this}
                 isActive={index == this.state.stack.length-1}
-                data={this.state.data}
+                data={data}
               />
             </FadeInView>
           );

@@ -4,6 +4,7 @@ import Video from 'react-native-video';
 import { JQ } from '../../utils';
 import Timer from '../../utils/timer';
 import AppContext from '../../AppContext'
+import ThumbSelector from '../../components/thumbselector'
 var URI = require("urijs");
 
 const THUMBWIDTH = 300;
@@ -84,7 +85,7 @@ class PlayerPage extends React.Component {
           console.log("Found view: " + JQ(view));
           let uri = new URI(platform.getCurrentHost() + "" + view.image_uri);
           uri.addSearch("width",THUMBWIDTH);
-          view.image_uri = uri.toString();
+          view.image = uri.toString();
           console.log("Created image uri with width: " + view.image_uri);
           if(view.currently_selected){
             currentViewIndex = index;
@@ -166,20 +167,14 @@ class PlayerPage extends React.Component {
       return;
     }
 
-    if(currentViewIndex == 0){
-      return;
-    }
-
-    currentViewIndex--;
-    console.log("previous " + currentViewIndex);
-    this.setState({currentViewIndex});
     if(this.controlsTimer){
       this.controlsTimer.start();
     }
   }
 
-  async select(){
+  async select({item,index}){
     const {isActive} = this.props;
+    console.log("Player select " + index);
     if(!isActive){
       return;
     }
@@ -189,21 +184,16 @@ class PlayerPage extends React.Component {
       return;
     }
 
-    let {currentViewIndex,views,isShowingControls,
-        channelHash, offering, sid} = this.state;
+    let {views, channelHash, offering, sid} = this.state;
 
-    if(!isShowingControls){
-      return;
-    }
-    
     if(!views || views.length == 0){
       console.log("No views for select()");
       return;
     }
 
-    console.log("select " + currentViewIndex);
+    console.log("player channel select " + index);
     try{
-      await fabric.switchChannelView({channelHash, offering, sid, view:currentViewIndex});
+      await fabric.switchChannelView({channelHash, offering, sid, view:index});
     }catch(e){
       console.error(e);
     }
@@ -224,7 +214,7 @@ class PlayerPage extends React.Component {
   }
 
   async componentDidMount() {
-    this.enableTVEventHandler();
+    //this.enableTVEventHandler();
     await this.init();
   }
 
@@ -260,9 +250,8 @@ class PlayerPage extends React.Component {
 
   }
 
-
   componentWillUnmount() {
-    this.disableTVEventHandler();
+    //this.disableTVEventHandler();
   }
 
   videoError = (error) => {
@@ -302,15 +291,15 @@ class PlayerPage extends React.Component {
 
   render() {
     const {site,setState} = this.context;
-    let {videoUrl, currentViewIndex, views, error} = this.state;
-    console.log("SitePage: videoUrl " + videoUrl + " error: " +  JQ(error));
+    let {videoUrl, views, error} = this.state;
+    console.log("PlayerPage: videoUrl " + videoUrl + " error: " +  JQ(error));
 
     if(error != null){
       console.log("Error loading video: " + JQ(error));
       return (
       <View style={styles.container}>
         <Text style={styles.text} >We're sorry. Content is not available right now.</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.retryButton} 
           activeOpacity ={0.6}
           hasTVPreferredFocus={true}
@@ -323,6 +312,7 @@ class PlayerPage extends React.Component {
       </View>
       );
     }
+    console.log("PlayerPage: views " + JQ(views));
 
    if(!videoUrl){
       return (
@@ -332,9 +322,7 @@ class PlayerPage extends React.Component {
       );
     }
 
-    console.log("No error");
-
-   return (
+    return (
     <View style={styles.container}>
         <Video source={{uri: videoUrl}}   // Can be a URL or a local file.
           ref={(ref) => {
@@ -345,7 +333,14 @@ class PlayerPage extends React.Component {
           style={styles.video} 
           controls={false}
           />
-          <this.RenderPagination index={currentViewIndex}/>
+          {/*<this.RenderPagination index={currentViewIndex}/> */}
+          <ThumbSelector 
+            isActive
+            data={views} 
+            showBackground={false}
+            select={this.select}
+            onShowControls={this.showControls}
+            />
     </View>
   );
   }
@@ -389,11 +384,6 @@ const styles = StyleSheet.create({
     width:THUMBWIDTH,
     height:THUMBWIDTH * 9/16
   },
-  text: {
-    color: 'white',
-    fontSize: 20,
-    margin:30
-  },
   retryButton: {
     alignItems: 'center',
     justifyContent: 'center',    
@@ -414,6 +404,14 @@ const styles = StyleSheet.create({
     textShadowColor: 'gray',
     letterSpacing: 7,
     fontFamily: "HelveticaNeue",
+  },
+  text: {
+    fontFamily: "Helvetica",
+    textAlign: 'center',
+    margin:60,
+    color: '#fff',
+    fontSize: 36,
+    fontWeight: "500"
   },
 });
 

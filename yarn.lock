@@ -8332,12 +8332,22 @@ react-native-fade-in-out@^1.0.5:
   resolved "https://registry.yarnpkg.com/react-native-fade-in-out/-/react-native-fade-in-out-1.0.5.tgz#f1b2163b723b8b1ad442333405c4a25c6ce7f2a9"
   integrity sha512-3yp1/zuAKk4kJiDTHpHIwbL93nzyEO/2OTqy2YsauYhj7GDJup+WvOM4tZGZCeqVFfoJBacu+eDmZ9SkcyO1gg==
 
+react-native-fb-collage@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/react-native-fb-collage/-/react-native-fb-collage-1.0.7.tgz#7de412ba2b60e5f4d5e5472b425bccfaee0db94d"
+  integrity sha512-mX6drrEvSQ5cOT8ekPUd05ASY3lzzldbqKHYNmQWTgZ8eLb7ZGNBlEpcM+GZAyuT1rY8KX60ucFVG9tnPC+zfA==
+
 react-native-get-random-values@^1.5.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/react-native-get-random-values/-/react-native-get-random-values-1.5.0.tgz#91cda18f0e66e3d9d7660ba80c61c914030c1e05"
   integrity sha512-LK+Wb8dEimJkd/dub7qziDmr9Tw4chhpzVeQ6JDo4czgfG4VXbptRyOMdu8503RiMF6y9pTH6ZUTkrrpprqT7w==
   dependencies:
     fast-base64-decode "^1.0.0"
+
+react-native-images-collage@^3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/react-native-images-collage/-/react-native-images-collage-3.3.0.tgz#a2e01b10f2be8c2caac9d4a7e09e54ea3e9dae1c"
+  integrity sha512-lZcJMSiMSkm0aMINhrFvbwnRzXWD3op9BvAN0hFk3DlE2fxnqAgwYyRfh1yxkebBCBGJq7+KiO8PRtYpwkYbpA==
 
 react-native-input-style@^1.0.2:
   version "1.0.2"

@@ -13,8 +13,10 @@ export const CreateID = num => {
   return id;
 };
 
-export const RandomInt = max => {
-  return Math.floor(Math.random() * Math.floor(max));
+export const RandomInt = (min,max) => {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 export const dateCountdown = (str) =>{

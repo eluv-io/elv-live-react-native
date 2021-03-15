@@ -7,7 +7,8 @@ import {
   Button,
   TVFocusGuideView,
   TVEventHandler,
-  Image
+  Image,
+  Dimensions
 } 
 from 'react-native';
 //import Image from 'react-native-fast-image'
@@ -15,12 +16,15 @@ import Swiper from 'react-native-swiper'
 import reactNativeTvosController from "react-native-tvos-controller"
 import AppContext from '../../AppContext'
 import {Site} from '../../fabric/site'
-import { isEmpty, JQ, dateCountdown } from '../../utils';
+import { isEmpty, JQ, dateCountdown,RandomInt} from '../../utils';
 import { Icon } from 'react-native-elements'
 import LinearGradient from 'react-native-linear-gradient';
+import FadeInView from '../../components/fadeinview'
+
 
 const BLUR_OPACITY = 0.3;
-
+const WINDOWWIDTH = Dimensions.get('window').width;
+const WINDOWHEIGHT = Dimensions.get('window').height;
 /*
   This Gallery supports two layouts based on the data
   0 - Shows the Title and Description near the bottom of the screen with white text
@@ -43,7 +47,27 @@ class Gallery extends React.Component {
     this._next = this._next.bind(this);
     this._previous = this._previous.bind(this);
     this._select = this._select.bind(this);
-    setInterval(()=>{if(this.props.isActive)this.forceUpdate()},60000);
+    this.renderLayout0 = this.renderLayout0.bind(this);
+    this.renderLayout1 = this.renderLayout1.bind(this);
+    this.RenderBackground = this.RenderBackground.bind(this);
+    this._select = this._select.bind(this);
+
+    //setInterval(()=>{if(this.props.isActive)this.forceUpdate()},60000);
+    //Pre-generate image widths for mosaic
+    this.imageWidths = [];
+    let width=0;
+    let totalWidth = WINDOWWIDTH;
+    for (let i = 0; i < 10; i++){
+      width = RandomInt(WINDOWWIDTH*.2,WINDOWWIDTH*.8);
+      if(totalWidth - width > WINDOWWIDTH*.25){
+        totalWidth -= width;
+      }else{
+        width = totalWidth;
+        totalWidth = WINDOWWIDTH;
+      }
+      console.log("WIDTH: " + width);
+      this.imageWidths.push(width);
+    }
   }
 
   async componentDidMount() {
@@ -90,16 +114,11 @@ class Gallery extends React.Component {
       return;
     }
 
-    let {currentViewIndex,currentExtrasIndex} = this.state;
+    let {currentViewIndex} = this.state;
 
     console.log("next() data: " + data);
     if(!data){
       console.log("No sites for next()");
-      return;
-    }
-
-    if(!this.swiperRef.current){
-      console.log("No swiper ref.")
       return;
     }
 
@@ -108,7 +127,6 @@ class Gallery extends React.Component {
     }
     
     console.log("next " + currentViewIndex + " sites: " + data.length);
-    this.swiperRef.current.scrollBy(1, true);
     currentViewIndex++;
     this.setState({currentViewIndex});
     if(next){
@@ -129,17 +147,11 @@ class Gallery extends React.Component {
       return;
     }
 
-    if(!this.swiperRef.current){
-      console.log("No swiper ref.")
-      return;
-    }
-    
     if(currentViewIndex == 0){
       return;
     }
 
     console.log("previous " + currentViewIndex);
-    this.swiperRef.current.scrollBy(-1, true);
     currentViewIndex--;
     this.setState({currentViewIndex});
 
@@ -190,10 +202,88 @@ class Gallery extends React.Component {
       }
   }
 
+  RenderBackground = ({item,styles}) => {
+    const {currentViewIndex} = this.state;
+    console.log("RenderBackground screenwidth: " + WINDOWWIDTH);
+    console.log("RenderBackground item: " + item.title);
+    try{
+      let gallery = item.package.info.gallery;
+
+      if(gallery.length > 4){
+        height = "50%"
+      }
+
+      if(gallery.length > 0){
+        let items = [];
+        let index = 0;
+        for (key in gallery){
+          if(index > this.imageWidths.length-1){
+            break;
+          }
+
+          let galleryItem = gallery[key];
+          let width = this.imageWidths[index];
+          console.log("RenderBackground galleryItem: " + galleryItem.image);
+          let image = galleryItem.image.url !== undefined ? galleryItem.image.url : galleryItem.image;
+          items.push(
+          <View 
+            style={{
+              width,
+              height,
+              padding:5
+              }}
+              key={key}
+          >
+          <Image
+            key={image}
+            style={{width:"100%",height:"100%"}}
+            source={{
+              uri: image,
+            }}
+            resizeMode="cover"
+          />
+          </View>
+          );
+          index++;
+        }
+
+        return(
+
+        <View
+          key={currentViewIndex}
+          style={{
+              display: "flex",
+              flexWrap: true,
+              flexDirection: "row",
+              justifyContent: "flex-start",
+              alignItems: "center",
+              width:"100%",
+              height:"100%",
+              backgroundColor:"white"
+          }}>
+            {items}
+          </View>
+        );
+      }
+    }catch(error){
+      console.log(error);
+      return (
+        <FadeInView key={currentViewIndex} duration={500} style={styles.fade}>
+        <Image
+          style={styles.mainImage}
+          source={{
+            uri: item.image,
+          }}
+        />
+        </FadeInView>
+      );
+    }
+  }
+
   renderLayout0 = (styles) => {
     const {currentViewIndex} = this.state;
     const {data} = this.props;
-    console.log("Gallery renderLayout0 " + JQ(data));
+    //console.log("Gallery renderLayout0 " + JQ(data));
     const views = [];
 
     let index = 0;
@@ -212,13 +302,8 @@ class Gallery extends React.Component {
       }catch(e){}
 
       views.push(
-        <View key = {key} style={styles.container}>
-          <Image
-            style={styles.mainImage}
-            source={{
-              uri: item.image,
-            }}
-          />
+        <View key={key} style={styles.container}> 
+          {this.RenderBackground({item,styles})}
           <LinearGradient 
             start={{x: 0, y: 1}} end={{x: 0, y: 0}} 
             colors={['rgba(0,0,0,.9)', 'rgba(0,0,0,.5)', 'rgba(0,0,0,0)']} 
@@ -315,12 +400,7 @@ class Gallery extends React.Component {
       }
       views.push(
         <View key = {key} style={styles.container}>
-          <Image
-            style={styles.mainImage}
-            source={{
-              uri: image,
-            }}
-          />
+        {this.RenderBackground({item,styles})}
           <LinearGradient 
             start={{x: 0, y: 0}} end={{x: 1, y: 0}} 
             colors={['rgba(0,0,0,1)', 'rgba(0,0,0,1)', 'rgba(0,0,0,0)']} 
@@ -396,6 +476,14 @@ const stylesCommon = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'black',
+  },
+  fade: {
+    position: "absolute",
+    alignItems: 'center',
+    justifyContent: "center",
+    backgroundColor: 'rgba(0,0,0,0)',
+    width: "100%",
+    height: "100%"
   },
   background: {
     position: "absolute",
@@ -512,6 +600,7 @@ const stylesLayout0 = StyleSheet.create({
     position: "absolute",
     alignItems: 'center',
     justifyContent: "center",
+    resizeMode: 'cover',
     backgroundColor: 'rgba(0,0,0,0)',
     width: "100%",
     height: "100%"
@@ -568,6 +657,7 @@ const stylesLayout1 = StyleSheet.create({
     alignItems: 'center',
     justifyContent: "center",
     backgroundColor: 'rgba(0,0,0,0)',
+    resizeMode: 'cover',
     width: "100%",
     height: "100%",
     left:'20%',

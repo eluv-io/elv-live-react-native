@@ -33,6 +33,7 @@ import Video, {FilterType} from 'react-native-video';
 import BackgroundVideo from './static/videos/EluvioLive.mp4'
 import FadeInOut from 'react-native-fade-in-out';
 import Spinner from 'react-native-loading-spinner-overlay';
+import { LogBox } from 'react-native';
 
 import { ElvPlatform } from './fabric/elvplatform';
 
@@ -104,14 +105,9 @@ export default class App extends React.Component {
       }
     )
 
-    setTimeout(()=>{ 
-      this.setState({visible:true})
-     }, 
-     3000
-    );
-
     this.reload = this.reload.bind(this);
-
+    LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+    LogBox.ignoreAllLogs();
   }
 
   reload =  async ()=>{
