@@ -4,7 +4,8 @@ import Video from 'react-native-video';
 import { JQ } from '../../utils';
 import Timer from '../../utils/timer';
 import AppContext from '../../AppContext'
-import ThumbSelector from '../../components/thumbselector'
+import ThumbGallery from '../../components/gallery/thumbgallery'
+import ThumbSelector from '../../components/thumbselector';
 var URI = require("urijs");
 
 const THUMBWIDTH = 300;
@@ -334,7 +335,7 @@ class PlayerPage extends React.Component {
           controls={false}
           />
           {/*<this.RenderPagination index={currentViewIndex}/> */}
-          <ThumbSelector 
+          <ThumbSelector
             isActive
             data={views} 
             showBackground={false}

@@ -17,7 +17,7 @@ import reactNativeTvosController from "react-native-tvos-controller"
 import AppContext from '../../AppContext'
 import {Site} from '../../fabric/site'
 import { isEmpty, JQ, dateCountdown,RandomInt} from '../../utils';
-import { Icon } from 'react-native-elements'
+import Icon from 'react-native-vector-icons/EvilIcons'
 import LinearGradient from 'react-native-linear-gradient';
 import FadeInView from '../../components/fadeinview'
 
@@ -38,7 +38,8 @@ class Gallery extends React.Component {
     super(props);
     this.state = {
       currentViewIndex : 0,
-      layout: props.layout || 0
+      layout: props.layout || 0,
+      data: this.props.data
     }
     this.tvEventHandler = null;
     this.swiperRef = React.createRef();
@@ -51,6 +52,8 @@ class Gallery extends React.Component {
     this.renderLayout1 = this.renderLayout1.bind(this);
     this.RenderBackground = this.RenderBackground.bind(this);
     this._select = this._select.bind(this);
+    this.enableTVEventHandler = this.enableTVEventHandler.bind(this);
+    this.isActive = this.isActive.bind(this);
 
     //setInterval(()=>{if(this.props.isActive)this.forceUpdate()},60000);
     //Pre-generate image widths for mosaic
@@ -69,13 +72,13 @@ class Gallery extends React.Component {
         width = totalWidth;
         totalWidth = WINDOWWIDTH;
       }
-      console.log("WIDTH: " + width);
+      //console.log("WIDTH: " + width);
       this.imageWidths.push(width);
     }
   }
 
   async componentDidMount() {
-    this.setState({data: this.props.data});
+    //this.setState({data: this.props.data});
     this.enableTVEventHandler();
   }
 
@@ -83,11 +86,19 @@ class Gallery extends React.Component {
     this.disableTVEventHandler();
   }
 
+  isActive = () => {
+    return this.props.isActive;
+  }
+
   enableTVEventHandler() {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
       const {currentViewIndex, views} = page.state;
-      console.log(evt.eventType);
+      if(!page.isActive()){
+        return;
+      }
+
+      console.log("Gallery event: " + evt.eventType);
 
       if (evt && evt.eventType === 'right') {
         page._next();
@@ -120,7 +131,7 @@ class Gallery extends React.Component {
 
     let {currentViewIndex} = this.state;
 
-    console.log("next() data: " + data);
+    //console.log("next() data: " + data);
     if(!data){
       console.log("No sites for next()");
       return;
@@ -130,11 +141,11 @@ class Gallery extends React.Component {
       return;
     }
     
-    console.log("next " + currentViewIndex + " sites: " + data.length);
+    console.log("Gallery next " + currentViewIndex);
     currentViewIndex++;
     this.setState({currentViewIndex});
     if(next){
-      next();
+      next(currentViewIndex);
     }
   }
   
@@ -155,12 +166,12 @@ class Gallery extends React.Component {
       return;
     }
 
-    console.log("previous " + currentViewIndex);
+    console.log("Gallery previous " + currentViewIndex);
     currentViewIndex--;
     this.setState({currentViewIndex});
 
     if(previous){
-      previous();
+      previous(currentViewIndex);
     }
   }
 
@@ -172,7 +183,7 @@ class Gallery extends React.Component {
 
     const {currentViewIndex} = this.state;
 
-    console.log("select " + currentViewIndex);
+    console.log("Gallery select " + currentViewIndex);
     try{
       let selected = data[currentViewIndex];
       select(selected);
@@ -208,8 +219,8 @@ class Gallery extends React.Component {
 
   RenderBackground = ({item,styles}) => {
     const {currentViewIndex} = this.state;
-    console.log("RenderBackground screenwidth: " + WINDOWWIDTH);
-    console.log("RenderBackground item: " + item.title);
+    //console.log("RenderBackground screenwidth: " + WINDOWWIDTH);
+    //console.log("RenderBackground item: " + item.image);
     try{
       let gallery = item.package.info.gallery;
 
@@ -229,8 +240,8 @@ class Gallery extends React.Component {
 
             let galleryItem = gallery[key];
             let width = this.imageWidths[index];
-            console.log("RenderBackground galleryItem: " + galleryItem.image);
             let image = galleryItem.image.url !== undefined ? galleryItem.image.url : galleryItem.image;
+            //console.log("RenderBackground image: " + image);            
             items.push(
             <View 
               style={{
@@ -274,9 +285,9 @@ class Gallery extends React.Component {
         );
       }
     }catch(error){
-      console.log(error);
+      //console.log(error);
       return (
-        <FadeInView key={currentViewIndex} duration={500} style={styles.fade}>
+        <FadeInView duration={500} style={styles.fade}>
         <Image
           style={styles.mainImage}
           source={{
@@ -338,7 +349,7 @@ class Gallery extends React.Component {
           {views}
           </Swiper>
           <View 
-            style={styles.controlsContainer} 
+            style={this.isActive() ? styles.controlsContainer : styles.noOpacity} 
           >
             <View 
               style={styles.nextContainer} 
@@ -346,7 +357,6 @@ class Gallery extends React.Component {
               <Icon
                 iconStyle={this.state.focused != "next" ? styles.nextButton: styles.buttonFocused}
                 name='chevron-right'
-                type='fontawesome'
                 color='#ffffff'
                 size={70}
               />
@@ -358,7 +368,6 @@ class Gallery extends React.Component {
               <Icon
                 iconStyle={this.state.focused != "previous" ? styles.previousButton: styles.buttonFocused}
                 name='chevron-left'
-                type='fontawesome'
                 color='#ffffff'
                 size={70}
               />
@@ -370,7 +379,7 @@ class Gallery extends React.Component {
 
   renderLayout1 = (styles) => {
     const {currentViewIndex, data} = this.state;
-    console.log("Gallery renderLayout1 " + JQ(data));
+    //console.log("Gallery renderLayout1 " + JQ(data));
     const views = [];
 
     let index = 0;
@@ -449,7 +458,7 @@ class Gallery extends React.Component {
           {views}
           </Swiper>
           <View 
-            style={styles.controlsContainer} 
+            style={this.isActive() ? styles.controlsContainer : styles.noOpacity} 
           >
             <View 
               style={styles.nextContainer} 

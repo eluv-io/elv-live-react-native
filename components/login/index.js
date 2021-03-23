@@ -74,8 +74,10 @@ class Login extends React.Component {
   code = "RLnkQi9";
 
   const {fabric, platform, site, setAppState} = this.context;
+  try{
   let tenantId = site.info.tenant_id;
   let siteId = site.objectId;
+  console.log("RedeemPage site display title: " + site.title);  
   console.log("RedeemPage site Id: " + siteId);  
   console.log("RedeemPage site tenant Id: " + tenantId);
   console.log("focused: " + focused);
@@ -106,16 +108,33 @@ class Login extends React.Component {
 
               console.log("Submit button")
               //TODO: Move onPress to App and pass in
-              try{
+              //try{
                 let siteId = await fabric.redeemCode(tenantId,code);
                 if(siteId != false){
                   console.log("Creating new Site");
-                  setAppState({ticketCode:code});
-                  navigation.navigate('site');
+                  await platform.load();
+                  let newSite = null;
+                  let sites = await platform.getSites();
+                  for(index in sites){
+                    let test = sites[index];
+                    console.log("Found site: " +test.objectId + " redeemed Id: " + siteId);
+                    if(test.slug == site.slug){
+                      newSite = test;
+                      break;
+                    }  
+                  }
+
+                  if(newSite){
+                    setAppState({site:newSite, ticketCode:code});
+                    navigation.navigate('site');
+                  }else{
+                    throw "Couldn't find site.";
+                  }
+
                 }
-              }catch(e){
-                console.error(JQ(e));
-              }
+              //}catch(e){
+               // console.error(JQ(e));
+              //}
             }}
             style={styles.submitButton}
             onFocus={()=>{this.setState({focused:"enter"})}}
@@ -124,6 +143,10 @@ class Login extends React.Component {
         </View>
       </View>
     );
+  }catch(e){
+    navigation.navigate("main");
+    return(null);
+  }
   }
 }
 

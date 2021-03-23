@@ -36,7 +36,7 @@ export default FadeInView = (props) => {
         useNativeDriver: true,
       }
     ).start();
-  }, [fadeAnim])
+  }, [props.fadeOut])
 
   return (
     <Animated.View                 // Special animatable View

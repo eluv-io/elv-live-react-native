@@ -4,10 +4,12 @@ import {
   StyleSheet, 
   View, 
   Image,
+  TouchableOpacity,
+  Button,
+  TVFocusGuideView,
   TVEventHandler,
   FlatList,
-  Animated,
-  TouchableHighlightBase
+  SafeAreaView
 } 
 from 'react-native';
 import AppContext from '../../AppContext'
@@ -15,32 +17,29 @@ import { isEmpty, JQ, dateCountdown } from '../../utils';
 import LinearGradient from 'react-native-linear-gradient';
 import { Icon } from 'react-native-elements'
 import FadeInView from '../../components/fadeinview'
-import Slide from '../../components/slide'
-import {AIMS, DIRECTIONS, MOVEMENT_TYPES, STATIC_TYPES, SimpleAnimation } from 'react-native-simple-animations';
 import Timer from '../../utils/timer';
 
 const BLUR_OPACITY = 0.3;
-const THUMBWIDTH = 500;
+const THUMBWIDTH = 300;
 const FADE_MS = 5000;
 
-class ThumbSelector extends React.Component {
+class ThumbGallery extends React.Component {
   static contextType = AppContext
 
   constructor(props) {
     super(props);
     this.state = {
       currentViewIndex : 0,
+      layout: props.layout || 0,
+      isShowingControls: false,
       showBackground: props.showBackground === undefined? true : props.showBackground,
-      showText: props.showText === undefined? true : props.showText,
-      show: props.show !== undefined? props.show: false,
-      slide: false
+      showText: props.showText === undefined? true : props.showText
     }
     this.tvEventHandler = null;
     this.flatlist = React.createRef();
     this.subscribed = false;
 
     this.showControls = this.showControls.bind(this);
-    this.hideControls = this.hideControls.bind(this);
     this._next = this._next.bind(this);
     this._previous = this._previous.bind(this);
     this._select = this._select.bind(this);
@@ -48,9 +47,10 @@ class ThumbSelector extends React.Component {
   
   async componentDidMount() {
     await this.enableTVEventHandler();
-    if(this.state.show){
+    if(this.props.show){
       this.showControls();
     }
+
   }
 
   componentWillUnmount(){
@@ -60,16 +60,17 @@ class ThumbSelector extends React.Component {
   async enableTVEventHandler() {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
-      const {isActive} = page.props;
-      if(!isActive){
+      const {isShowingControls} = page.state;
+      console.log("isShowingControls " + isShowingControls + " " + evt.eventType);
+      if(!isShowingControls){
+        await page.showControls();
         return;
       }
 
-      console.log("thumbselector event " + evt.eventType);
       if (evt && evt.eventType === 'right') {
         page._next();
       } else if (evt && evt.eventType === 'up') {
-        await page.showControls();
+
       } else if (evt && evt.eventType === 'left') {
         page._previous();
       } else if (evt && evt.eventType === 'down') {
@@ -92,20 +93,24 @@ class ThumbSelector extends React.Component {
 
   async showControls(){
     const {platform,fabric} = this.context;
-    let {currentViewIndex} = this.state;
+    let {isShowingControls, currentViewIndex} = this.state;
     let {onShowControls, isActive} = this.props;
-    console.log("thumbselector Show controls: ", isActive);
-
-    if(!isActive){
+    if(isShowingControls){
         return;
     }
 
+    console.log("Show controls")
+    isShowingControls = true;
+    this.setState({isShowingControls});
     if(this.controlsTimer){
       this.controlsTimer.start();
     }else{
       this.controlsTimer = Timer(() => {
         if(!isActive) return;
-        this.hideControls();
+        console.log("timeout!");
+        this.setState({
+          isShowingControls: false
+        });
       }, FADE_MS);
     }
     if(onShowControls != undefined){
@@ -114,16 +119,8 @@ class ThumbSelector extends React.Component {
   }
   
   hideControls(){
-    const {isActive} = this.props;
-
-    if(!isActive){
-      return;
-    }
-    console.log("thumbselector hide controls");
-    let {onHideControls} = this.props;
-    if(onHideControls != undefined){
-      onHideControls();
-    }
+    console.log("hide controls");
+    this.setState({isShowingControls:false});
   }
 
   _next(){
@@ -132,7 +129,11 @@ class ThumbSelector extends React.Component {
       return;
     }
 
-    let {currentViewIndex} = this.state;
+    let {currentViewIndex,isShowingControls} = this.state;
+    if(!isShowingControls){
+      console.log("Not showing controls");
+      return;
+    }
 
     if(!data){
       console.log("No data for next()");
@@ -165,7 +166,11 @@ class ThumbSelector extends React.Component {
       return;
     }
 
-    let {currentViewIndex} = this.state;
+    let {currentViewIndex,isShowingControls} = this.state;
+
+    if(!isShowingControls){
+      return;
+    }
 
     if(!data){
       console.log("No sites for previous");
@@ -198,8 +203,10 @@ class ThumbSelector extends React.Component {
       return;
     }
 
-    const {currentViewIndex} = this.state;
-
+    const {currentViewIndex,isShowingControls} = this.state;
+    if(!isShowingControls){
+      return;
+    }
     try{
       let selected = data[currentViewIndex];
       console.log("Thumb select " + currentViewIndex);
@@ -210,30 +217,21 @@ class ThumbSelector extends React.Component {
   }
 
   RenderItem = ({ item, index }) => {
-    let {currentViewIndex} = this.state;
-    let imageStyle = styles.paginationImage;
-    if(index == currentViewIndex ){
-      if(this.props.showImageLabels){
-        imageStyle = styles.paginationImageActiveLabel
-      }else{
-        imageStyle = styles.paginationImageActive
-      }
-    }
+    let {currentViewIndex,isShowingControls} = this.state;
+    console.log("RenderItem " + index);
     return (
-      <View style={this.props.showImageLabels ? styles.paginationItemsLabel : styles.paginationItems}>
+      
       <Image
-        style={imageStyle}
+        style={index == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}
         source={{
           uri: item.image,
         }} />
-        {this.props.showImageLabels ? <Text  numberOfLines={1} style={styles.thumbLabel}>{item.title}</Text> : null }
-        </View>
     );
   }
 
   RenderContent = ({title,description}) => {
-    let {currentViewIndex, showText} = this.state;
-    let {isActive, data, slide} = this.props;
+    let {currentViewIndex, isShowingControls, showText} = this.state;
+    let {data} = this.props;
     if(!data) return null;
 
     const items = [];
@@ -241,11 +239,7 @@ class ThumbSelector extends React.Component {
     for (var i = 0; i < data.length; i++){
       let item = data[i];
       item.index = i;
-      item.id = `${item.index}`;
-      if(!isEmpty(item.image.url)){
-        item.image = item.image.url;
-      }
-
+      item.id = item.image;
       items.push(
         item
       );
@@ -253,44 +247,38 @@ class ThumbSelector extends React.Component {
 
     return (
       <View style={styles.controlsContainer}>
-        <FadeInView key={isActive} duration={isActive? 500:1500} fadeOut={isActive == false} style={styles.controlsContainer}>
+        <FadeInView duration={isShowingControls? 500:1500} fadeOut={isShowingControls == false} style={styles.controlsContainer}>
           {showText? <View style={styles.contentContainer}>
               {title ? <Text numberOfLines={1} style={styles.headerText}>{title}</Text> : null }
               {description? <Text numberOfLines={3} style={styles.subheaderText}>{description}</Text> : null }
           </View> : null }
-          </FadeInView>
-          <View style={styles.paginationStyle}>
-            <Slide style={styles.flatListContainer} show={isActive} enabled={slide}>
-              <FlatList
-                contentContainerStyle={styles.flatListContainer}
-                data={items}
-                renderItem={({item,index,separator}) => {
-                  return this.RenderItem({item,index,separator});
-                }}
-                keyExtractor={item => item.id}
-                horizontal={true}
-                ref = {this.flatlist}
-                />
-            </Slide>
+
+        <View style={styles.paginationStyle}>
+          <FlatList
+            data={items}
+            renderItem={({item,index,separator}) => {
+              return this.RenderItem({item,index,separator});
+            }}
+            keyExtractor={item => item.id}
+            horizontal={true}
+            ref = {this.flatlist}
+            contentContainerStyle={styles.flatListContainer}
+            />
           </View>
+        </FadeInView>
       </View>
     )
   }
 
   render() {
-    const {currentViewIndex,showBackground, slide} = this.state;
-    const {data, isActive} = this.props;
-    console.log("Thumbselector render: isActive " + isActive);
+    const {currentViewIndex,showBackground,isShowingControls} = this.state;
+    const {data} = this.props;
+    console.log("Thumbselector render current index: " + JQ(data));
     const views = [];
 
     if(!data){
       return null;
     }
-
-    if (!isActive){
-      this.hideControls();
-    }
-
 
     let item = data[currentViewIndex];
     let title = null;
@@ -308,8 +296,6 @@ class ThumbSelector extends React.Component {
       imageUrl = item.image;
     }catch(e){}
 
-    let show = isActive;
-
     return (
         <View style={showBackground?[styles.container,styles.blackBackground]:styles.container}>
           <FadeInView key={currentViewIndex} duration={1500} start={.1} end={1} style={styles.container}>
@@ -320,8 +306,7 @@ class ThumbSelector extends React.Component {
             }}
           /> : null }
           </FadeInView>
-          <FadeInView key={show} duration={show? 500:1500} fadeOut={show == false} style={styles.controlsContainer}>
-          {!showBackground ? <View style={[styles.container,styles.blackBackground,{opacity:.7}]} /> :null}
+          <FadeInView key={isShowingControls} duration={isShowingControls? 500:1500} fadeOut={isShowingControls == false} style={styles.controlsContainer}>
           <LinearGradient 
             start={{x: 0, y: 1}} end={{x: 0, y: 0}} 
             colors={['rgba(0,0,0,.9)', 'rgba(0,0,0,.5)', 'rgba(0,0,0,0)']} 
@@ -335,6 +320,14 @@ class ThumbSelector extends React.Component {
 }
 
 const styles = StyleSheet.create({
+  fadeIn: {
+    flex: 1,
+    backgroundColor: "black"
+  },
+  fadeOut: {
+    flex: 1,
+    backgroundColor: "black"
+  },
   container: {
     flex: 1,
     position: "absolute",
@@ -346,6 +339,15 @@ const styles = StyleSheet.create({
   },
   blackBackground: {
     backgroundColor: "black",
+  },
+  background: {
+    backgroundColor: "black",
+    position: "absolute",
+    alignItems: 'center',
+    justifyContent: "center",
+    width: "100%",
+    height: "100%",
+    flex: 1,
   },
   noborder: {
     borderWidth: 0,
@@ -426,42 +428,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexGrow: 1,
   },
-  justifyCenter:{
-    justifyContent: 'center',
-  },
   paginationStyle: {
     position: 'absolute',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     flex: 1,
     bottom: 60,
     flexDirection: 'row',
     width: "100%",
-    //backgroundColor:"red",
     paddingLeft: 160,
     paddingRight: 160
   },
-  paginationItemsLabel: {
-    display:"flex",
-    flexDirection:"column", 
-    justifyContent:"flex-end",
-    height:"100%"
-  },
-  paginationItems: {display:"flex",flexDirection:"column", justifyContent:"center",height:"100%"},
   paginationImage: {
     marginRight:5,
     marginLeft:5,
     resizeMode: 'cover',
     width:THUMBWIDTH * .8,
     height:THUMBWIDTH * 9/16 * .8
-  },
-  paginationImageActiveLabel: {
-    marginRight:1,
-    marginLeft:1,
-    resizeMode: 'cover',
-    width:THUMBWIDTH*.9,
-    height:THUMBWIDTH * 9/16 * .9
   },
   paginationImageActive: {
     marginRight:1,
@@ -521,14 +505,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 36,
     fontWeight: "300"
-  },
-  thumbLabel: {
-    marginTop: 10,
-    fontSize: 25,
-    color: "white",
-    fontFamily: "Helvetica",
-    fontWeight: "300"
-  },
+  }
 });
 
-export default ThumbSelector;
+export default ThumbGallery;

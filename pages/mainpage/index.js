@@ -13,12 +13,11 @@ import Swiper from 'react-native-swiper'
 import reactNativeTvosController from "react-native-tvos-controller"
 import AppContext from '../../AppContext'
 import Gallery from '../../components/gallery'
-
+import ThumbSelector from '../../components/thumbselector'
 import { isEmpty, JQ, dateCountdown } from '../../utils';
 import { Icon } from 'react-native-elements'
 import LinearGradient from 'react-native-linear-gradient';
-
-//import { subscribeRemoteEvents, cancelRemoteSubscriptions } from '../../utils/tvos';
+import testdata from '../../testdata/extras.js';
 
 const BLUR_OPACITY = 0.3;
 
@@ -27,183 +26,36 @@ class MainPage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      currentViewIndex : 0
+      currentViewIndex : 0,
+      isShowingExtras : false
     }
     this.tvEventHandler = null;
-    this.sites = [];
     this.swiperRef = React.createRef();
+    this.extrasRef = React.createRef();
     this.subscribed = false;
 
     this.next = this.next.bind(this);
     this.previous = this.previous.bind(this);
     this.select = this.select.bind(this);
-    setInterval(()=>{if(this.props.isActive)this.forceUpdate()},60000);
+    this.onExtrasVisible = this.onExtrasVisible.bind(this);
+
+    //setInterval(()=>{if(this.props.isActive)this.forceUpdate()},60000);
   }
 
   async componentDidMount() {
     console.log("MainPage componentDidMount");
-    console.log(" sites: "+ this.sites.length);
-    this.enableTVEventHandler();
-  }
-
-  componentWillUnmount(){
-    console.log("MainPage componentWillUnmount");
-    this.disableTVEventHandler();
-  }
-
-  enableTVEventHandler() {
-    this.tvEventHandler = new TVEventHandler();
-    this.tvEventHandler.enable(this, async function (page, evt) {
-      const {currentViewIndex, views} = page.state;
-      console.log(evt.eventType);
-
-      if (evt && evt.eventType === 'right') {
-        page.next();
-      } else if (evt && evt.eventType === 'up') {
-
-      } else if (evt && evt.eventType === 'left') {
-        page.previous();
-      } else if (evt && evt.eventType === 'down') {
-
-      } else if (evt && evt.eventType === 'playPause') {
-
-      } else if (evt && evt.eventType === 'select') {
-        page.select();
-      }
-    });
-  }
-
-  disableTVEventHandler() {
-    if (this.tvEventHandler) {
-      this.tvEventHandler.disable();
-      delete this.tvEventHandler;
-    }
-  }
-
-  next(){
-    const {isActive} = this.props;
-    if(!isActive){
-      return;
-    }
-    console.log("next() sites: " + this.sites);
-    if(!this.sites){
-      console.log("No sites for next()");
-      return;
-    }
-
-    if(!this.swiperRef.current){
-      console.log("No swiper ref.")
-      return;
-    }
-
-    const {currentViewIndex} = this.state;
-    if(currentViewIndex >= this.sites.length - 1){
-      return;
-    }
-    
-    console.log("next " + currentViewIndex + " sites: " + extras.length);
-    currentViewIndex++;
-    this.setState({currentViewIndex});
-
-  }
-  
-  previous(){
-    const {isActive} = this.props;
-    if(!isActive){
-      return;
-    }
-
-    if(!this.sites){
-      console.log("No sites for previous");
-      return;
-    }
-
-    if(!this.swiperRef.current){
-      console.log("No swiper ref.")
-      return;
-    }
-
-    const {currentViewIndex} = this.state;
-    
-    if(currentViewIndex == 0){
-      return;
-    }
-    console.log("previous " + currentViewIndex);
-    currentViewIndex--;
-    this.setState({currentViewIndex});
-  }
-
-  select(){
-    const {isActive} = this.props;
-    if(!isActive){
-      return;
-    }
-
-    if(!this.sites){
-      console.log("No sites");
-      return;
-    }
-
-    const {setAppState} = this.context;
-    const {navigation} = this.props;
-    const {currentViewIndex} = this.state;
-
-    console.log("select " + currentViewIndex);
-    try{
-      let site = this.sites[currentViewIndex];
-      setAppState({site});
-      navigation.navigate('redeem')
-    }catch(e){
-      console.error(e);
-    }
-  }
-
-  RedeemButton = ({title}) => (
-      <View 
-        style={[styles.button,styles.buttonFocused]}
-        >
-        <Text style={styles.buttonText}>{title}</Text>
-      </View>
-  );
-
-  renderPagination = (index, total, context) => {
-
-    const items = [];
-    for (var i = 0; i < total; i++){
-      items.push(
-        <View key={i} style={i==index ? styles.paginationActive : styles.paginationItem} />
-      );
-    }
-
-    return (
-      <View style={styles.paginationStyle} >
-        {items}
-      </View>
-    )
-  }
-
-
-  render() {
-    const {platform,setAppState} = this.context;
+    const {platform} = this.context;
     const {navigation, isActive} = this.props;
-    const {currentViewIndex} = this.state;
-    const sites = platform.getSites();
-    if(isEmpty(sites)){
-      console.log("no sites");
-      return (
-        <View style={styles.container}>
-          <Text>Loading...</Text>
-        </View>
-      );
-    }
+    const {currentViewIndex,isShowingExtras} = this.state;
 
-    this.sites = [];
+    let sites = await platform.getSites();
+    console.log("MainPage componentDidMount sites size: " + sites.length);
+    siteData = [];
 
     let index = 0;
-    const data = [];
     for (const key in sites){
       let site = sites[key];
-      this.sites.push(site);
+      console.log("Mainpage accessing site: " + key + " " + site.title);
 
       let eventTitle = null;
       try{
@@ -241,14 +93,288 @@ class MainPage extends React.Component {
       item.image = site.tv_main_background;
       item.logo = site.tv_main_logo;
       item.release_date = countDown;
-      data.push(item);
+      item.extras = await this.createExtras(index);
+      console.log("extras length: " + item.extras.length);
+      siteData.push(item);
 
       index++;
     }
 
+    this.enableTVEventHandler();
+    console.log("ComponentDidMount sites size: " + siteData.length);
+    this.setState({siteData});
+  }
+
+  async componentWillUnmount(){
+    console.log("MainPage componentWillUnmount");
+    this.disableTVEventHandler();
+  }
+
+  enableTVEventHandler() {
+    this.tvEventHandler = new TVEventHandler();
+    this.tvEventHandler.enable(this, async function (page, evt) {
+      const {currentViewIndex, views, isShowingExtras} = page.state;
+      if(isShowingExtras){
+        return;
+      }
+
+      console.log("MainPage event received: "+evt.eventType);
+
+      if (evt && evt.eventType === 'right') {
+        //page.next();
+      } else if (evt && evt.eventType === 'up') {
+        //console.log("MainPage extras showControls");
+        //page.extrasRef.current.showControls();
+        page.setState({isShowingExtras:true});
+      } else if (evt && evt.eventType === 'left') {
+        //page.previous();
+      } else if (evt && evt.eventType === 'down') {
+        //page.extrasRef.current.hideControls();
+        page.setState({isShowingExtras:false});
+      } else if (evt && evt.eventType === 'playPause') {
+
+      } else if (evt && evt.eventType === 'select') {
+        //page.select();
+      }
+    });
+  }
+
+  disableTVEventHandler() {
+    if (this.tvEventHandler) {
+      this.tvEventHandler.disable();
+      delete this.tvEventHandler;
+    }
+  }
+
+  onExtrasVisible(visible){
+    console.log("Mainpage OnVisible " + visible);
+    this.setState({isShowingExtras:visible});
+  }
+
+  next = async(index)=>{
+    console.log("mainpage next()");
+    const {isActive} = this.props;
+    const {isShowingExtras} = this.state;
+    if(!isActive || isShowingExtras){
+      return;
+    }
+
+    try{
+      let sites = await this.getSites();
+
+      if(!sites){
+        console.log("No sites for next()");
+        return;
+      }
+      
+      console.log("mainpage next ");
+
+      this.setState({currentViewIndex:index});
+    }catch(e){
+      console.error("mainpage next error: " + e);
+    }
+  }
+  
+  previous = async(index)=>{
+    console.log("mainpage previous()");
+    const {isActive} = this.props;
+    const {isShowingExtras} = this.state;
+    if(!isActive || isShowingExtras){
+      return;
+    }
+
+    try{
+      let sites = await this.getSites();   
+      if(!sites){
+        console.log("No sites for previous");
+        return;
+      }
+
+      console.log("mainpage previous " + index);
+      this.setState({currentViewIndex:index});
+    }catch(e){
+      console.error("mainpage next error: " + e);
+    }
+  }
+
+  getSites = async() => {
+    const {platform} = this.context;
+
+    let sites = [];
+    try{
+      sites = await platform.getSites();
+    }catch(e){console.error("Could not get sites for mainpage: " + e)}
+    return sites;
+  }
+
+  select = async () => {
+    console.log("mainpage select()");
+    const {isActive} = this.props;
+    const {isShowingExtras} = this.state;
+    if(!isActive || isShowingExtras){
+      return;
+    }
+
+    let sites = await this.getSites();
+    if(!sites){
+      console.log("No sites for mainpage select()");
+      return;
+    }
+
+    const {setAppState} = this.context;
+    const {navigation} = this.props;
+    const {currentViewIndex} = this.state;
+
+    console.log("select site index " + currentViewIndex);
+    try{
+      let site = sites[currentViewIndex];
+      console.log("select site " + JQ(site.title));
+      setAppState({site});
+      navigation.navigate('redeem')
+    }catch(e){
+      console.error(e);
+    }
+  }
+
+  //Callback for Thumbselector
+  onSelectExtra = ({item,index}) => {
+    const {setAppState} = this.context;
+    const {isActive,navigation} = this.props;
+    const {currentViewIndex,isShowingExtras} = this.state;
+    
+    if(!isActive || !isShowingExtras){
+      return;
+    }
+
+    console.log("mainpage extra select() " + JQ(item));
+    if(item.isAvailable){
+      //Go straight to package view
+      let data = [];
+        for(const index in item.package.info.gallery){
+          let galleryItem = {...item.package.info.gallery[index]};
+          if(galleryItem.image.url != undefined){
+            galleryItem.image = galleryItem.image.url;
+          }
+        data.push(galleryItem);
+      }
+      navigation.navigate("gallery",data);
+    }else{
+      
+      let site = sites[currentViewIndex];
+      console.log("select site " + JQ(site.title));
+      setAppState({site});
+
+      //Redeem and then go to package view
+      navigation.navigate("redeem",{extra:index});
+    }
+  }
+
+  RedeemButton = ({title}) => (
+      <View 
+        style={[styles.button,styles.buttonFocused]}
+        >
+        <Text style={styles.buttonText}>{title}</Text>
+      </View>
+  );
+
+  renderPagination = (index, total, context) => {
+
+    const items = [];
+    for (var i = 0; i < total; i++){
+      items.push(
+        <View key={i} style={i==index ? styles.paginationActive : styles.paginationItem} />
+      );
+    }
+
+    return (
+      <View style={styles.paginationStyle} >
+        {items}
+      </View>
+    )
+  }
+
+  createExtras = async (viewIndex)=> {
+    console.log("createExtras " + viewIndex);
+    let extras = [];
+    if(viewIndex === undefined){
+      return extras;
+    }
+
+    try{
+      const sites = await this.getSites();
+
+      let site = sites[viewIndex];
+      //console.log("Sites: " + JQ(sites));
+      //console.log("Site extras: " + JQ(site.info.extras.length));
+      for(index in site.info.extras){
+        let extra = site.info.extras[index];
+        //console.log("   Extra found: " + extras.title);
+        try{
+          extra.package = await extra.resolvePackageLink();
+        }catch(e){
+          console.log("Couldn't resolve extra package for site: " + site.title);
+        }
+        extras.push(extra);
+        //console.log("Found extra: " + JQ(extra));        
+      }
+
+    }catch(e){
+      console.log("Couldn't find extras: " + e);
+    }
+    return extras;
+  }
+
+
+  render() {
+    const {platform,setAppState} = this.context;
+    const {navigation, isActive} = this.props;
+    const {currentViewIndex,isShowingExtras, siteData} = this.state;
+
+    if(isEmpty(siteData)){
+      //console.log("no sites");
+      return (
+        <View style={styles.container}>
+          <Text>Loading...</Text>
+        </View>
+      );
+    }
+    console.log("mainpage render " + siteData.length);
+
+    let data = siteData;
+    let extras = null;
+    try{
+      let site = siteData[currentViewIndex];
+      console.log("Mainpage render current site: " + site.title);
+      extras = site.extras;
+      console.log("Mainpage render current site extras: " + site.extras.length);
+    }catch(e){
+      console.log("Couldn't get extras from site " + JQ(e));
+    }
+
+    console.log("Mainpage isShowingExtras " + JQ(isShowingExtras));
     return (
       <View style={styles.container}>
-        <Gallery isActive={isActive} layout={1} data={data}/>
+        <Gallery isActive={isActive && !isShowingExtras} 
+          layout={1} 
+          data={data}
+          next={this.next}
+          previous={this.previous}
+          select={this.select}
+        />
+        {!isEmpty(extras) ?
+          <ThumbSelector 
+            isActive={isActive && isShowingExtras && !isEmpty(extras)}
+            showBackground={false}
+            showText={false}
+            showImageLabels={true}
+            data={extras}
+            onHideControls={()=>{this.onExtrasVisible(false)}}
+            onShowControls={()=>{this.onExtrasVisible(true)}}
+            select={this.onSelectExtra}
+            slide
+            ref={this.extrasRef}
+          /> 
+          : null }
       </View>
     );
   }

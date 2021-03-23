@@ -117,16 +117,29 @@ export default class App extends React.Component {
       const {fabric,platform} = await loadPlatform("demo");
       let newSite = null;
       if(site && platform && fabric && ticketCode){
+        let tenantId = site.info.tenant_id;
+        let siteId = await fabric.redeemCode(tenantId,ticketCode);
+        await platform.load();
         let sites = await platform.getSites();
-        newSite = sites[site.slug];
+        for(index in sites){
+          let test = sites[index];
+          if(test.slug == site.slug){
+            newSite = test;
+            break;
+          }  
+        }
+
         if(newSite){
-          let tenantId = newSite.info.tenant_id;
-          let siteId = await fabric.redeemCode(tenantId,ticketCode);
+          console.log("Redeemed siteId: " + siteId);
+          setAppState({site:newSite});
+        }else{
+          throw "Couldn't find site.";
         }
       }
       this.setState({fabric,platform, site:newSite});
     }catch(error){
       console.log("Error reloading: " + JQ(error));
+      navigator.navigate("main");
     }
   }
 

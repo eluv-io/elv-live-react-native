@@ -17,14 +17,12 @@ import {Site} from '../../fabric/site'
 import { isEmpty, JQ, dateCountdown } from '../../utils';
 import { Icon } from 'react-native-elements'
 import LinearGradient from 'react-native-linear-gradient';
-import Extras from './extras'
 import Gallery from '../../components/gallery'
 var URI = require("urijs");
 var UrlJoin = require("url-join");
 
 const BLUR_OPACITY = 0.3;
 
-const defaultExtras = Extras;
 
 class SitePage extends React.Component {
   static contextType = AppContext
@@ -238,7 +236,7 @@ class SitePage extends React.Component {
     const extra = extras[currentViewIndex];
 
     let data = extras;
-    console.log("SitePage render() " + JQ(extras));
+    //console.log("SitePage render() " + JQ(extras));
     return (
       <View style={styles.container}>
         <Gallery 

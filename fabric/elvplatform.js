@@ -10,12 +10,12 @@ class ElvPlatform {
     this.siteId = siteId;
     this.siteLibraryId = libraryId;
     this.eventSites={};
-    this.availableSite={};
+    this.availableSite=[];
     this.currentHost = "";
   }
 
   async load(subtree = "/public",select=[]){
-    //try {
+    try {
       console.log("Platform load");
       if(!this.siteLibraryId){
         this.siteLibraryId = await this.client.ContentObjectLibraryId({objectId: this.siteId});
@@ -49,7 +49,7 @@ class ElvPlatform {
         produceLinkUrls: true,
         select
       });
-      console.log("Platform asset_metadata: " + JQ(this.siteInfo));
+      //console.log("Platform asset_metadata: " + JQ(this.siteInfo));
 
       /*this.siteInfo.baseLinkUrl = await this.client.LinkUrl({
         libraryId: this.siteLibraryId,
@@ -72,46 +72,49 @@ class ElvPlatform {
       */
 
       let sites = this.siteInfo.asset_metadata[eventsKey] || {};
-      this.availableSites = {};
+      this.availableSites = [];
       //console.log(JQ(this.availableSites));
       for (const index in sites) {
         try {
           let item = sites[index];
-          console.log(JQ(item));
           let key = Object.keys(item)[0]
           let site = sites[index][key];
+          console.log("Featured site found: " + JQ(site.title));
           site.metaDataPath = `public/asset_metadata/${eventsKey}/${index}/${key}`;
           //if(key != "ro-channel-test"){
             //continue;
           //}
-          this.availableSites[key] = await this.resolveSite(site,key);
+          this.availableSites.push(await this.resolveSite(site,key));
         } catch(error){
           console.error("Failed to load site: ");
           console.error(error);
         }
       }
       
-      console.log("Platform loaded. ");
+    console.log("Platform loaded. ");
+    console.log("Length: " + this.availableSites.length);
 
-    /*} catch (error) {
+    } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Failed to load platform:");
       // eslint-disable-next-line no-console
       console.error(error);
-    }*/
+    }
   }
 
   getCurrentHost = ()=>{
     return this.currentHost;
   }
 
-  getSites(){
+  getSites = ()=>{
+    console.log("Platform getSites " + this.availableSites.length);
     return this.availableSites;
   }
 
   async resolveSite(site,key){
     site.versionHash = site["."].source;
     site.objectId = this.client.utils.DecodeVersionHash(site.versionHash ).objectId;
+    site.slug = key;
     site.tv_main_background = this.createLink(
         this.siteInfo.baseLinkUrl,
         "/meta/" + site.metaDataPath+"/info/event_images/tv_main_background"
@@ -123,31 +126,39 @@ class ElvPlatform {
     );
 
     let extras = [];
-    console.log("resolving extras: " + JQ(site.info.extras));
+    //console.log("resolving extras: " + JQ(site.info.extras));
     for(const index in site.info.extras){
         let extra = site.info.extras[index];
         extra.resolvePackageLink = async ()=>{
-          console.log("evaluating extra: " + JQ(extra));
+          //console.log("evaluating extra: " + JQ(extra));
           let packageLink = extra["package"];
           if(packageLink["info"] != undefined){
+            //Already Resolved
             return packageLink;
           }
 
-          console.log("Package: ", packageLink);
+          let packageInfo = packageLink;
 
-          let versionHash = packageLink["/"].split("/")[2];
-          console.log("Package hash:", versionHash);
+          try{
+            //console.log("Package: ", packageLink);
 
-          let packageInfo = await this.client.ContentObjectMetadata({
-            versionHash,
-            metadataSubtree: "/public/asset_metadata",
-            resolveLinks: true,
-            resolveIncludeSource: true,
-            resolveIgnoreErrors: true,
-            produceLinkUrls: true,
-          });
+            let versionHash = packageLink["/"].split("/")[2];
+            //console.log("Package hash:", versionHash);
 
-          console.log("Package Info:", packageInfo);
+            packageInfo = await this.client.ContentObjectMetadata({
+              versionHash,
+              metadataSubtree: "/public/asset_metadata",
+              resolveLinks: true,
+              resolveIncludeSource: true,
+              resolveIgnoreErrors: true,
+              produceLinkUrls: true,
+            });
+            //console.log("Package Info:", packageInfo);
+            extra.isAvailable = true;
+          }catch(e){
+            extra.isAvailable = false;
+          }
+
           return packageInfo;
         }
 
@@ -155,7 +166,7 @@ class ElvPlatform {
         this.siteInfo.baseLinkUrl,
           "/meta/" + site.metaDataPath+`/info/extras/${index}/image`
         );
-        console.log(extra.image);
+        //console.log(extra.image);
     }
 
     //site.channels = await this.createChannels(site,key);

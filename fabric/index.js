@@ -17,7 +17,7 @@ export default class Fabric {
       configUrl,
       staticToken
     });
-    this.client.ToggleLogging(true);
+    //this.client.ToggleLogging(true);
     this.client.SetNodes({
       "fabricURIs": [
         "https://host-66-220-3-86.contentfabric.io",
@@ -99,11 +99,11 @@ export default class Fabric {
       return false;
     }
   }
-
+  
 
   
   //CHANNEL
-  
+
   //XXX: Use elvclient's channel implementation when available
   async getOfferings(channelHash){
     try {

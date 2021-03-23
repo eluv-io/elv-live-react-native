@@ -13,11 +13,10 @@ from 'react-native';
 import AppContext from '../../AppContext'
 import { isEmpty, JQ, dateCountdown } from '../../utils';
 import LinearGradient from 'react-native-linear-gradient';
-import testdata from "./testdata";
 import { Icon } from 'react-native-elements'
 import FadeInView from '../../components/fadeinview'
 import Timer from '../../utils/timer';
-import ThumbSelector from '../../components/thumbselector'
+import ThumbGallery from '../../components/gallery/thumbgallery';
 
 const BLUR_OPACITY = 0.3;
 const THUMBWIDTH = 300;
@@ -122,7 +121,7 @@ class GalleryPage extends React.Component {
       return;
     }
 
-    console.log("next() data: " + data);
+    //console.log("next() data: " + data);
     if(!data){
       console.log("No sites for next()");
       return;
@@ -132,7 +131,7 @@ class GalleryPage extends React.Component {
       return;
     }
     
-    console.log("next " + currentViewIndex + " sites: " + data.length);
+    //console.log("next " + currentViewIndex + " sites: " + data.length);
     currentViewIndex++;
     this.setState({currentViewIndex});
     if(this.controlsTimer){
@@ -224,7 +223,7 @@ class GalleryPage extends React.Component {
 
     return (
         <View style={styles.container}>
-          <ThumbSelector isActive data={data} showBackground={true} showControls={true}/>
+          <ThumbGallery isActive data={data} showBackground={true} show={true}/>
         </View>
     );
   }
