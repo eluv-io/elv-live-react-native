@@ -8,6 +8,8 @@ Install packages and run metro server:
 
 ```
 yarn install
+cd ios && pod install
+cd ..
 yarn start
 ```
 
