@@ -218,7 +218,7 @@ class ThumbGallery extends React.Component {
 
   RenderItem = ({ item, index }) => {
     let {currentViewIndex,isShowingControls} = this.state;
-    console.log("RenderItem " + index);
+    console.log("Thumbgallery RenderItem " + item.image);
     return (
       
       <Image

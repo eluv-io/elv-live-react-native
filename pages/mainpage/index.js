@@ -237,7 +237,7 @@ class MainPage extends React.Component {
   }
 
   //Callback for Thumbselector
-  onSelectExtra = ({item,index}) => {
+  onSelectExtra = async ({item,index}) => {
     const {setAppState} = this.context;
     const {isActive,navigation} = this.props;
     const {currentViewIndex,isShowingExtras} = this.state;
@@ -246,7 +246,9 @@ class MainPage extends React.Component {
       return;
     }
 
-    console.log("mainpage extra select() " + JQ(item));
+    //XXX: For testing, it's able to retrieve the public metadata for some reason
+    //let pack  = await item.resolvePackageLink();
+    //console.log("mainpage extra select() " + JQ(pack));
     if(item.isAvailable){
       //Go straight to package view
       let data = [];
@@ -259,7 +261,8 @@ class MainPage extends React.Component {
       }
       navigation.navigate("gallery",data);
     }else{
-      
+      console.log("Package not available: ");
+      const sites = await this.getSites();
       let site = sites[currentViewIndex];
       console.log("select site " + JQ(site.title));
       setAppState({site});
@@ -309,11 +312,11 @@ class MainPage extends React.Component {
       for(index in site.info.extras){
         let extra = site.info.extras[index];
         //console.log("   Extra found: " + extras.title);
-        try{
+        /*try{
           extra.package = await extra.resolvePackageLink();
         }catch(e){
           console.log("Couldn't resolve extra package for site: " + site.title);
-        }
+        }*/
         extras.push(extra);
         //console.log("Found extra: " + JQ(extra));        
       }

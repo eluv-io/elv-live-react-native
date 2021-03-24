@@ -138,7 +138,7 @@ export default class App extends React.Component {
       }
       this.setState({fabric,platform, site:newSite});
     }catch(error){
-      console.log("Error reloading: " + JQ(error));
+      console.log("App Error reloading: " + JQ(error));
       navigator.navigate("main");
     }
   }

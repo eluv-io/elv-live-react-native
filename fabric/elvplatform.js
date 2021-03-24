@@ -40,6 +40,18 @@ class ElvPlatform {
         ];
       }
 
+/*
+      let packageInfo = await this.client.ContentObjectMetadata({
+        versionHash:"hq__Lc9vPRa7JJdZrLoNgzWQxAEV4rJbxqSrRCAfdzZAWhzsFMjjFKEkbASoWcXwFkWuD6axikaZ7y",
+        metadataSubtree: "/public/asset_metadata",
+        resolveLinks: true,
+        resolveIncludeSource: true,
+        resolveIgnoreErrors: true,
+        produceLinkUrls: true,
+      });
+      console.log(JSON.stringify(packageInfo,0,2));
+*/
+
       this.siteInfo = await this.client.ContentObjectMetadata({
         ...this.siteParams,
         metadataSubtree: subtree,
@@ -47,6 +59,7 @@ class ElvPlatform {
         resolveIncludeSource: true,
         resolveIgnoreErrors: true,
         produceLinkUrls: true,
+        linkDepthLimit: 5,
         select
       });
       //console.log("Platform asset_metadata: " + JQ(this.siteInfo));
@@ -129,6 +142,15 @@ class ElvPlatform {
     //console.log("resolving extras: " + JQ(site.info.extras));
     for(const index in site.info.extras){
         let extra = site.info.extras[index];
+
+        let packageLink = extra["package"];
+        if(packageLink["info"] != undefined){
+          extra.isAvailable = true;
+        }else{
+          extra.isAvailable = false;
+        }
+
+
         extra.resolvePackageLink = async ()=>{
           //console.log("evaluating extra: " + JQ(extra));
           let packageLink = extra["package"];
@@ -161,6 +183,7 @@ class ElvPlatform {
 
           return packageInfo;
         }
+      
 
         extra.image = this.createLink(
         this.siteInfo.baseLinkUrl,

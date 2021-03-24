@@ -61,9 +61,9 @@ class SitePage extends React.Component {
       console.log("SitePage componentDidMount: site " + JQ(site.info.extras));
       for(index in site.info.extras){
         let extra = site.info.extras[index];
-        extra.package = await extra.resolvePackageLink();
+        //extra.package = await extra.resolvePackageLink();
         extras.push(extra);
-        console.log("Found extra: " + JQ(extra));        
+        //console.log("Found extra: " + JQ(extra));        
       }
       this.setState({extras});
     }catch(error){

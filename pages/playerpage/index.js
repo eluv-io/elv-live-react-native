@@ -210,7 +210,8 @@ class PlayerPage extends React.Component {
       this.enableTVEventHandler();
       await this.init();
     }catch(e){
-      console.log("Error reloading: "+JQ(e));
+      console.log("Player Error reloading: "+JQ(e));
+      this.setState({error:"Error reloading content."});
     }
   }
 
