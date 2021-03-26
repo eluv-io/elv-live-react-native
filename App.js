@@ -73,7 +73,6 @@ function loadPlatform(network){
     console.log('loadPlatform');
     try {
       var configUrl = Config.networks[network].configUrl;
-      console.log('test');
       var libraryId = Config.networks[network].platform.libraryId;
       var siteId = Config.networks[network].platform.objectId;
       var staticToken = Config.networks[network].staticToken;
@@ -101,7 +100,7 @@ export default class App extends React.Component {
         this.setState({fabric,platform})
       },
       error=>{
-        console.log("Could not initialize the Fabric client: " + JQ(error))
+        console.log("Could not initialize the Fabric client: " + error);
       }
     )
 
@@ -114,32 +113,35 @@ export default class App extends React.Component {
     console.log("app reload");
     let {site,ticketCode} = this.state;
     try{
-      const {fabric,platform} = await loadPlatform("demo");
+      let {fabric,platform} = await loadPlatform("demo");
+
       let newSite = null;
       if(site && platform && fabric && ticketCode){
         let tenantId = site.info.tenant_id;
         let siteId = await fabric.redeemCode(tenantId,ticketCode);
+        
+        platform.setFabric(fabric);
         await platform.load();
+        
         let sites = await platform.getSites();
         for(index in sites){
           let test = sites[index];
           if(test.slug == site.slug){
+            console.log("newSite found");
             newSite = test;
             break;
           }  
         }
 
         if(newSite){
-          console.log("Redeemed siteId: " + siteId);
-          setAppState({site:newSite});
+          console.log("App setting new State: ");
+          this.setState({fabric,platform, site:newSite});
         }else{
-          throw "Couldn't find site.";
+          this.setState({fabric,platform, site:null});
         }
       }
-      this.setState({fabric,platform, site:newSite});
     }catch(error){
       console.log("App Error reloading: " + JQ(error));
-      navigator.navigate("main");
     }
   }
 
@@ -161,7 +163,6 @@ export default class App extends React.Component {
         />
       );
     }
-
     
     return (
       <AppContext.Provider value={{fabric, site, platform, setAppState:this.handleSetState, appReload:this.reload}}>

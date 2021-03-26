@@ -39,35 +39,58 @@ export class Navigation extends React.Component {
       this.goBack();
       return true;
 
-    });
-    
+    }); 
+  }
+
+  animate = () =>{
+    this._animatedValue.setValue(width);
+    Animated.timing(this._animatedValue, {
+      toValue: 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
   }
 
   navigate = (sceneName, data=null) => {
     if(sceneName != "main"){
-      //TVMenuControl.enableTVMenuKey();
+      //Needed or else the app with exit with the menu key during other screens than main.
+      TVMenuControl.enableTVMenuKey();
     }
 
     this.setState(state => ({
       ...state,
       stack: [...state.stack, {scene:state.sceneConfig[sceneName],data}],
-    }),() =>{
-      this._animatedValue.setValue(width);
-      Animated.timing(this._animatedValue, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
-    });
+    }),this.animate);
   }
 
-  goBack = () => {
+  replace = (sceneName, data=null) => {
+    if(sceneName != "main"){
+      //Needed or else the app with exit with the menu key during other screens than main.
+      TVMenuControl.enableTVMenuKey();
+    }
+
     this.setState(state => {
-      const { stack} = state;
+      const {stack} = state;
+      let newStack = stack;
+      if (stack.length > 1) { 
+        newStack = stack.slice(0, stack.length - 1)
+      }
+
+      return {...state, stack:[...newStack,{scene:state.sceneConfig[sceneName],data}]};
+    },this.animate);
+  }
+
+  goBack = (toFirst=false) => {
+    this.setState(state => {
+      const {stack} = state;
       if (stack.length > 1) {
-        return {
-          stack: stack.slice(0, stack.length - 1)
-        };
+        if(toFirst){
+          return{stack:[stack[0]]}
+        }else{
+          return {
+            stack: stack.slice(0, stack.length - 1)
+          };
+        }
       }else{
         //Disabling the Menu on ios allows the the default action of exiting the app
         //For some reason the user has to press twice but this could possibly be a feature
@@ -86,6 +109,13 @@ export class Navigation extends React.Component {
         {this.state.stack.map(({scene,data}, index) => {
           console.log(`Navigation render: ${index} ${scene}`);
           const CurrentScene = scene.component;
+          /*
+          let comp = React.Render(CurrentScene);
+          if(comp && comp.update()){
+            comp.update();
+          }
+          */
+
           return (
             <FadeInView key={index} style={styles.scene}>
               <CurrentScene

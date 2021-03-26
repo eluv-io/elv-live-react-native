@@ -17,10 +17,10 @@ import reactNativeTvosController from "react-native-tvos-controller"
 import AppContext from '../../AppContext'
 import {Site} from '../../fabric/site'
 import { isEmpty, JQ, dateCountdown,RandomInt} from '../../utils';
-import Icon from 'react-native-vector-icons/EvilIcons'
+import {Icon} from 'react-native-elements'
+import EvilIcon from 'react-native-vector-icons/EvilIcons'
 import LinearGradient from 'react-native-linear-gradient';
 import FadeInView from '../../components/fadeinview'
-
 
 const BLUR_OPACITY = 0.3;
 const WINDOWWIDTH = Dimensions.get('window').width;
@@ -37,10 +37,12 @@ class Gallery extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      currentViewIndex : 0,
+      currentViewIndex : props.index || 0,
       layout: props.layout || 0,
       data: this.props.data
     }
+
+    console.log("Gallery currentViewIndex: " + this.state.currentViewIndex);
     this.tvEventHandler = null;
     this.swiperRef = React.createRef();
     this.subscribed = false;
@@ -80,6 +82,7 @@ class Gallery extends React.Component {
   async componentDidMount() {
     //this.setState({data: this.props.data});
     this.enableTVEventHandler();
+
   }
 
   componentWillUnmount(){
@@ -192,6 +195,11 @@ class Gallery extends React.Component {
     }
   }
 
+  setIndex = (index)=>{
+    console.log("Gallery set index " + index);
+    this.setState({currentViewIndex:index});
+  }
+
   renderPagination = (index, total, context) => {
     const {currentViewIndex} = this.state;
     const items = [];
@@ -299,9 +307,48 @@ class Gallery extends React.Component {
     }
   }
 
+  renderItem0 = ({key, item, styles}) => {
+      //console.log("New item: " + JQ(item));
+    let title = null;
+    try{
+      title = item.title;
+    }catch(e){}
+
+    let description= null;
+    try{
+      description = item.description;
+    }catch(e){}
+
+    return (
+      <View key={key} style={styles.container}> 
+      {this.RenderBackground({item,styles})}
+      <LinearGradient 
+        start={{x: 0, y: 1}} end={{x: 0, y: 0}} 
+        colors={['rgba(0,0,0,.9)', 'rgba(0,0,0,.5)', 'rgba(0,0,0,0)']} 
+        style={styles.linearGradient} 
+      />
+      <View style={styles.contentContainer}>
+        <View style={styles.row}>
+          <Icon
+            iconStyle={item.isAvailable? styles.noOpacity: styles.lockIcon}
+            name='lock'
+            color='#ffffff'
+            type='font-awesome'
+            size={50}
+          />
+          <View style={styles.col}>
+            {title ? <Text numberOfLines={1} style={styles.headerText}>{title}</Text> : null }
+            {description? <Text numberOfLines={3} style={styles.subheaderText}>{description}</Text> : null }
+          </View>
+        </View>
+      </View>
+    </View> 
+    );
+  }
+
   renderLayout0 = (styles) => {
     const {currentViewIndex} = this.state;
-    const {data} = this.props;
+    const {data,firstLayout} = this.props;
     //console.log("Gallery renderLayout0 " + JQ(data));
     const views = [];
 
@@ -309,31 +356,15 @@ class Gallery extends React.Component {
 
     for (const key in data){
       let item = data[key];
-      //console.log("New item: " + JQ(item));
-      let title = null;
-      try{
-        title = item.title;
-      }catch(e){}
+      let renderItem = null;
+      if(firstLayout && firstLayout == 1 && key == 0){
+        let style = {...stylesCommon, ...stylesLayout1};
+        renderItem = this.renderItem1({key,item,styles:style});
+      }else{
+        renderItem = this.renderItem0({key,item,styles});
+      }
 
-      let description= null;
-      try{
-        description = item.description;
-      }catch(e){}
-
-      views.push(
-        <View key={key} style={styles.container}> 
-          {this.RenderBackground({item,styles})}
-          <LinearGradient 
-            start={{x: 0, y: 1}} end={{x: 0, y: 0}} 
-            colors={['rgba(0,0,0,.9)', 'rgba(0,0,0,.5)', 'rgba(0,0,0,0)']} 
-            style={styles.linearGradient} 
-          />
-          <View style={styles.contentContainer}>
-            {title ? <Text numberOfLines={1} style={styles.headerText}>{title}</Text> : null }
-            {description? <Text numberOfLines={3} style={styles.subheaderText}>{description}</Text> : null }
-          </View>
-        </View>  
-      );
+      views.push(renderItem);
       index++;
     }
 
@@ -354,7 +385,7 @@ class Gallery extends React.Component {
             <View 
               style={styles.nextContainer} 
             >
-              <Icon
+              <EvilIcon
                 iconStyle={this.state.focused != "next" ? styles.nextButton: styles.buttonFocused}
                 name='chevron-right'
                 color='#ffffff'
@@ -365,7 +396,7 @@ class Gallery extends React.Component {
             <View 
               style={styles.previousContainer} 
             >
-              <Icon
+              <EvilIcon
                 iconStyle={this.state.focused != "previous" ? styles.previousButton: styles.buttonFocused}
                 name='chevron-left'
                 color='#ffffff'
@@ -377,15 +408,8 @@ class Gallery extends React.Component {
     );
   }
 
-  renderLayout1 = (styles) => {
-    const {currentViewIndex, data} = this.state;
-    //console.log("Gallery renderLayout1 " + JQ(data));
-    const views = [];
-
-    let index = 0;
-    for (const key in data){
-      let item = data[key];
-      //console.log("New item: " + JQ(item));
+  renderItem1 = ({key, item, styles}) => {
+      console.log("New renderItem1 logo: " + JQ(item.logo));
       let title = null;
       try{
         title = item.title;
@@ -412,11 +436,8 @@ class Gallery extends React.Component {
       }catch(e){}
 
       let buttonText = "Enter Event";
-      changeViewIndex=(index)=>{
-        this.setState({currentViewIndex:index});
-      }
-      views.push(
-        <View key = {key} style={styles.container}>
+      return(
+      <View key = {key} style={styles.container}>
         {this.RenderBackground({item,styles})}
           <LinearGradient 
             start={{x: 0, y: 0}} end={{x: 1, y: 0}} 
@@ -431,7 +452,6 @@ class Gallery extends React.Component {
                 uri: item.logo
               }}
             /> : null }
-
             {title ? <Text numberOfLines={1} style={styles.headerText}>{title}</Text> : null }
             {description? <Text numberOfLines={3} style={styles.subheaderText}>{description}</Text> : null }
             {date? <Text style={styles.dateText} >{date}</Text>: null }
@@ -441,7 +461,25 @@ class Gallery extends React.Component {
               <Text style={styles.buttonText}>{buttonText}</Text>
             </View>
           </View>
-        </View>  
+      </View>
+      );
+  }
+
+  changeViewIndex=(index)=>{
+    this.setState({currentViewIndex:index});
+  }
+
+  renderLayout1 = (styles) => {
+    const {currentViewIndex, data} = this.state;
+    //console.log("Gallery renderLayout1 " + JQ(data));
+    const views = [];
+
+    let index = 0;
+    for (const key in data){
+      let item = data[key];
+
+      views.push(
+        this.renderItem1({key, item,styles})
       );
       index++;
     }
@@ -493,6 +531,25 @@ const stylesCommon = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'black',
+  },
+  row: {
+    display: "flex",
+    flexDirection: "row",
+    width: "100%",
+    alignItems: "flex-start"
+  },
+  col: {
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    justifyContent: "center",
+    marginLeft: 20
+  },
+  lockIcon: {
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: 10
   },
   fade: {
     position: "absolute",
@@ -609,7 +666,14 @@ const stylesCommon = StyleSheet.create({
     height: 3,
     backgroundColor: "white",
   },
-
+  logo: {
+    width:"100%",
+    maxWidth:"100%",
+    height: "30%",
+    margin: 20,
+    resizeMode: "contain",
+    padding:0
+  },
 });
 
 const stylesLayout0 = StyleSheet.create({
@@ -697,14 +761,6 @@ const stylesLayout1 = StyleSheet.create({
     width: 615,
     height: "100%",
     resizeMode: "contain",
-  },
-  logo: {
-    width:"100%",
-    maxWidth:"100%",
-    height: "30%",
-    margin: 20,
-    resizeMode: "contain",
-    padding:0
   },
   headerText: {
     color: '#fff',

@@ -2,6 +2,10 @@ var {isEmpty, JQ} = require('../utils');
 var URI = require("urijs");
 var UrlJoin = require("url-join");
 var dateFormat = require('dateformat');
+import testSite from "../testdata/testsite";
+import testExtras from "../testdata/extras";
+import {ElvClient} from '../ElvClient-min';
+import extras from "../testdata/extras";
 
 class ElvPlatform {
   constructor({fabric, libraryId, siteId}) {
@@ -12,24 +16,34 @@ class ElvPlatform {
     this.eventSites={};
     this.availableSite=[];
     this.currentHost = "";
+    this.load = this.load.bind(this);
+    this.setFabric = this.setFabric.bind(this);
+    this.resolveSite = this.resolveSite.bind(this);
   }
 
-  async load(subtree = "/public",select=[]){
+  setFabric = (fabric)=>{
+    console.log("ElvPlatform setFabric");
+    this.fabric = fabric;
+    this.client = fabric.client;
+  }
+
+  load = async () =>{
+    let subtree = "/public";
+    let select=[];
+
     try {
       console.log("Platform load");
       if(!this.siteLibraryId){
         this.siteLibraryId = await this.client.ContentObjectLibraryId({objectId: this.siteId});
       }
       console.log("siteLibraryId: " + this.siteLibraryId);
-
-      
-      const versionHash = await this.client.LatestVersionHash({objectId: this.siteId});
-      console.log("versionHash: " + versionHash);
+      //const versionHash = await this.client.LatestVersionHash({objectId: this.siteId});
+      //console.log("versionHash: " + versionHash);
       
       this.siteParams = {
         libraryId: this.siteLibraryId,
         objectId: this.siteId,
-        versionHash
+        //versionHash
       };
 
       let eventsKey = "featured_events";
@@ -40,18 +54,6 @@ class ElvPlatform {
         ];
       }
 
-/*
-      let packageInfo = await this.client.ContentObjectMetadata({
-        versionHash:"hq__Lc9vPRa7JJdZrLoNgzWQxAEV4rJbxqSrRCAfdzZAWhzsFMjjFKEkbASoWcXwFkWuD6axikaZ7y",
-        metadataSubtree: "/public/asset_metadata",
-        resolveLinks: true,
-        resolveIncludeSource: true,
-        resolveIgnoreErrors: true,
-        produceLinkUrls: true,
-      });
-      console.log(JSON.stringify(packageInfo,0,2));
-*/
-
       this.siteInfo = await this.client.ContentObjectMetadata({
         ...this.siteParams,
         metadataSubtree: subtree,
@@ -59,10 +61,12 @@ class ElvPlatform {
         resolveIncludeSource: true,
         resolveIgnoreErrors: true,
         produceLinkUrls: true,
-        linkDepthLimit: 5,
-        select
+        linkDepthLimit: 3,
+        //channelAuth: true,
+        select,
+        noCache:true
       });
-      //console.log("Platform asset_metadata: " + JQ(this.siteInfo));
+      console.log("Platform asset_metadata: " + JQ(this.siteInfo["asset_metadata"]["featured_events"][0]["ritaora"]["info"]["extras"][1]));
 
       /*this.siteInfo.baseLinkUrl = await this.client.LinkUrl({
         libraryId: this.siteLibraryId,
@@ -76,14 +80,6 @@ class ElvPlatform {
       
       console.log("Platform base current host: " + this.currentHost);
 
-      //Background image
-      /*
-      this.siteInfo.tv_main_background = this.createLink(
-        this.siteInfo.baseLinkUrl,
-        "info/event_images/tv_main_background/default"
-      );
-      */
-
       let sites = this.siteInfo.asset_metadata[eventsKey] || {};
       this.availableSites = [];
       //console.log(JQ(this.availableSites));
@@ -92,11 +88,8 @@ class ElvPlatform {
           let item = sites[index];
           let key = Object.keys(item)[0]
           let site = sites[index][key];
-          console.log("Featured site found: " + JQ(site.title));
+          //console.log("Featured site extras: " + JQ(site.info.extras));
           site.metaDataPath = `public/asset_metadata/${eventsKey}/${index}/${key}`;
-          //if(key != "ro-channel-test"){
-            //continue;
-          //}
           this.availableSites.push(await this.resolveSite(site,key));
         } catch(error){
           console.error("Failed to load site: ");
@@ -104,8 +97,12 @@ class ElvPlatform {
         }
       }
       
-    console.log("Platform loaded. ");
-    console.log("Length: " + this.availableSites.length);
+      //XXX: test site
+      //this.availableSites.push(testSite);
+      //console.log(JQ(testSite));
+
+      console.log("Platform loaded. ");
+      console.log("Length: " + this.availableSites.length);
 
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -124,7 +121,7 @@ class ElvPlatform {
     return this.availableSites;
   }
 
-  async resolveSite(site,key){
+  resolveSite = async (site,key) =>{
     site.versionHash = site["."].source;
     site.objectId = this.client.utils.DecodeVersionHash(site.versionHash ).objectId;
     site.slug = key;
@@ -138,19 +135,10 @@ class ElvPlatform {
         "/meta/" + site.metaDataPath+"/info/event_images/tv_main_logo"
     );
 
-    let extras = [];
     //console.log("resolving extras: " + JQ(site.info.extras));
     for(const index in site.info.extras){
         let extra = site.info.extras[index];
-
-        let packageLink = extra["package"];
-        if(packageLink["info"] != undefined){
-          extra.isAvailable = true;
-        }else{
-          extra.isAvailable = false;
-        }
-
-
+        /*
         extra.resolvePackageLink = async ()=>{
           //console.log("evaluating extra: " + JQ(extra));
           let packageLink = extra["package"];
@@ -183,6 +171,15 @@ class ElvPlatform {
 
           return packageInfo;
         }
+        */
+
+        let packageLink = extra["package"];
+        if(packageLink["info"] != undefined){
+          extra.isAvailable = true;
+        }else{
+          extra.isAvailable = false;
+        }
+
       
 
         extra.image = this.createLink(
@@ -192,7 +189,9 @@ class ElvPlatform {
         //console.log(extra.image);
     }
 
-    //site.channels = await this.createChannels(site,key);
+    //XXX: test
+    //site.info.extras = testExtras;
+
     return site;
   }
 

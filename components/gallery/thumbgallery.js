@@ -23,6 +23,7 @@ const BLUR_OPACITY = 0.3;
 const THUMBWIDTH = 300;
 const FADE_MS = 5000;
 
+//TODO: Fix Thumbselector for non sliding
 class ThumbGallery extends React.Component {
   static contextType = AppContext
 
@@ -218,7 +219,7 @@ class ThumbGallery extends React.Component {
 
   RenderItem = ({ item, index }) => {
     let {currentViewIndex,isShowingControls} = this.state;
-    console.log("Thumbgallery RenderItem " + item.image);
+    //console.log("Thumbgallery RenderItem " + item.image);
     return (
       
       <Image
@@ -273,7 +274,7 @@ class ThumbGallery extends React.Component {
   render() {
     const {currentViewIndex,showBackground,isShowingControls} = this.state;
     const {data} = this.props;
-    console.log("Thumbselector render current index: " + JQ(data));
+    //console.log("Thumbselector render current index: " + JQ(data));
     const views = [];
 
     if(!data){

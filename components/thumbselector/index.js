@@ -13,7 +13,7 @@ from 'react-native';
 import AppContext from '../../AppContext'
 import { isEmpty, JQ, dateCountdown } from '../../utils';
 import LinearGradient from 'react-native-linear-gradient';
-import { Icon } from 'react-native-elements'
+import {Icon} from 'react-native-elements'
 import FadeInView from '../../components/fadeinview'
 import Slide from '../../components/slide'
 import {AIMS, DIRECTIONS, MOVEMENT_TYPES, STATIC_TYPES, SimpleAnimation } from 'react-native-simple-animations';
@@ -219,6 +219,7 @@ class ThumbSelector extends React.Component {
         imageStyle = styles.paginationImageActive
       }
     }
+
     return (
       <View style={this.props.showImageLabels ? styles.paginationItemsLabel : styles.paginationItems}>
       <Image
@@ -226,6 +227,15 @@ class ThumbSelector extends React.Component {
         source={{
           uri: item.image,
         }} />
+        <View style={styles.flexContainer} >
+        <Icon
+          iconStyle={item.isAvailable? styles.noOpacity: styles.lockIcon}
+          name='lock'
+          color='#ffffff'
+          type='font-awesome'
+          size={32}
+        />
+        </View>
         {this.props.showImageLabels ? <Text  numberOfLines={1} style={styles.thumbLabel}>{item.title}</Text> : null }
         </View>
     );
@@ -242,9 +252,12 @@ class ThumbSelector extends React.Component {
       let item = data[i];
       item.index = i;
       item.id = `${item.index}`;
-      if(!isEmpty(item.image.url)){
-        item.image = item.image.url;
-      }
+      //console.log("thumbselector item: " + JQ(item));
+      try{
+        if(item.image.url){
+          item.image = item.image.url;
+        }
+      }catch(e){}
 
       items.push(
         item
@@ -343,6 +356,15 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     backgroundColor: "transparent",
+  },
+  flexContainer: {
+    flex: 1,
+    position: "absolute",
+    alignItems: 'center',
+    justifyContent: "center",
+    width: "100%",
+    height: "100%",
+    //backgroundColor: "red",
   },
   blackBackground: {
     backgroundColor: "black",
@@ -470,7 +492,12 @@ const styles = StyleSheet.create({
     width:THUMBWIDTH,
     height:THUMBWIDTH * 9/16
   },
- mainImage: {
+  lockIcon: {
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  mainImage: {
     position: "absolute",
     alignItems: 'center',
     justifyContent: "center",

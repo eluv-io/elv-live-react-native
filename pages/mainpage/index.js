@@ -44,11 +44,14 @@ class MainPage extends React.Component {
 
   async componentDidMount() {
     console.log("MainPage componentDidMount");
-    const {platform} = this.context;
-    const {navigation, isActive} = this.props;
-    const {currentViewIndex,isShowingExtras} = this.state;
+    this.enableTVEventHandler();
+  }
 
-    let sites = await platform.getSites();
+  loadSiteData = ()=>{
+    console.log("MainPage loadSiteData");
+    const {platform} = this.context;
+
+    let sites = platform.getSites();
     console.log("MainPage componentDidMount sites size: " + sites.length);
     siteData = [];
 
@@ -93,16 +96,17 @@ class MainPage extends React.Component {
       item.image = site.tv_main_background;
       item.logo = site.tv_main_logo;
       item.release_date = countDown;
-      item.extras = await this.createExtras(index);
+      //item.extras = await this.createExtras(index);
+      item.extras = site.info.extras;
       console.log("extras length: " + item.extras.length);
       siteData.push(item);
 
       index++;
     }
 
-    this.enableTVEventHandler();
     console.log("ComponentDidMount sites size: " + siteData.length);
-    this.setState({siteData});
+
+    return siteData;
   }
 
   async componentWillUnmount(){
@@ -248,7 +252,7 @@ class MainPage extends React.Component {
 
     //XXX: For testing, it's able to retrieve the public metadata for some reason
     //let pack  = await item.resolvePackageLink();
-    //console.log("mainpage extra select() " + JQ(pack));
+    console.log("mainpage extra select() " + JQ(item));
     if(item.isAvailable){
       //Go straight to package view
       let data = [];
@@ -327,11 +331,12 @@ class MainPage extends React.Component {
     return extras;
   }
 
-
   render() {
     const {platform,setAppState} = this.context;
     const {navigation, isActive} = this.props;
-    const {currentViewIndex,isShowingExtras, siteData} = this.state;
+    const {currentViewIndex,isShowingExtras} = this.state;
+
+    let siteData = this.loadSiteData();
 
     if(isEmpty(siteData)){
       //console.log("no sites");

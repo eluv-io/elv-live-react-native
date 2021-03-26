@@ -18,17 +18,13 @@ export default class Fabric {
       staticToken
     });
     this.client.ToggleLogging(true);
+
     this.client.SetNodes({
       "fabricURIs": [
         "https://host-66-220-3-86.contentfabric.io",
       ]
     });
-    const wallet = this.client.GenerateWallet();
-    const mnemonic = wallet.GenerateMnemonic();
-    const signer = wallet.AddAccountFromMnemonic({
-      mnemonic,
-    });
-    this.client.SetSigner({signer});
+    //this.client.SetSigner({signer});
     this.configUrl = configUrl;
   }
 
@@ -75,13 +71,15 @@ export default class Fabric {
     this.configUrl = client.configUrl;
   }
 
-  async redeemCode(tenantId, code){
+  redeemCode = async (tenantId, code) =>{
     console.log("RedeemCode tenantId: " + tenantId + " code: " + code);
-    try {
-      let client = this.client;
-      //this.client = await ElvClient.FromConfigurationUrl({configUrl:this.configUrl});
+    try { 
+      /*this.client = await ElvClient.FromConfigurationUrl({
+        configUrl:this.configUrl
+      });*/
 
-      let siteId = await client.RedeemCode({
+
+      let siteId = await this.client.RedeemCode({
         tenantId,
         code
       });
@@ -89,6 +87,13 @@ export default class Fabric {
       console.log("Redeemed SiteID: ");
       console.log(JQ(siteId));
 
+/*
+      let url = await this.client.FabricUrl(
+        versionHash="hq__Lc9vPRa7JJdZrLoNgzWQxAEV4rJbxqSrRCAfdzZAWhzsFMjjFKEkbASoWcXwFkWuD6axikaZ7y",
+      );
+
+      console.log("Redeem code token: " + url);
+*/
       return siteId;
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -219,7 +224,7 @@ export default class Fabric {
     });
 
 
-    console.log("Switch View: ", url);
+    //console.log("Switch View: ", url);
 
     let response = await fetch(url,
       {

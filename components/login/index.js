@@ -11,6 +11,8 @@ from 'react-native';
 import {theme, colorByComponent} from '../../AppTheme'
 import AppContext from '../../AppContext'
 import { JQ } from '../../utils';
+import {ElvClient} from '../../ElvClient-min';
+import { ReloadInstructions } from 'react-native/Libraries/NewAppScreen';
 
 const BLUR_OPACITY = 0.5;
 
@@ -73,7 +75,7 @@ class Login extends React.Component {
   //XXX:
   code = "RLnkQi9";
 
-  const {fabric, platform, site, setAppState} = this.context;
+  const {fabric, platform, site, setAppState,appReload} = this.context;
   try{
   let tenantId = site.info.tenant_id;
   let siteId = site.objectId;
@@ -103,30 +105,52 @@ class Login extends React.Component {
           </View>
           <LoginButton
             title="ENTER"
-            onPress={async () => { 
+            onPress={async()=>{
+              if(!isActive) return;
+              console.log("New Submit button")
+              setAppState({ticketCode:code});
+              await appReload();
+              navigation.replace('site',{...this.props.data});
+            }}
+
+            onPressbak={async () => { 
               if(!isActive) return;
 
               console.log("Submit button")
               //TODO: Move onPress to App and pass in
               //try{
-                let siteId = await fabric.redeemCode(tenantId,code);
+                //let siteId = await fabric.redeemCode(tenantId,code);
+
+                //XXX: testing
+
+                const tenantId = "iten3HEEASRTo2rNLeeKw4cfq4sPuX6";
+                const code = "RLnkQi9";
+                const configUrl =  "https://host-66-220-3-86.contentfabric.io/config?qspace=demov3&self";
+
+                let client = await ElvClient.FromConfigurationUrl({
+                  configUrl
+                });
+                let siteId = await client.RedeemCode({tenantId,code});
+                
+
                 if(siteId != false){
-                  console.log("Creating new Site");
-                  await platform.load();
+                  console.log("Redeemed site successful: " + siteId);
+                  platform.setFabric(fabric);
+                  await platform.load({client});
                   let newSite = null;
-                  let sites = await platform.getSites();
+                  let sites =  platform.getSites();
                   for(index in sites){
                     let test = sites[index];
-                    console.log("Found site: " +test.objectId + " redeemed Id: " + siteId);
                     if(test.slug == site.slug){
                       newSite = test;
+                      console.log("Setting new site extras: ", newSite.info.extras[1]);
                       break;
                     }  
                   }
 
                   if(newSite){
                     setAppState({site:newSite, ticketCode:code});
-                    navigation.navigate('site');
+                    navigation.replace('site',{...this.props.data});
                   }else{
                     throw "Couldn't find site.";
                   }

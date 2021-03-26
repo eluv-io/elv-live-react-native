@@ -29,13 +29,14 @@ class SitePage extends React.Component {
 
   constructor(props) {
     super(props);
+    let currentViewIndex = 0;
     this.state = {
-      currentViewIndex : 0,
-      currentExtrasIndex: 0,
+      currentViewIndex,
       extras: []
     }
     this.tvEventHandler = null;
     this.swiperRef = React.createRef();
+    this.galleryRef = React.createRef();
     this.subscribed = false;
 
     this.next = this.next.bind(this);
@@ -46,6 +47,8 @@ class SitePage extends React.Component {
 
   async componentDidMount() {
     const {site} = this.context;
+    const {data} = this.props;
+
     try{
       let extras = [];
 
@@ -54,11 +57,14 @@ class SitePage extends React.Component {
       main.title = site.info.event_info.event_title;
       main.description = site.info.event_info.event_subheader;
       main.image = site.tv_main_background;
+      main.logo = site.tv_main_logo;
       main.release_date = site.info.event_info.date;
       main.channels = site.channels;
+      //XXX: TODO - find a way to check if the channel is available to play
+      main.isAvailable = true;
       extras.push(main);
 
-      console.log("SitePage componentDidMount: site " + JQ(site.info.extras));
+      //console.log("SitePage componentDidMount: site " + JQ(site.info.extras));
       for(index in site.info.extras){
         let extra = site.info.extras[index];
         //extra.package = await extra.resolvePackageLink();
@@ -66,6 +72,14 @@ class SitePage extends React.Component {
         //console.log("Found extra: " + JQ(extra));        
       }
       this.setState({extras});
+
+      if(data && this.galleryRef.current && !isNaN(data.extra)){
+        //Add one to account for the main event inserted at the beginning.
+        let currentViewIndex = parseInt(data.extra) + 1;
+        console.log("SitePage select: " + currentViewIndex);
+        this.galleryRef.current.setIndex(currentViewIndex);
+      }
+
     }catch(error){
       console.log(error);
     }
@@ -239,9 +253,11 @@ class SitePage extends React.Component {
     //console.log("SitePage render() " + JQ(extras));
     return (
       <View style={styles.container}>
-        <Gallery 
-          isActive={isActive} 
+        <Gallery
+          ref={this.galleryRef}
+          isActive={isActive}
           layout={0} data={data}
+          firstLayout={1}
           select={this.select}
           />
       </View>

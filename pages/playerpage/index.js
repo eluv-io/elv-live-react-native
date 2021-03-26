@@ -6,6 +6,7 @@ import Timer from '../../utils/timer';
 import AppContext from '../../AppContext'
 import ThumbGallery from '../../components/gallery/thumbgallery'
 import ThumbSelector from '../../components/thumbselector';
+
 var URI = require("urijs");
 
 const THUMBWIDTH = 300;
@@ -20,6 +21,7 @@ class PlayerPage extends React.Component {
       isShowingControls: false,
       currentViewIndex: 0,
       views: [],
+      volume: .8,
       sid: null
     }
 
@@ -39,24 +41,28 @@ class PlayerPage extends React.Component {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
       const {currentViewIndex, views, isShowingControls} = page.state;
-      console.log(evt.eventType);
-      if(!isShowingControls){
-        await page.showControls();
-        return;
-      }
+      console.log("Player page event before: " + evt.eventType);
 
       if (evt && evt.eventType === 'right') {
-        page.next();
+        //page.next();
+        let volume = page.state.volume;
+        console.log("volume " + volume);
+        volume += 0.1;
+        page.setState({volume});
       } else if (evt && evt.eventType === 'up') {
 
       } else if (evt && evt.eventType === 'left') {
-        page.previous();
+        //page.previous();
+        let volume = page.state.volume;
+        console.log("volume " + volume);
+        volume -= 0.1;
+        page.setState({volume});
       } else if (evt && evt.eventType === 'down') {
 
       } else if (evt && evt.eventType === 'playPause') {
 
       } else if (evt && evt.eventType === 'select') {
-        page.select();
+        //page.select();
       }
     });
   }
@@ -68,7 +74,7 @@ class PlayerPage extends React.Component {
     }
   }
 
-  async showControls(){
+  showControls = async ()=>{
     const {platform,site,fabric,setState} = this.context;
     let {channelHash, offering, isShowingControls, sid, currentViewIndex} = this.state;
     if(isShowingControls || !sid){
@@ -79,15 +85,16 @@ class PlayerPage extends React.Component {
     let views = [];
     try{
       let currentViews = await fabric.getChannelViews({channelHash, offering, sid});
-      console.log("views response: " + JQ(currentViews));
+      //console.log("views response: " + JQ(currentViews));
       if(!currentViews.errors){
         for(index in currentViews){
           let view = currentViews[index];
-          console.log("Found view: " + JQ(view));
+          //console.log("Found view: " + JQ(view));
           let uri = new URI(platform.getCurrentHost() + "" + view.image_uri);
           uri.addSearch("width",THUMBWIDTH);
           view.image = uri.toString();
-          console.log("Created image uri with width: " + view.image_uri);
+          view.isAvailable = true;
+          //console.log("Created image uri with width: " + view.image_uri);
           if(view.currently_selected){
             currentViewIndex = index;
           }
@@ -100,8 +107,9 @@ class PlayerPage extends React.Component {
     isShowingControls = true;
     this.setState({currentViewIndex,views,isShowingControls});
     
+    /*
     this.controlsTimer = Timer(() => {
-      console.log("timeout!");
+      console.log("player controls timeout!");
       this.setState({
         isShowingControls: false,
         currentViewIndex: 0
@@ -109,11 +117,12 @@ class PlayerPage extends React.Component {
     }, 2000);
 
     this.controlsTimer.start();
+    */
 
   }
 
-  hideControls(){
-    console.log("hide controls");
+  hideControls=()=>{
+    console.log("playerpage hide controls");
     this.setState({isShowingControls:false});
   }
 
@@ -201,23 +210,27 @@ class PlayerPage extends React.Component {
   }
 
   async reload(){
-    console.log("player reload");
+    const {appReload} = this.context;
+    const {navigation} = this.props;
     try{
       this.setState(PlayerPage.defaultState);    
       this.disableTVEventHandler();
-      const {appReload} = this.context;
       await appReload();
       this.enableTVEventHandler();
       await this.init();
     }catch(e){
       console.log("Player Error reloading: "+JQ(e));
-      this.setState({error:"Error reloading content."});
+      //this.setState({error:"Error reloading content."});
+      navigation.goBack(true);
     }
   }
 
   async componentDidMount() {
-    //this.enableTVEventHandler();
     await this.init();
+    this.enableTVEventHandler();
+  }
+  componentWillUnmount() {
+    this.disableTVEventHandler();
   }
 
   async init() {
@@ -226,9 +239,9 @@ class PlayerPage extends React.Component {
     //XXX: temporary to get views
     try{
       let channel = site["channels"]["default"];
-      console.log("Channels: ", channel);
+      console.log("Channels: ", JQ(channel));
 
-      let channelHash = channel["/"].split("/")[2];
+      let channelHash = channel["."]["source"];
       console.log("Channel hash:", channelHash);
 
       let offerings = await fabric.getOfferings(channelHash);
@@ -249,11 +262,6 @@ class PlayerPage extends React.Component {
     }catch(e){
       this.setState({error:"Could not get video uri."});
     }
-
-  }
-
-  componentWillUnmount() {
-    //this.disableTVEventHandler();
   }
 
   videoError = (error) => {
@@ -292,9 +300,9 @@ class PlayerPage extends React.Component {
   }
 
   render() {
-    const {site,setState} = this.context;
-    let {videoUrl, views, error} = this.state;
-    console.log("PlayerPage: videoUrl " + videoUrl + " error: " +  JQ(error));
+    let {videoUrl, views, error, isShowingControls,volume} = this.state;
+    const {isActive,navigation} = this.props;
+    console.log("PlayerPage: videoUrl " + videoUrl + " error: " +  JQ(error) + " isActive " + isActive + " isShowingControls: " + isShowingControls);
 
     if(error != null){
       console.log("Error loading video: " + JQ(error));
@@ -314,7 +322,7 @@ class PlayerPage extends React.Component {
       </View>
       );
     }
-    console.log("PlayerPage: views " + JQ(views));
+    //console.log("PlayerPage: views " + JQ(views));
 
    if(!videoUrl){
       return (
@@ -334,10 +342,12 @@ class PlayerPage extends React.Component {
           onError={this.videoError}               // Callback when video cannot be loaded
           style={styles.video} 
           controls={false}
+          volume={volume}
+          onEnd={()=>{navigation.goBack()}}
           />
           {/*<this.RenderPagination index={currentViewIndex}/> */}
-          <ThumbSelector
-            isActive
+          <ThumbGallery
+            isActive = {isActive}
             data={views} 
             showBackground={false}
             select={this.select}
