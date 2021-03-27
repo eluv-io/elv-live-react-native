@@ -210,7 +210,7 @@ class ThumbGallery extends React.Component {
     }
     try{
       let selected = data[currentViewIndex];
-      console.log("Thumb select " + currentViewIndex);
+      console.log("Thumbgallery select " + currentViewIndex);
       select({item:selected,index:currentViewIndex});
     }catch(e){
       console.error(e);

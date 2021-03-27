@@ -113,53 +113,6 @@ class Login extends React.Component {
               navigation.replace('site',{...this.props.data});
             }}
 
-            onPressbak={async () => { 
-              if(!isActive) return;
-
-              console.log("Submit button")
-              //TODO: Move onPress to App and pass in
-              //try{
-                //let siteId = await fabric.redeemCode(tenantId,code);
-
-                //XXX: testing
-
-                const tenantId = "iten3HEEASRTo2rNLeeKw4cfq4sPuX6";
-                const code = "RLnkQi9";
-                const configUrl =  "https://host-66-220-3-86.contentfabric.io/config?qspace=demov3&self";
-
-                let client = await ElvClient.FromConfigurationUrl({
-                  configUrl
-                });
-                let siteId = await client.RedeemCode({tenantId,code});
-                
-
-                if(siteId != false){
-                  console.log("Redeemed site successful: " + siteId);
-                  platform.setFabric(fabric);
-                  await platform.load({client});
-                  let newSite = null;
-                  let sites =  platform.getSites();
-                  for(index in sites){
-                    let test = sites[index];
-                    if(test.slug == site.slug){
-                      newSite = test;
-                      console.log("Setting new site extras: ", newSite.info.extras[1]);
-                      break;
-                    }  
-                  }
-
-                  if(newSite){
-                    setAppState({site:newSite, ticketCode:code});
-                    navigation.replace('site',{...this.props.data});
-                  }else{
-                    throw "Couldn't find site.";
-                  }
-
-                }
-              //}catch(e){
-               // console.error(JQ(e));
-              //}
-            }}
             style={styles.submitButton}
             onFocus={()=>{this.setState({focused:"enter"})}}
             isFocused = {focused == "enter"}

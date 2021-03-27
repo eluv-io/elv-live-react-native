@@ -252,27 +252,32 @@ class MainPage extends React.Component {
 
     //XXX: For testing, it's able to retrieve the public metadata for some reason
     //let pack  = await item.resolvePackageLink();
-    console.log("mainpage extra select() " + JQ(item));
-    if(item.isAvailable){
-      //Go straight to package view
-      let data = [];
-        for(const index in item.package.info.gallery){
-          let galleryItem = {...item.package.info.gallery[index]};
-          if(galleryItem.image.url != undefined){
-            galleryItem.image = galleryItem.image.url;
-          }
-        data.push(galleryItem);
-      }
-      navigation.navigate("gallery",data);
-    }else{
-      console.log("Package not available: ");
-      const sites = await this.getSites();
-      let site = sites[currentViewIndex];
-      console.log("select site " + JQ(site.title));
-      setAppState({site});
+    //console.log("mainpage extra select() " + JQ(item));
 
-      //Redeem and then go to package view
-      navigation.navigate("redeem",{extra:index});
+    try{
+      if(item.isAvailable){
+        //Go straight to package view
+        let data = [];
+          for(const index in item.package.info.gallery){
+            let galleryItem = {...item.package.info.gallery[index]};
+            if(galleryItem.image.url != undefined){
+              galleryItem.image = galleryItem.image.url;
+            }
+          data.push(galleryItem);
+        }
+        navigation.navigate("gallery",data);
+      }else{
+        console.log("Package not available: ");
+        const sites = await this.getSites();
+        let site = sites[currentViewIndex];
+        console.log("select site " + JQ(site.title));
+        setAppState({site});
+
+        //Redeem and then go to package view
+        navigation.navigate("redeem",{extra:index});
+      }
+    }catch(e){
+      console.error(e);
     }
   }
 
