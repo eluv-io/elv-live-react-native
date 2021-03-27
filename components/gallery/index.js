@@ -58,25 +58,27 @@ class Gallery extends React.Component {
     this.isActive = this.isActive.bind(this);
 
     //setInterval(()=>{if(this.props.isActive)this.forceUpdate()},60000);
-    //Pre-generate image widths for mosaic
-    this.imageWidths = [];
+  }
+
+  createImageWidths = (size,maxWidth) => {
+    imageWidths = [];
     let width=0;
-    let totalWidth = WINDOWWIDTH;
-    for (let i = 0; i < 20; i++){
-      width = RandomInt(WINDOWWIDTH*.2,WINDOWWIDTH*.6);
-      if(width > WINDOWWIDTH *.5){
-        width = WINDOWWIDTH;
+    let totalWidth = maxWidth;
+    for (let i = 0; i < size; i++){
+      width = RandomInt(maxWidth*.2,maxWidth*.6);
+      if(width > maxWidth *.5){
+        width = maxWidth;
       }
 
-      if(totalWidth - width > WINDOWWIDTH*.2){
+      if(totalWidth - width > maxWidth*.2){
         totalWidth -= width;
       }else{
         width = totalWidth;
-        totalWidth = WINDOWWIDTH;
+        totalWidth = maxWidth;
       }
-      //console.log("WIDTH: " + width);
-      this.imageWidths.push(width);
+      imageWidths.push(width);
     }
+    return imageWidths;
   }
 
   async componentDidMount() {
@@ -237,20 +239,29 @@ class Gallery extends React.Component {
       }
 
       if(gallery.length > 0){
-        let items = this.items;
+        let imageWidths = item.imageWidths;
+        if(!imageWidths){
+          imageWidths = this.createImageWidths(20,WINDOWWIDTH);
+          console.log("Create Image widths: " + JQ(imageWidths));
+          item.imageWidths = imageWidths;
+          console.log("Create widths");
+        }
+
+        let views = item.views;
         let index = 0;
-        if(!items){
-          items = [];
+        if(!views){
+          console.log("Create views");
+          views = [];
           for (key in gallery){
-            if(index > this.imageWidths.length-1){
+            if(index > imageWidths.length-1){
               break;
             }
 
             let galleryItem = gallery[key];
-            let width = this.imageWidths[index];
+            let width = imageWidths[index];
             let image = galleryItem.image.url !== undefined ? galleryItem.image.url : galleryItem.image;
             //console.log("RenderBackground image: " + image);            
-            items.push(
+            views.push(
             <View 
               style={{
                 width,
@@ -271,13 +282,13 @@ class Gallery extends React.Component {
             );
             index++;
           }
+          item.views = views;
         }
-        this.items = items;
 
         return(
 
         <View
-          key={currentViewIndex}
+          key={item}
           style={{
               display: "flex",
               flexWrap: true,
@@ -288,7 +299,7 @@ class Gallery extends React.Component {
               height:"100%",
               backgroundColor:"white"
           }}>
-            {items}
+            {item.views}
           </View>
         );
       }
@@ -352,7 +363,6 @@ class Gallery extends React.Component {
     //console.log("Gallery renderLayout0 " + JQ(data));
     const views = [];
 
-    let index = 0;
 
     for (const key in data){
       let item = data[key];
@@ -409,7 +419,7 @@ class Gallery extends React.Component {
   }
 
   renderItem1 = ({key, item, styles}) => {
-      console.log("New renderItem1 logo: " + JQ(item.logo));
+      //console.log("New renderItem1 logo: " + JQ(item.logo));
       let title = null;
       try{
         title = item.title;
@@ -474,14 +484,12 @@ class Gallery extends React.Component {
     //console.log("Gallery renderLayout1 " + JQ(data));
     const views = [];
 
-    let index = 0;
     for (const key in data){
       let item = data[key];
 
       views.push(
         this.renderItem1({key, item,styles})
       );
-      index++;
     }
 
     return (
