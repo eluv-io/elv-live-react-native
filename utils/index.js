@@ -21,7 +21,7 @@ export const RandomInt = (min,max) => {
 
 export const dateCountdown = (str) =>{
 
-  //try{
+  try{
     let date = new Date(str);
     if(isAfter(new Date(),date)){
       return null;
@@ -33,8 +33,8 @@ export const dateCountdown = (str) =>{
       end: date
     });
     return formatDuration(duration,{format:["years","months","days","hours","minutes"]}).replace("minutes","minutes\n");
-  //}catch(e){
-  //  console.log("Could not convert date: " + str + " error:" + JQ(e));
-  //}
+  }catch(e){
+    console.log("Could not convert date: " + str + " error:" + JQ(e));
+  }
   return null;
 }

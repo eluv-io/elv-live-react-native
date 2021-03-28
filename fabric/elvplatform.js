@@ -66,7 +66,7 @@ class ElvPlatform {
         select,
         noCache:true
       });
-      console.log("Platform asset_metadata: " + JQ(this.siteInfo["asset_metadata"]["featured_events"][0]["ritaora"]["info"]["extras"][1]));
+      //console.log("Platform asset_metadata: " + JQ(this.siteInfo["asset_metadata"]["featured_events"][0]["ritaora"]["info"]["extras"][1]));
 
       /*this.siteInfo.baseLinkUrl = await this.client.LinkUrl({
         libraryId: this.siteLibraryId,
@@ -79,6 +79,11 @@ class ElvPlatform {
       this.currentHost = baseURI.protocol() + "://" + baseURI.host();
       
       console.log("Platform base current host: " + this.currentHost);
+
+      this.eluvioLogo = this.createLink(
+        this.siteInfo.baseLinkUrl,
+        "/meta/public/asset_metadata/info/site_images/eluvio_live_logo_white"
+      );
 
       let sites = this.siteInfo.asset_metadata[eventsKey] || {};
       this.availableSites = [];

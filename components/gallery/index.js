@@ -451,7 +451,7 @@ class Gallery extends React.Component {
         {this.RenderBackground({item,styles})}
           <LinearGradient 
             start={{x: 0, y: 0}} end={{x: 1, y: 0}} 
-            colors={['rgba(0,0,0,1)', 'rgba(0,0,0,1)', 'rgba(0,0,0,0)']} 
+            colors={['rgba(0,0,0,1)', 'rgba(0,0,0,.90)', 'rgba(0,0,0,0)']} 
             style={styles.linearGradient} 
             />
           <View style={styles.contentContainer}>
@@ -537,8 +537,12 @@ class Gallery extends React.Component {
 
 const stylesCommon = StyleSheet.create({
   container: {
+    position: "absolute",
+    top:0,
     flex: 1,
     backgroundColor: 'black',
+    width: "100%",
+    height: "100%"
   },
   row: {
     display: "flex",
@@ -675,9 +679,8 @@ const stylesCommon = StyleSheet.create({
     backgroundColor: "white",
   },
   logo: {
-    width:"100%",
-    maxWidth:"100%",
-    height: "30%",
+    width:474,
+    height: 224,
     margin: 20,
     resizeMode: "contain",
     padding:0
@@ -691,6 +694,7 @@ const stylesLayout0 = StyleSheet.create({
     justifyContent: "center",
     resizeMode: 'cover',
     backgroundColor: 'rgba(0,0,0,0)',
+    top:0,
     width: "100%",
     height: "100%"
   },
@@ -749,7 +753,8 @@ const stylesLayout1 = StyleSheet.create({
     resizeMode: 'cover',
     width: "100%",
     height: "100%",
-    left:'20%',
+    left:'15%',
+    top:0
   },
   linearGradient: {
     position: "absolute",
@@ -757,22 +762,23 @@ const stylesLayout1 = StyleSheet.create({
     top:0,
     alignItems: 'center',
     justifyContent: "center",
-    width: "70%",
+    width: "60%",
     height: "100%"
   },
   contentContainer: {
     flex: 1,
-    marginTop:50,
-    marginLeft:"10%",
+    //marginTop:100,
+    marginBottom: 150,
+    marginLeft:"5%",
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     width: 615,
-    height: "100%",
+    height: "80%",
     resizeMode: "contain",
   },
   headerText: {
     color: '#fff',
-    fontSize: 50,
+    fontSize: 40,
     marginTop:20
   },
   subheaderText: {
@@ -783,7 +789,7 @@ const stylesLayout1 = StyleSheet.create({
     lineHeight: 50,
     marginTop:20,
     color: '#fff',
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: "300"
   },
   dateText: {
@@ -792,7 +798,7 @@ const stylesLayout1 = StyleSheet.create({
     textAlign: 'center',
     marginTop:30,
     color: '#fff',
-    fontSize: 36,
+    fontSize: 20,
     fontWeight: "300"
   },
 });

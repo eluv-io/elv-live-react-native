@@ -58,7 +58,15 @@ class SitePage extends React.Component {
       main.description = site.info.event_info.event_subheader;
       main.image = site.tv_main_background;
       main.logo = site.tv_main_logo;
-      main.release_date = site.info.event_info.date;
+      
+      let date = null;
+      let countDown = null;
+      try{
+        date = site.info.event_info.date;
+        countDown = dateCountdown(date);
+      }catch(e){}
+
+      main.release_date = countDown;
       main.channels = site.channels;
       //XXX: TODO - find a way to check if the channel is available to play
       main.isAvailable = true;

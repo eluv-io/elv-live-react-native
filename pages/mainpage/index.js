@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   Button,
   TVFocusGuideView,
-  TVEventHandler
+  TVEventHandler,
+  Image,
 } 
 from 'react-native';
 import Swiper from 'react-native-swiper'
@@ -83,11 +84,6 @@ class MainPage extends React.Component {
       try{
         date = site.info.event_info.date;
         countDown = dateCountdown(date);
-      }catch(e){}
-
-      let releaseDate = null;
-      try{
-        releaseDate = site.info.event_info.date;
       }catch(e){}
 
       let item = {};
@@ -365,6 +361,9 @@ class MainPage extends React.Component {
     }
 
     console.log("Mainpage isShowingExtras " + JQ(isShowingExtras));
+    let eluvioLogo = platform.eluvioLogo || "";
+    console.log("Eluvio Live Logo URL: " + eluvioLogo);
+
     return (
       <View style={styles.container}>
         <Gallery isActive={isActive && !isShowingExtras} 
@@ -388,6 +387,15 @@ class MainPage extends React.Component {
             ref={this.extrasRef}
           /> 
           : null }
+        <View style={styles.topRow} >
+        <Image
+            style={styles.eluvioLogo}
+            source={{
+              uri: eluvioLogo
+            }}
+            resizeMode="contain"
+          />
+      </View>
       </View>
     );
   }
@@ -398,7 +406,22 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'black',
+    backgroundColor: 'transparent',
+  },
+  topRow: {
+    position: "absolute",
+    top: 0,
+    left: 20,
+    display: "flex",
+    flexDirection: "row",
+    width: "100%",
+    alignItems: "flex-start",
+    backgroundColor:"transparent",
+    margin: 20
+  },
+  eluvioLogo:{
+    width: 191,
+    height: 40
   },
   background: {
     position: "absolute",
