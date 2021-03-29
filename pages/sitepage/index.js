@@ -180,7 +180,6 @@ class SitePage extends React.Component {
   }
 
   select(item){
-    console.log("Sitepage select" + JQ(item));
     const {isActive} = this.props;
     if(!isActive){
       return;
