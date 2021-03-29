@@ -143,6 +143,8 @@ class ElvPlatform {
     //console.log("resolving extras: " + JQ(site.info.extras));
     for(const index in site.info.extras){
         let extra = site.info.extras[index];
+        extra.basePath = UrlJoin(site.metaDataPath,`/info/extras/${index}`);
+        console.log("Extra base path: " + extra.basePath);
         /*
         extra.resolvePackageLink = async ()=>{
           //console.log("evaluating extra: " + JQ(extra));
@@ -181,16 +183,61 @@ class ElvPlatform {
         let packageLink = extra["package"];
         if(packageLink["info"] != undefined){
           extra.isAvailable = true;
+          console.log("package available.");
+          try{
+            //Trying to get the video urls for all extras with videos
+            //extra.videoUrl = extra.package.video
+            let gallery = extra.package.info.gallery;
+            //console.log("gallery: " + JQ(gallery));
+            for(let itemIndex in gallery){
+              let item = gallery[itemIndex];
+              try{
+                console.log("item video: " + JQ(item.video));
+                if(item.video.sources.default){
+                console.log("item video source default: " + JQ(item.video.sources.default));
+                /*
+                  let optionsUrl = item.video.sources.default.url;
+                  console.log("EXTRAS options: ",JQ(optionsUrl));
+                  let response = await fetch(optionsUrl);
+                  let jsonResponse = await response.json();
+                  console.log("EXTRAS options response: ",JQ(jsonResponse));
+                  */
+
+                  let linkPath =  UrlJoin(extra.basePath, `/package/info/gallery/${itemIndex}/video/sources/default`);
+                  console.log("PlayoutOptions linkPath: " + JQ(linkPath));
+
+                  let playoutOptions = await this.client.PlayoutOptions({
+                    libraryId: this.siteLibraryId,
+                    objectId: this.siteId,
+                    linkPath,
+                    protocols: ["hls", "dash"],
+                    drms: ["aes-128","sample-aes", "clear"],
+                    offering: "default"
+                  });
+                  console.log("PlayoutOptions response: " + JQ(playoutOptions));
+
+                  let playoutUrl = (playoutOptions.hls.playoutMethods.clear || 
+                    playoutOptions.hls.playoutMethods["sample-aes"] || 
+                    playoutOptions.hls.playoutMethods["aes-128"]).playoutUrl;
+
+                  item.videoUrl = playoutUrl;
+                  console.log("VideoUrl: " + item.videoUrl);
+                }
+              }catch(e){}
+            }
+            
+          }catch(e){
+            console.log("Could not get video url for extra. " + e);
+          }
         }else{
           extra.isAvailable = false;
         }
-
-      
 
         extra.image = this.createLink(
         this.siteInfo.baseLinkUrl,
           "/meta/" + site.metaDataPath+`/info/extras/${index}/image`
         );
+        
         //console.log(extra.image);
     }
 

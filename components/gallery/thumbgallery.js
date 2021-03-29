@@ -18,6 +18,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import { Icon } from 'react-native-elements'
 import FadeInView from '../../components/fadeinview'
 import Timer from '../../utils/timer';
+import extras from '../../testdata/extras';
+import Video from 'react-native-video';
 
 const BLUR_OPACITY = 0.3;
 const THUMBWIDTH = 300;
@@ -117,6 +119,8 @@ class ThumbGallery extends React.Component {
     if(onShowControls != undefined){
       onShowControls();
     }
+
+
   }
   
   hideControls(){
@@ -217,11 +221,20 @@ class ThumbGallery extends React.Component {
     }
   }
 
+  videoError = (error) => {
+    console.log("VideoError: " + JQ(error));
+    this.setState({error});
+  }
+
+  onBuffer = () => {
+
+  }
+
+
   RenderItem = ({ item, index }) => {
     let {currentViewIndex,isShowingControls} = this.state;
-    //console.log("Thumbgallery RenderItem " + item.image);
+    //console.log("Thumbgallery RenderItem "+ JQ(item));
     return (
-      
       <Image
         style={index == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}
         source={{
@@ -240,7 +253,7 @@ class ThumbGallery extends React.Component {
     for (var i = 0; i < data.length; i++){
       let item = data[i];
       item.index = i;
-      item.id = item.image;
+      item.id = item.i;
       items.push(
         item
       );
@@ -271,6 +284,48 @@ class ThumbGallery extends React.Component {
     )
   }
 
+  RenderBackground = (props)=>{
+    const {item} = props;
+    const {currentViewIndex,showBackground,isShowingControls} = this.state;
+    if(!showBackground){
+      return null;
+    }
+
+    let videoUrl = item.videoUrl;
+    console.log("RenderBackground: " + JQ(item));
+    if(videoUrl){
+      return (
+        <Video source={{uri: videoUrl}}   // Can be a URL or a local file.
+          ref={(ref) => {
+            this.player = ref
+          }}                                      // Store reference
+          onBuffer={this.onBuffer}                // Callback when remote video is buffering
+          onError={this.videoError}               // Callback when video cannot be loaded
+          style={styles.video} 
+          controls={false}
+          //volume={volume}
+          //onEnd={()=>{navigation.goBack()}}
+          />
+      );
+    }else{
+      let imageUrl= null;
+      try{
+        imageUrl = item.image;
+      }catch(e){
+        return null;
+      }
+
+      return (
+        <Image
+          style={styles.mainImage}
+          source={{
+            uri: imageUrl
+          }}
+        />
+      );
+    }
+  }
+
   render() {
     const {currentViewIndex,showBackground,isShowingControls} = this.state;
     const {data} = this.props;
@@ -292,20 +347,10 @@ class ThumbGallery extends React.Component {
       description = item.description;
     }catch(e){}
 
-    let imageUrl= null;
-    try{
-      imageUrl = item.image;
-    }catch(e){}
-
     return (
         <View style={showBackground?[styles.container,styles.blackBackground]:styles.container}>
           <FadeInView key={currentViewIndex} duration={1500} start={.1} end={1} style={styles.container}>
-          {showBackground? <Image
-            style={styles.mainImage}
-            source={{
-              uri: imageUrl
-            }}
-          /> : null }
+          <this.RenderBackground item={item}/>
           </FadeInView>
           <FadeInView key={isShowingControls} duration={isShowingControls? 500:1500} fadeOut={isShowingControls == false} style={styles.controlsContainer}>
           <LinearGradient 
@@ -352,6 +397,13 @@ const styles = StyleSheet.create({
   },
   noborder: {
     borderWidth: 0,
+  },
+  video: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: "center",
+    width: "100%",
+    height: "100%"
   },
   controlsContainer: {
     position: "absolute",

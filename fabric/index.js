@@ -17,7 +17,7 @@ export default class Fabric {
       configUrl,
       staticToken
     });
-    this.client.ToggleLogging(true);
+    //this.client.ToggleLogging(true);
 
     this.client.SetNodes({
       "fabricURIs": [
@@ -239,5 +239,4 @@ export default class Fabric {
 
     console.log("Response: " + JQ(response));
   }
-
 }

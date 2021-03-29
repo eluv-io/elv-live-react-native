@@ -207,6 +207,7 @@ class SitePage extends React.Component {
             galleryItem.image = galleryItem.image.url;
           }
           data.push(galleryItem);
+          console.log("push data: " + JQ(galleryItem));
         }
         navigation.navigate('gallery', data);
       }

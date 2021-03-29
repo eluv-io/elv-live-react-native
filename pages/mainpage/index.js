@@ -347,22 +347,22 @@ class MainPage extends React.Component {
         </View>
       );
     }
-    console.log("mainpage render " + siteData.length);
+    //console.log("mainpage render " + siteData.length);
 
     let data = siteData;
     let extras = null;
     try{
       let site = siteData[currentViewIndex];
-      console.log("Mainpage render current site: " + site.title);
+      //console.log("Mainpage render current site: " + site.title);
       extras = site.extras;
-      console.log("Mainpage render current site extras: " + site.extras.length);
+      //console.log("Mainpage render current site extras: " + site.extras.length);
     }catch(e){
       console.log("Couldn't get extras from site " + JQ(e));
     }
 
-    console.log("Mainpage isShowingExtras " + JQ(isShowingExtras));
+    //console.log("Mainpage isShowingExtras " + JQ(isShowingExtras));
     let eluvioLogo = platform.eluvioLogo || "";
-    console.log("Eluvio Live Logo URL: " + eluvioLogo);
+    //console.log("Eluvio Live Logo URL: " + eluvioLogo);
 
     return (
       <View style={styles.container}>
