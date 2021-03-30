@@ -151,7 +151,7 @@ class ThumbGallery extends React.Component {
     
     console.log("next " + currentViewIndex + " sites: " + data.length);
     currentViewIndex++;
-    this.setState({currentViewIndex});
+    this.setState({currentViewIndex,videoUrl:null});
     if(this.controlsTimer){
       this.controlsTimer.start();
     }
@@ -163,6 +163,7 @@ class ThumbGallery extends React.Component {
     if(next){
       next();
     }
+    this.getVideo();
   }
   
   _previous(){
@@ -188,7 +189,7 @@ class ThumbGallery extends React.Component {
 
     console.log("previous " + currentViewIndex);
     currentViewIndex--;
-    this.setState({currentViewIndex});
+    this.setState({currentViewIndex,videoUrl:null});
     if(this.controlsTimer){
       this.controlsTimer.start();
     }
@@ -200,11 +201,12 @@ class ThumbGallery extends React.Component {
     if(previous){
       previous();
     }
+    this.getVideo();
   }
 
-  _select(){
+  _select = async () => {
     const {isActive,data,select} = this.props;
-    if(!isActive || !select || !data){
+    if(!isActive || !data){
       return;
     }
 
@@ -215,9 +217,38 @@ class ThumbGallery extends React.Component {
     try{
       let selected = data[currentViewIndex];
       console.log("Thumbgallery select " + currentViewIndex);
-      select({item:selected,index:currentViewIndex});
+      if(select){
+        select({item:selected,index:currentViewIndex, videoUrl:null});
+      }
+
+      await this.getVideo();
     }catch(e){
       console.error(e);
+    }
+  }
+
+  getVideo = async () => {
+    const {isActive,data,select} = this.props;
+    if(!isActive || !data){
+      return;
+    }
+    const {currentViewIndex,isShowingControls} = this.state;
+    if(!isShowingControls){
+      return;
+    }
+
+    let selected = data[currentViewIndex];
+    console.log("Thumbgallery select " + currentViewIndex);
+
+    let videoUrl = selected.videoUrl;
+    if(!videoUrl){
+      videoUrl = await selected.createVideoUrl();
+      selected.videoUrl = videoUrl;
+      console.log("videoUrl found: " + videoUrl);
+    }
+
+    if(videoUrl){
+      this.setState({videoUrl});
     }
   }
 
@@ -286,13 +317,12 @@ class ThumbGallery extends React.Component {
 
   RenderBackground = (props)=>{
     const {item} = props;
-    const {currentViewIndex,showBackground,isShowingControls} = this.state;
+    const {currentViewIndex,showBackground,isShowingControls, videoUrl} = this.state;
     if(!showBackground){
       return null;
     }
 
-    let videoUrl = item.videoUrl;
-    console.log("RenderBackground: " + JQ(item));
+    //console.log("RenderBackground: " + JQ(item));
     if(videoUrl){
       return (
         <Video source={{uri: videoUrl}}   // Can be a URL or a local file.
@@ -397,6 +427,13 @@ const styles = StyleSheet.create({
   },
   noborder: {
     borderWidth: 0,
+  },
+  center: {
+    alignItems: 'center',
+    justifyContent: "center",
+    width: "100%",
+    height: "100%",
+    backgroundColor: "red"
   },
   video: {
     flex: 1,

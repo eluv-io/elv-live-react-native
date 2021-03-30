@@ -60,11 +60,18 @@ class Gallery extends React.Component {
     //setInterval(()=>{if(this.props.isActive)this.forceUpdate()},60000);
   }
 
-  createImageWidths = (size,maxWidth) => {
+  //Method to create widths for a brick wall like mosaic with random widths.
+  //Returns a list of image widths for the image mosaic.
+  //param maxSize is the maximum number of widths to return (could return less if maxRows is reached)
+  //param maxWidth is the row width until it calculates for a new row.
+  //parm maxRows is the number of rows of images to calculate for.
+  //Note, it is up to the caller to use the appropriate height for row numbers.
+  createImageWidths = (maxSize,maxWidth,maxRows) => {
     imageWidths = [];
     let width=0;
     let totalWidth = maxWidth;
-    for (let i = 0; i < size; i++){
+    let row = 0;
+    for (let i = 0; i < maxSize; i++){
       width = RandomInt(maxWidth*.2,maxWidth*.6);
       if(width > maxWidth *.5){
         width = maxWidth;
@@ -75,14 +82,22 @@ class Gallery extends React.Component {
       }else{
         width = totalWidth;
         totalWidth = maxWidth;
+        row++;
       }
+
+      if(i+1 == maxSize){
+        width += totalWidth;
+      }
+
       imageWidths.push(width);
+      if (row>=maxRows){
+        break;
+      }
     }
     return imageWidths;
   }
 
   async componentDidMount() {
-    //this.setState({data: this.props.data});
     this.enableTVEventHandler();
 
   }
@@ -135,8 +150,6 @@ class Gallery extends React.Component {
     }
 
     let {currentViewIndex} = this.state;
-
-    //console.log("next() data: " + data);
     if(!data){
       console.log("No sites for next()");
       return;
@@ -229,11 +242,9 @@ class Gallery extends React.Component {
 
   RenderBackground = ({item,styles}) => {
     const {currentViewIndex} = this.state;
-    //console.log("RenderBackground screenwidth: " + WINDOWWIDTH);
-    //console.log("RenderBackground item: " + item.image);
     try{
       let gallery = item.package.info.gallery;
-
+      let overflow = 0; 
       if(gallery.length > 3){
         height = "50%"
       }
@@ -241,12 +252,10 @@ class Gallery extends React.Component {
       if(gallery.length > 0){
         let imageWidths = item.imageWidths;
         if(!imageWidths){
-          imageWidths = this.createImageWidths(20,WINDOWWIDTH);
-          console.log("Create Image widths: " + JQ(imageWidths));
+          imageWidths = this.createImageWidths(gallery.length,WINDOWWIDTH,2);
           item.imageWidths = imageWidths;
-          console.log("Create widths");
         }
-
+        overflow = gallery.length - imageWidths.length;
         let views = item.views;
         let index = 0;
         if(!views){
@@ -260,13 +269,15 @@ class Gallery extends React.Component {
             let galleryItem = gallery[key];
             let width = imageWidths[index];
             let image = galleryItem.image.url !== undefined ? galleryItem.image.url : galleryItem.image;
-            //console.log("RenderBackground image: " + image);            
+            let hasVideo = galleryItem.video != undefined && galleryItem.video.sources != undefined ;
+            console.log("hasVideo: " + hasVideo);
             views.push(
             <View 
               style={{
                 width,
                 height,
-                padding:5
+                padding:5,
+                display: "flex"
                 }}
                 key={key}
             >
@@ -278,6 +289,15 @@ class Gallery extends React.Component {
               }}
               resizeMode="cover"
             />
+            {hasVideo ?
+            <View style={styles.center} >
+              <Icon
+                name='play'
+                color='#ffffff'
+                type='font-awesome'
+                size={60}
+            />
+            </View> : null }
             </View>
             );
             index++;
@@ -286,7 +306,7 @@ class Gallery extends React.Component {
         }
 
         return(
-
+        <View>
         <View
           key={item}
           style={{
@@ -301,10 +321,14 @@ class Gallery extends React.Component {
           }}>
             {item.views}
           </View>
+            {overflow > 0 ?
+              <Text style={styles.overflowText}>+{overflow}</Text>
+              : null
+            }
+          </View>
         );
       }
     }catch(error){
-      //console.log(error);
       return (
         <FadeInView duration={500} style={styles.fade}>
         <Image
@@ -319,7 +343,6 @@ class Gallery extends React.Component {
   }
 
   renderItem0 = ({key, item, styles}) => {
-      //console.log("New item: " + JQ(item));
     let title = null;
     try{
       title = item.title;
@@ -360,7 +383,6 @@ class Gallery extends React.Component {
   renderLayout0 = (styles) => {
     const {currentViewIndex} = this.state;
     const {data,firstLayout} = this.props;
-    //console.log("Gallery renderLayout0 " + JQ(data));
     const views = [];
 
 
@@ -419,7 +441,6 @@ class Gallery extends React.Component {
   }
 
   renderItem1 = ({key, item, styles}) => {
-      //console.log("New renderItem1 logo: " + JQ(item.logo));
       let title = null;
       try{
         title = item.title;
@@ -481,7 +502,6 @@ class Gallery extends React.Component {
 
   renderLayout1 = (styles) => {
     const {currentViewIndex, data} = this.state;
-    //console.log("Gallery renderLayout1 " + JQ(data));
     const views = [];
 
     for (const key in data){
@@ -543,6 +563,14 @@ const stylesCommon = StyleSheet.create({
     backgroundColor: 'black',
     width: "100%",
     height: "100%"
+  },
+  center:{
+    flex: 1,
+    position: "absolute",
+    alignItems: 'center',
+    justifyContent: "center",
+    width: "100%",
+    height: "100%",
   },
   row: {
     display: "flex",
@@ -610,7 +638,6 @@ const stylesCommon = StyleSheet.create({
     opacity:BLUR_OPACITY
   },
   buttonText: {
-    fontSize: 18,
     color: "white",
     fontWeight: "bold",
     alignSelf: "center",
@@ -684,6 +711,21 @@ const stylesCommon = StyleSheet.create({
     margin: 20,
     resizeMode: "contain",
     padding:0
+  },
+  overflowText: {
+    position: "absolute",
+    right:5,
+    top:WINDOWHEIGHT/2+5,
+    padding: 30,
+    color: "white",
+    alignSelf: "center",
+    textTransform: "uppercase",
+    fontSize: 70,
+    textShadowColor: 'grey',
+    textShadowOffset: {width: -1, height: 1},
+    textShadowRadius: 5,
+    fontFamily: "HelveticaNeue",
+    //backgroundColor: "rgba(0,0,0,.2)"
   },
 });
 
@@ -767,7 +809,6 @@ const stylesLayout1 = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    //marginTop:100,
     marginBottom: 150,
     marginLeft:"5%",
     alignItems: 'center',

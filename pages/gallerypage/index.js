@@ -220,7 +220,6 @@ class GalleryPage extends React.Component {
       imageUrl = item.image;
     }catch(e){}
 
-
     return (
         <View style={styles.container}>
           <ThumbGallery isActive data={data} showBackground={true} show={true}/>

@@ -191,41 +191,46 @@ class ElvPlatform {
             //console.log("gallery: " + JQ(gallery));
             for(let itemIndex in gallery){
               let item = gallery[itemIndex];
-              try{
-                console.log("item video: " + JQ(item.video));
-                if(item.video.sources.default){
-                console.log("item video source default: " + JQ(item.video.sources.default));
-                /*
-                  let optionsUrl = item.video.sources.default.url;
-                  console.log("EXTRAS options: ",JQ(optionsUrl));
-                  let response = await fetch(optionsUrl);
-                  let jsonResponse = await response.json();
-                  console.log("EXTRAS options response: ",JQ(jsonResponse));
-                  */
+              item.createVideoUrl=async()=>{
+                try{
+                  console.log("item video: " + JQ(item.video));
+                  if(item.video.sources.default){
+                  console.log("item video source default: " + JQ(item.video.sources.default));
+                  /*
+                    let optionsUrl = item.video.sources.default.url;
+                    console.log("EXTRAS options: ",JQ(optionsUrl));
+                    let response = await fetch(optionsUrl);
+                    let jsonResponse = await response.json();
+                    console.log("EXTRAS options response: ",JQ(jsonResponse));
+                    */
 
-                  let linkPath =  UrlJoin(extra.basePath, `/package/info/gallery/${itemIndex}/video/sources/default`);
-                  console.log("PlayoutOptions linkPath: " + JQ(linkPath));
+                    let linkPath =  UrlJoin(extra.basePath, `/package/info/gallery/${itemIndex}/video/sources/default`);
+                    console.log("PlayoutOptions linkPath: " + JQ(linkPath));
 
-                  let playoutOptions = await this.client.PlayoutOptions({
-                    libraryId: this.siteLibraryId,
-                    objectId: this.siteId,
-                    linkPath,
-                    protocols: ["hls", "dash"],
-                    drms: ["aes-128","sample-aes", "clear"],
-                    offering: "default"
-                  });
-                  console.log("PlayoutOptions response: " + JQ(playoutOptions));
+                    let playoutOptions = await this.client.PlayoutOptions({
+                      libraryId: this.siteLibraryId,
+                      objectId: this.siteId,
+                      linkPath,
+                      protocols: ["hls", "dash"],
+                      drms: ["aes-128","sample-aes", "clear"],
+                      offering: "default"
+                    });
+                    console.log("PlayoutOptions response: " + JQ(playoutOptions));
 
-                  let playoutUrl = (playoutOptions.hls.playoutMethods.clear || 
-                    playoutOptions.hls.playoutMethods["sample-aes"] || 
-                    playoutOptions.hls.playoutMethods["aes-128"]).playoutUrl;
+                    let playoutUrl = (playoutOptions.hls.playoutMethods.clear || 
+                      playoutOptions.hls.playoutMethods["sample-aes"] || 
+                      playoutOptions.hls.playoutMethods["aes-128"]).playoutUrl;
 
-                  item.videoUrl = playoutUrl;
-                  console.log("VideoUrl: " + item.videoUrl);
+                    item.videoUrl = playoutUrl;
+                    console.log("VideoUrl: " + item.videoUrl);
+                    return playoutUrl;
+                  }
+                  return null;
+                }catch(e){
+                  return null;
                 }
-              }catch(e){}
+              }
             }
-            
           }catch(e){
             console.log("Could not get video url for extra. " + e);
           }
