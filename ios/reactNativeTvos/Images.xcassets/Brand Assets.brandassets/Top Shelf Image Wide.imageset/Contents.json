@@ -1,12 +1,12 @@
 {
   "images" : [
     {
-      "filename" : "tvos_topshelf_wide.png",
+      "filename" : "top_wide_shelf.jpg",
       "idiom" : "tv",
       "scale" : "1x"
     },
     {
-      "filename" : "tvos_topshelf_wide_2x.png",
+      "filename" : "top_wide_shelf@2x.jpg",
       "idiom" : "tv",
       "scale" : "2x"
     }
