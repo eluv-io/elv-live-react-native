@@ -14,7 +14,7 @@ import Swiper from 'react-native-swiper'
 import reactNativeTvosController from "react-native-tvos-controller"
 import AppContext from '../../AppContext'
 import {Site} from '../../fabric/site'
-import { isEmpty, JQ, dateCountdown } from '../../utils';
+import { isEmpty, JQ, dateCountdown, dateStarted} from '../../utils';
 import { Icon } from 'react-native-elements'
 import LinearGradient from 'react-native-linear-gradient';
 import Gallery from '../../components/gallery'
@@ -39,15 +39,14 @@ class SitePage extends React.Component {
     this.galleryRef = React.createRef();
     this.subscribed = false;
 
-    this.next = this.next.bind(this);
-    this.previous = this.previous.bind(this);
     this.select = this.select.bind(this);
-    //setInterval(()=>{if(this.props.isActive)this.forceUpdate()},60000);
+    setInterval(()=>{if(this.props.isActive)this.forceUpdate()},60000);
   }
 
   async componentDidMount() {
     const {site} = this.context;
     const {data} = this.props;
+    const {redeemItems} = this.context;
 
     try{
       let extras = [];
@@ -62,22 +61,23 @@ class SitePage extends React.Component {
       let date = null;
       let countDown = null;
       try{
-        date = site.info.event_info.date;
+        date = site.info.calendar.start_time;
         countDown = dateCountdown(date);
       }catch(e){}
 
       main.release_date = countDown;
       main.channels = site.channels;
       //XXX: TODO - find a way to check if the channel is available to play
-      main.isAvailable = true;
+      main.isAvailable = dateStarted(date);
+      main.isRedeemed = site.objectId in redeemItems;
       extras.push(main);
 
-      //console.log("SitePage componentDidMount: site " + JQ(site.info.extras));
       for(index in site.info.extras){
         let extra = site.info.extras[index];
-        //extra.package = await extra.resolvePackageLink();
         extras.push(extra);
-        //console.log("Found extra: " + JQ(extra));        
+        if(index == 1){
+          console.log("Found extra: " + JQ(extra));      
+        }  
       }
       this.setState({extras});
 
@@ -92,91 +92,10 @@ class SitePage extends React.Component {
       console.log(error);
     }
 
-    //this.enableTVEventHandler();
   }
 
   componentWillUnmount(){
-    //this.disableTVEventHandler();
-  }
 
-  enableTVEventHandler() {
-    this.tvEventHandler = new TVEventHandler();
-    this.tvEventHandler.enable(this, async function (page, evt) {
-      const {currentViewIndex, views} = page.state;
-      console.log(evt.eventType);
-
-      if (evt && evt.eventType === 'right') {
-        page.next();
-      } else if (evt && evt.eventType === 'up') {
-
-      } else if (evt && evt.eventType === 'left') {
-        page.previous();
-      } else if (evt && evt.eventType === 'down') {
-
-      } else if (evt && evt.eventType === 'playPause') {
-
-      } else if (evt && evt.eventType === 'select') {
-        page.select();
-      }
-    });
-  }
-
-  disableTVEventHandler() {
-    if (this.tvEventHandler) {
-      this.tvEventHandler.disable();
-      delete this.tvEventHandler;
-    }
-  }
-
-  next(){
-    const {isActive} = this.props;
-    if(!isActive){
-      return;
-    }
-
-    let {extras,currentViewIndex, isPackagesVisible} = this.state;
-    if(!isPackagesVisible){
-      return;
-    }
-
-    console.log("next() sites: " + extras);
-    if(!extras){
-      console.log("No sites for next()");
-      return;
-    }
-
-    if(currentViewIndex >= extras.length - 1){
-      return;
-    }
-    
-    console.log("next " + currentViewIndex + " sites: " + extras.length);
-    currentViewIndex++;
-    this.setState({currentViewIndex});
-  }
-  
-  previous(){
-    const {isActive} = this.props;
-    if(!isActive){
-      return;
-    }
-
-    let {extras,currentViewIndex, isPackagesVisible} = this.state;
-    if(!isPackagesVisible){
-      return;
-    }
-
-    if(!extras){
-      console.log("No sites for previous");
-      return;
-    }
-
-    if(currentViewIndex == 0){
-      return;
-    }
-
-    console.log("previous " + currentViewIndex);
-    currentViewIndex--;
-    this.setState({currentViewIndex});
   }
 
   select(item){
@@ -228,7 +147,7 @@ class SitePage extends React.Component {
           key = {i}
           style={i == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}
           source={{
-            uri: view.image_uri ,
+            uri: view.image_uri,
           }}
         />
       );

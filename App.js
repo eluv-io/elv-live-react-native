@@ -34,8 +34,10 @@ import BackgroundVideo from './static/videos/EluvioLive.mp4'
 import FadeInOut from 'react-native-fade-in-out';
 import Spinner from 'react-native-loading-spinner-overlay';
 import { LogBox } from 'react-native';
-
+import DefaultPreference from 'react-native-default-preference';
 import { ElvPlatform } from './fabric/elvplatform';
+
+const APP_STORAGE_KEY = "@eluvio_live";
 
 function LoginPage(props) {
   return (
@@ -52,23 +54,7 @@ function LoginPage(props) {
   );
 }
 
-
-function initFabric() {
-  return new Promise(async (resolve, reject) => {
-    console.log('initFabric');
-    try {
-      var configUrl = Config.networks.demo.configUrl;
-      var fabric = new Fabric();
-      //TODO:
-      var newNnemonic = await fabric.initFromKey({configUrl, privateKey:"0x06407eef6fa8c78afb550b4e24a88956f1a07b4a74ff76ffaacdacb4187892d6"});
-      resolve(fabric);
-    } catch (e) {
-      reject(e);
-    }
-  })
-}
-
-function loadPlatform(network){
+function initPlatform(network){
   return new Promise(async (resolve, reject) => {
     console.log('loadPlatform');
     try {
@@ -81,7 +67,6 @@ function loadPlatform(network){
       await fabric.init({configUrl, staticToken});
       console.log('fabric init');
       var platform = new ElvPlatform({fabric,libraryId,siteId});
-      await platform.load();
       resolve({fabric, platform});
     } catch (e) {
       reject(e);
@@ -89,11 +74,27 @@ function loadPlatform(network){
   })
 }
 
+let defaultState = {
+  redeemItems:{}
+};
+
 export default class App extends React.Component {
   state = initialState
   constructor(props) {
     super(props);
+    this.reload = this.reload.bind(this);
+    LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+    LogBox.ignoreAllLogs();
+  }
 
+  componentDidMount = async () => {
+    //await this.storeData({test:"ya ya ya!"});
+    //let data = await this.getData();
+    //console.log("Data retrieved: ",data);
+    await this.loadState();
+    await this.reload();
+    
+    /*
     loadPlatform("demo").then(
       ({fabric,platform}) => {
         console.log("Successfully initialized the Fabric client. ");
@@ -102,23 +103,60 @@ export default class App extends React.Component {
       error=>{
         console.log("Could not initialize the Fabric client: " + error);
       }
-    )
+    );
+    */
+  }
 
-    this.reload = this.reload.bind(this);
-    LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
-    LogBox.ignoreAllLogs();
+  saveState = async () => {
+    await this.storeData({redeemItems: this.state.redeemItems});
+  };
+
+  loadState = async () => {
+    let saved = await this.getData();
+    console.log("loadState ", saved);
+    if(saved != null && !isEmpty(saved.redeemItems != undefined)){
+      this.setState({redeemItems:saved.redeemItems});
+    }else{
+      console.log("no state found, setting default: ");
+      this.setState({redeemItems:{}})
+    }
+  }
+
+  storeData = async (value) => {
+    console.log("storeData ", value);
+    try {
+      const jsonValue = JSON.stringify(value);
+      await DefaultPreference.set(APP_STORAGE_KEY, jsonValue);
+    } catch (e) {
+      console.error("Could not save app data.");
+    }
+  }
+
+  getData = async () => {
+    try {
+      const jsonValue = await DefaultPreference.get(APP_STORAGE_KEY);
+      console.log("retrieved from prefs: ", jsonValue);
+      let state = JSON.parse(jsonValue);
+      return state;
+    } catch(e) {
+      console.error("Could not retrieve app data.");
+      return null;
+    }
   }
 
   reload =  async ()=>{
     console.log("app reload");
-    let {site,ticketCode} = this.state;
-    try{
-      let {fabric,platform} = await loadPlatform("demo");
+    let {site,ticketCode,redeemItems} = this.state;
 
+      let {fabric,platform} = await initPlatform("demo");
       let newSite = null;
       if(site && platform && fabric && ticketCode){
         let tenantId = site.info.tenant_id;
-        let siteId = await fabric.redeemCode(tenantId,ticketCode);
+        let siteId = await this.redeemCode(fabric,site,redeemItems,tenantId,ticketCode);
+        if(!siteId){
+          console.log("Error redeeming site.");
+          return;
+        }
         
         platform.setFabric(fabric);
         await platform.load();
@@ -132,26 +170,50 @@ export default class App extends React.Component {
             break;
           }  
         }
-
-        if(newSite){
-          console.log("App setting new State: ");
-          this.setState({fabric,platform, site:newSite});
-        }else{
-          this.setState({fabric,platform, site:null});
-        }
+      }else{
+        platform.setFabric(fabric);
+        await platform.load();
       }
-    }catch(error){
-      console.log("App Error reloading: " + JQ(error));
-    }
+
+      if(newSite){
+        console.log("App setting new State: ");
+        this.setState({fabric,platform, site:newSite});
+      }else{
+        this.setState({fabric,platform, site:null});
+      }
   }
 
-  handleSetState  = (state) => {
-    //console.log("setState " + JQ(state));
-    this.setState(state);
+  //Use callback to execute after setState finishes.
+  handleSetState  = (state,callback) => {
+    this.setState(state,callback);
+  }
+
+  getRedeemedCodes = () =>{
+    return this.state.redeemItems;
+  }
+
+  //Internal
+  redeemCode = async (fabric,site, redeemItems, tenantId,ticketCode) =>{
+    let id = await fabric.redeemCode(tenantId,ticketCode);
+    if(id != null){
+      let items = {...redeemItems};
+      let objectId = site.objectId;
+      items[objectId] = {ticketCode,tenantId};
+      console.log("redeem success. ", items);
+      this.setState(
+        {redeemItems:items},
+        async ()=>{
+          await this.saveState();
+          console.log("saved: ", await this.getData());
+        }
+      );
+      return id;
+    }
+    return null;
   }
 
   render() {
-    const {fabric, site, platform} = this.state;
+    const {fabric, site, platform, redeemItems} = this.state;
 
     //FIXME: Find working spinner
 
@@ -165,7 +227,17 @@ export default class App extends React.Component {
     }
     
     return (
-      <AppContext.Provider value={{fabric, site, platform, setAppState:this.handleSetState, appReload:this.reload}}>
+      <AppContext.Provider value={
+        {
+          fabric,
+          site,
+          platform,
+          redeemItems,
+          setAppState:this.handleSetState,
+          appReload:this.reload
+          }
+        }
+        >
         <Navigation default="main">
             <Route name="main" component={MainPage} />
             <Route name="redeem" component={LoginPage} />

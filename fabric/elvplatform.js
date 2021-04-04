@@ -14,7 +14,7 @@ class ElvPlatform {
     this.siteId = siteId;
     this.siteLibraryId = libraryId;
     this.eventSites={};
-    this.availableSite=[];
+    this.availableSites=[];
     this.currentHost = "";
     this.load = this.load.bind(this);
     this.setFabric = this.setFabric.bind(this);
@@ -122,7 +122,7 @@ class ElvPlatform {
   }
 
   getSites = ()=>{
-    console.log("Platform getSites " + this.availableSites.length);
+    //console.log("Platform getSites " + this.availableSites.length);
     return this.availableSites;
   }
 
@@ -145,41 +145,6 @@ class ElvPlatform {
         let extra = site.info.extras[index];
         extra.basePath = UrlJoin(site.metaDataPath,`/info/extras/${index}`);
         console.log("Extra base path: " + extra.basePath);
-        /*
-        extra.resolvePackageLink = async ()=>{
-          //console.log("evaluating extra: " + JQ(extra));
-          let packageLink = extra["package"];
-          if(packageLink["info"] != undefined){
-            //Already Resolved
-            return packageLink;
-          }
-
-          let packageInfo = packageLink;
-
-          try{
-            //console.log("Package: ", packageLink);
-
-            let versionHash = packageLink["/"].split("/")[2];
-            //console.log("Package hash:", versionHash);
-
-            packageInfo = await this.client.ContentObjectMetadata({
-              versionHash,
-              metadataSubtree: "/public/asset_metadata",
-              resolveLinks: true,
-              resolveIncludeSource: true,
-              resolveIgnoreErrors: true,
-              produceLinkUrls: true,
-            });
-            //console.log("Package Info:", packageInfo);
-            extra.isAvailable = true;
-          }catch(e){
-            extra.isAvailable = false;
-          }
-
-          return packageInfo;
-        }
-        */
-
         let packageLink = extra["package"];
         if(packageLink["info"] != undefined){
           extra.isAvailable = true;
@@ -196,14 +161,6 @@ class ElvPlatform {
                   console.log("item video: " + JQ(item.video));
                   if(item.video.sources.default){
                   console.log("item video source default: " + JQ(item.video.sources.default));
-                  /*
-                    let optionsUrl = item.video.sources.default.url;
-                    console.log("EXTRAS options: ",JQ(optionsUrl));
-                    let response = await fetch(optionsUrl);
-                    let jsonResponse = await response.json();
-                    console.log("EXTRAS options response: ",JQ(jsonResponse));
-                    */
-
                     let linkPath =  UrlJoin(extra.basePath, `/package/info/gallery/${itemIndex}/video/sources/default`);
                     console.log("PlayoutOptions linkPath: " + JQ(linkPath));
 
@@ -242,12 +199,7 @@ class ElvPlatform {
         this.siteInfo.baseLinkUrl,
           "/meta/" + site.metaDataPath+`/info/extras/${index}/image`
         );
-        
-        //console.log(extra.image);
     }
-
-    //XXX: test
-    //site.info.extras = testExtras;
 
     return site;
   }

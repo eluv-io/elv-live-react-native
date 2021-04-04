@@ -73,7 +73,7 @@ class Login extends React.Component {
   let {code, focused} = this.state;
 
   //XXX:
-  code = "RLnkQi9";
+  //code = "RLnkQi9";
 
   const {fabric, platform, site, setAppState,appReload} = this.context;
   try{

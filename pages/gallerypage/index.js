@@ -203,23 +203,6 @@ class GalleryPage extends React.Component {
       return null;
     }
 
-    let item = data[currentViewIndex];
-    //console.log("New item: " + JQ(item));
-    let title = null;
-    try{
-      title = item.title;
-    }catch(e){}
-
-    let description= null;
-    try{
-      description = item.description;
-    }catch(e){}
-
-    let imageUrl= null;
-    try{
-      imageUrl = item.image;
-    }catch(e){}
-
     return (
         <View style={styles.container}>
           <ThumbGallery isActive data={data} showBackground={true} show={true}/>

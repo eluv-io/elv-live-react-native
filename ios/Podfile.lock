@@ -281,6 +281,8 @@ PODS:
     - React-Core (= 0.63.4-0)
     - React-cxxreact (= 0.63.4-0)
     - React-jsi (= 0.63.4-0)
+  - RNDefaultPreference (1.4.3):
+    - React
   - RNTVOSController (0.2.4):
     - React-Core
     - RNTVOSController/Default (= 0.2.4)
@@ -288,9 +290,6 @@ PODS:
     - React-Core
   - RNVectorIcons (8.1.0):
     - React-Core
-  - RNVolumeControl (0.1.0):
-    - RNVolumeControl/Main (= 0.1.0)
-  - RNVolumeControl/Main (0.1.0)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga
@@ -330,9 +329,9 @@ DEPENDENCIES:
   - React-RCTSettings (from `../node_modules/react-native/Libraries/Settings`)
   - React-RCTText (from `../node_modules/react-native/Libraries/Text`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - RNDefaultPreference (from `../node_modules/react-native-default-preference`)
   - RNTVOSController (from `../node_modules/react-native-tvos-controller`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
-  - RNVolumeControl (from `../node_modules/react-native-volume-control`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -406,12 +405,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/Text"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNDefaultPreference:
+    :path: "../node_modules/react-native-default-preference"
   RNTVOSController:
     :path: "../node_modules/react-native-tvos-controller"
   RNVectorIcons:
     :path: "../node_modules/react-native-vector-icons"
-  RNVolumeControl:
-    :path: "../node_modules/react-native-volume-control"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -454,12 +453,12 @@ SPEC CHECKSUMS:
   React-RCTSettings: 5cd325d709b78968dcb6123c0d84ebbe16ff2b98
   React-RCTText: c14fecaa52f682ffc920d21dc06accee58ac0475
   ReactCommon: d8af14f3e586d78c8e8443e32fedb4c2eb745402
+  RNDefaultPreference: 2f8d6d54230edbd78708ada8d63bb275e5a8415b
   RNTVOSController: 50806e5e5140685c9b74560f65adca10904d0dd7
   RNVectorIcons: 31cebfcf94e8cf8686eb5303ae0357da64d7a5a4
-  RNVolumeControl: 1271c2d4ab75b6c2c75c44ca3f257e9a71b5edd3
   Yoga: 1cb424a95ffa7e14cacce4c0ac07ba8e59393ebf
   YogaKit: 1e22bf2228b3a5ac8cc88965153061ae92c494b5
 
-PODFILE CHECKSUM: 86f2299c032f488bed9a720264c9aa15cb0c2a69
+PODFILE CHECKSUM: f06bc1a3d7eeb737503f3a62fd1c5bf2a30f1550
 
 COCOAPODS: 1.9.3

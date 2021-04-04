@@ -341,7 +341,7 @@ class PlayerPage extends React.Component {
           onBuffer={this.onBuffer}                // Callback when remote video is buffering
           onError={this.videoError}               // Callback when video cannot be loaded
           style={styles.video} 
-          controls={false}
+          controls={!isShowingControls}
           volume={volume}
           onEnd={()=>{navigation.goBack()}}
           />

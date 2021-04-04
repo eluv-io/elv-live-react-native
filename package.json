@@ -21,6 +21,7 @@
     "got": "^11.8.2",
     "react": "16.13.1",
     "react-native": "npm:react-native-tvos@latest",
+    "react-native-default-preference": "^1.4.3",
     "react-native-elements": "^3.2.0",
     "react-native-fade-in-out": "^1.0.5",
     "react-native-fb-collage": "^1.0.7",

@@ -29,6 +29,18 @@ const WINDOWHEIGHT = Dimensions.get('window').height;
   This Gallery supports two layouts based on the data
   0 - Shows the Title and Description near the bottom of the screen with white text
   1 - The background shift to the right with a black gradient on the left side for the content
+
+  Gallery takes a data array as a prop with each item consisting:
+  
+  {
+    title,
+    description,
+    release_date,
+    logo,
+    image,
+    isRedeemed, 
+  }
+
 */
 
 class Gallery extends React.Component {
@@ -441,6 +453,7 @@ class Gallery extends React.Component {
   }
 
   renderItem1 = ({key, item, styles}) => {
+
       let title = null;
       try{
         title = item.title;
@@ -466,13 +479,17 @@ class Gallery extends React.Component {
         image = item.image;
       }catch(e){}
 
-      let buttonText = "Enter Event";
+      let buttonText = "Redeem Ticket";
+      if(item.isRedeemed){
+        buttonText = "Enter Event";
+      }
+
       return(
       <View key = {key} style={styles.container}>
         {this.RenderBackground({item,styles})}
           <LinearGradient 
             start={{x: 0, y: 0}} end={{x: 1, y: 0}} 
-            colors={['rgba(0,0,0,1)', 'rgba(0,0,0,.90)', 'rgba(0,0,0,0)']} 
+            colors={['rgba(0,0,0,1)', 'rgba(0,0,0,.90)', 'rgba(0,0,0,0)']}
             style={styles.linearGradient} 
             />
           <View style={styles.contentContainer}>

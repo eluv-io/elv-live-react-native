@@ -19,6 +19,7 @@ import { isEmpty, JQ, dateCountdown } from '../../utils';
 import { Icon } from 'react-native-elements'
 import LinearGradient from 'react-native-linear-gradient';
 import testdata from '../../testdata/extras.js';
+import { getOverlappingDaysInIntervals } from 'date-fns';
 
 const BLUR_OPACITY = 0.3;
 
@@ -50,7 +51,7 @@ class MainPage extends React.Component {
 
   loadSiteData = ()=>{
     console.log("MainPage loadSiteData");
-    const {platform} = this.context;
+    const {platform,redeemItems} = this.context;
 
     let sites = platform.getSites();
     console.log("MainPage componentDidMount sites size: " + sites.length);
@@ -82,7 +83,7 @@ class MainPage extends React.Component {
       let date = null;
       let countDown = null;
       try{
-        date = site.info.event_info.date;
+        date = site.info.calendar.start_time;
         countDown = dateCountdown(date);
       }catch(e){}
 
@@ -92,9 +93,8 @@ class MainPage extends React.Component {
       item.image = site.tv_main_background;
       item.logo = site.tv_main_logo;
       item.release_date = countDown;
-      //item.extras = await this.createExtras(index);
       item.extras = site.info.extras;
-      console.log("extras length: " + item.extras.length);
+      item.isRedeemed = site.objectId in redeemItems;
       siteData.push(item);
 
       index++;
@@ -117,6 +117,22 @@ class MainPage extends React.Component {
       if(isShowingExtras){
         return;
       }
+      
+      let siteData = page.loadSiteData();
+
+      if(isEmpty(siteData)){
+        return;
+      }
+
+      let extras = null;
+      try{
+        let site = siteData[currentViewIndex];
+        //console.log("Mainpage render current site: " + site.title);
+        extras = site.extras;
+        //console.log("Mainpage render current site extras: " + site.extras.length);
+      }catch(e){
+        console.log("Couldn't get extras from site " + JQ(e));
+      }
 
       console.log("MainPage event received: "+evt.eventType);
 
@@ -125,7 +141,10 @@ class MainPage extends React.Component {
       } else if (evt && evt.eventType === 'up') {
         //console.log("MainPage extras showControls");
         //page.extrasRef.current.showControls();
-        page.setState({isShowingExtras:true});
+        if(!isEmpty(extras)){
+          //console.log('mainpage showextras ',extras);
+          page.setState({isShowingExtras:true});
+        }
       } else if (evt && evt.eventType === 'left') {
         //page.previous();
       } else if (evt && evt.eventType === 'down') {
@@ -221,7 +240,7 @@ class MainPage extends React.Component {
       return;
     }
 
-    const {setAppState} = this.context;
+    const {setAppState, redeemItems,appReload} = this.context;
     const {navigation} = this.props;
     const {currentViewIndex} = this.state;
 
@@ -229,8 +248,23 @@ class MainPage extends React.Component {
     try{
       let site = sites[currentViewIndex];
       console.log("select site " + JQ(site.title));
-      setAppState({site});
-      navigation.navigate('redeem')
+      let redeemInfo = redeemItems[site.objectId];
+      if(!isEmpty(redeemInfo) && !isEmpty(redeemInfo.ticketCode)){
+        setAppState({site,ticketCode: redeemInfo.ticketCode},
+          async ()=>{
+            try{
+              await appReload();
+              navigation.navigate("site");
+            }catch(e){
+              console.error("Error loading extra info: " + e);
+            }
+          }
+        );
+      }else{
+        setAppState({site},async ()=>{
+          navigation.navigate("redeem");
+        });
+      }
     }catch(e){
       console.error(e);
     }
@@ -238,7 +272,8 @@ class MainPage extends React.Component {
 
   //Callback for Thumbselector
   onSelectExtra = async ({item,index}) => {
-    const {setAppState} = this.context;
+    console.log("\n MainPage onSelectExtra()");
+    const {setAppState,redeemItems,appReload} = this.context;
     const {isActive,navigation} = this.props;
     const {currentViewIndex,isShowingExtras} = this.state;
     
@@ -246,14 +281,9 @@ class MainPage extends React.Component {
       return;
     }
 
-    //XXX: For testing, it's able to retrieve the public metadata for some reason
-    //let pack  = await item.resolvePackageLink();
-    //console.log("mainpage extra select() " + JQ(item));
-
-    try{
-      if(item.isAvailable){
-        //Go straight to package view
+    const getData = (item)=>{
         let data = [];
+        try{
           for(const index in item.package.info.gallery){
             let galleryItem = {...item.package.info.gallery[index]};
             if(galleryItem.image.url != undefined){
@@ -261,16 +291,45 @@ class MainPage extends React.Component {
             }
           data.push(galleryItem);
         }
+        }catch(e){console.log("Could not get extras info: "+e);}
+        console.log(data);
+        return data;
+    }
+
+    try{
+      if(item.isAvailable){
+        let data = getData(item);
         navigation.navigate("gallery",data);
       }else{
         console.log("Package not available: ");
         const sites = await this.getSites();
         let site = sites[currentViewIndex];
         console.log("select site " + JQ(site.title));
-        setAppState({site});
-
-        //Redeem and then go to package view
-        navigation.navigate("redeem",{extra:index});
+        let redeemInfo = redeemItems[site.objectId];
+        if(!isEmpty(redeemInfo) && !isEmpty(redeemInfo.ticketCode)){
+          setAppState({site,ticketCode: redeemInfo.ticketCode},
+            async ()=>{
+              try{
+                await appReload();
+                console.log("\nApp reloaded.");
+                const {site} = this.context;
+                let extra = site.info.extras[index];
+                let data = getData(extra);
+                if(!isEmpty(data)){
+                  navigation.navigate("gallery",data);
+                }else{
+                  throw "Gallery data is empty.";
+                }
+              }catch(e){
+                console.error("Error loading extra info: " + e);
+              }
+            }
+          );
+        }else{
+          setAppState({site});
+          //Redeem and then go to package view
+          navigation.navigate("redeem",{extra:index});
+        }
       }
     }catch(e){
       console.error(e);
@@ -285,53 +344,6 @@ class MainPage extends React.Component {
       </View>
   );
 
-  renderPagination = (index, total, context) => {
-
-    const items = [];
-    for (var i = 0; i < total; i++){
-      items.push(
-        <View key={i} style={i==index ? styles.paginationActive : styles.paginationItem} />
-      );
-    }
-
-    return (
-      <View style={styles.paginationStyle} >
-        {items}
-      </View>
-    )
-  }
-
-  createExtras = async (viewIndex)=> {
-    console.log("createExtras " + viewIndex);
-    let extras = [];
-    if(viewIndex === undefined){
-      return extras;
-    }
-
-    try{
-      const sites = await this.getSites();
-
-      let site = sites[viewIndex];
-      //console.log("Sites: " + JQ(sites));
-      //console.log("Site extras: " + JQ(site.info.extras.length));
-      for(index in site.info.extras){
-        let extra = site.info.extras[index];
-        //console.log("   Extra found: " + extras.title);
-        /*try{
-          extra.package = await extra.resolvePackageLink();
-        }catch(e){
-          console.log("Couldn't resolve extra package for site: " + site.title);
-        }*/
-        extras.push(extra);
-        //console.log("Found extra: " + JQ(extra));        
-      }
-
-    }catch(e){
-      console.log("Couldn't find extras: " + e);
-    }
-    return extras;
-  }
-
   render() {
     const {platform,setAppState} = this.context;
     const {navigation, isActive} = this.props;
@@ -340,29 +352,23 @@ class MainPage extends React.Component {
     let siteData = this.loadSiteData();
 
     if(isEmpty(siteData)){
-      //console.log("no sites");
       return (
         <View style={styles.container}>
           <Text>Loading...</Text>
         </View>
       );
     }
-    //console.log("mainpage render " + siteData.length);
 
     let data = siteData;
     let extras = null;
     try{
       let site = siteData[currentViewIndex];
-      //console.log("Mainpage render current site: " + site.title);
       extras = site.extras;
-      //console.log("Mainpage render current site extras: " + site.extras.length);
     }catch(e){
       console.log("Couldn't get extras from site " + JQ(e));
     }
 
-    //console.log("Mainpage isShowingExtras " + JQ(isShowingExtras));
     let eluvioLogo = platform.eluvioLogo || "";
-    //console.log("Eluvio Live Logo URL: " + eluvioLogo);
 
     return (
       <View style={styles.container}>

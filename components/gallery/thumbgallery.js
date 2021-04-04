@@ -263,7 +263,7 @@ class ThumbGallery extends React.Component {
 
 
   RenderItem = ({ item, index }) => {
-    let {currentViewIndex,isShowingControls} = this.state;
+    let {currentViewIndex} = this.state;
     //console.log("Thumbgallery RenderItem "+ JQ(item));
     return (
       <Image
@@ -284,7 +284,7 @@ class ThumbGallery extends React.Component {
     for (var i = 0; i < data.length; i++){
       let item = data[i];
       item.index = i;
-      item.id = item.i;
+      item.id = item.imageUrl || item.image;
       items.push(
         item
       );

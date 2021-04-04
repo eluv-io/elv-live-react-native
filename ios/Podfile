@@ -22,13 +22,9 @@ target 'reactNativeTvos' do
 # use_flipper_tvos! works for both iOS and tvOS.
 
 
-
-
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
   pod 'react-native-safe-area-context', :path => '../node_modules/react-native-safe-area-context'
-
-  pod 'RNVolumeControl', :path => '../node_modules/react-native-volume-control'
 
   target 'reactNativeTvosTests' do
     inherit! :complete

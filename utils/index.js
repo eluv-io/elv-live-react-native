@@ -4,7 +4,7 @@ export const JQ =  obj => JSON.stringify(obj, null, 2);
 
 export const isEmpty = obj => {
   const result = obj === null || obj === undefined || obj === '' 
-    || (Object.keys(obj).length === 0 && obj.constructor === Object);
+    || (Object.keys(obj).length === 0 && obj.constructor === Object) || (obj.length != undefined && obj.length == 0);
   return result;
 };
 
@@ -37,4 +37,16 @@ export const dateCountdown = (str) =>{
     console.log("Could not convert date: " + str + " error:" + JQ(e));
   }
   return null;
+}
+
+export const dateStarted = (str) => {
+  try{
+    let date = new Date(str);
+    if(isAfter(new Date(),date)){
+      return true;
+    }
+  }catch(e){
+    console.log("Could not convert date: " + str + " error:" + JQ(e));
+  }
+  return false;
 }

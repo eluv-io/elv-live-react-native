@@ -72,13 +72,8 @@ export default class Fabric {
   }
 
   redeemCode = async (tenantId, code) =>{
-    console.log("RedeemCode tenantId: " + tenantId + " code: " + code);
+    //console.log("RedeemCode tenantId: " + tenantId + " code: " + code);
     try { 
-      /*this.client = await ElvClient.FromConfigurationUrl({
-        configUrl:this.configUrl
-      });*/
-
-
       let siteId = await this.client.RedeemCode({
         tenantId,
         code
@@ -86,14 +81,6 @@ export default class Fabric {
 
       console.log("Redeemed SiteID: ");
       console.log(JQ(siteId));
-
-/*
-      let url = await this.client.FabricUrl(
-        versionHash="hq__Lc9vPRa7JJdZrLoNgzWQxAEV4rJbxqSrRCAfdzZAWhzsFMjjFKEkbASoWcXwFkWuD6axikaZ7y",
-      );
-
-      console.log("Redeem code token: " + url);
-*/
       return siteId;
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -105,7 +92,6 @@ export default class Fabric {
     }
   }
   
-
   
   //CHANNEL
 
