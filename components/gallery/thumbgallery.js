@@ -63,17 +63,26 @@ class ThumbGallery extends React.Component {
   async enableTVEventHandler() {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
-      const {isShowingControls} = page.state;
-      console.log("isShowingControls " + isShowingControls + " " + evt.eventType);
-      if(!isShowingControls){
+      const {isShowingControls, videoUrl} = page.state;
+      const {isActive, showBackground} = page.props;
+      if(!isActive){
+        return;
+      }
+
+      //I don't really like this but this allows remote press for any key to activate thumbnails
+      //only if the current selection is an image. Videos will only activate when pressing up.
+      if(showBackground && videoUrl == null && !isShowingControls){
         await page.showControls();
         return;
       }
 
+      console.log("isShowingControls " + isShowingControls + " " + evt.eventType);
       if (evt && evt.eventType === 'right') {
         page._next();
       } else if (evt && evt.eventType === 'up') {
-
+        if(!isShowingControls){
+          await page.showControls();
+        }
       } else if (evt && evt.eventType === 'left') {
         page._previous();
       } else if (evt && evt.eventType === 'down') {
@@ -265,12 +274,25 @@ class ThumbGallery extends React.Component {
   RenderItem = ({ item, index }) => {
     let {currentViewIndex} = this.state;
     //console.log("Thumbgallery RenderItem "+ JQ(item));
+    let hasVideo = item.video != undefined && item.video.sources != undefined;
     return (
+      <View style={index == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}>
       <Image
-        style={index == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}
+        style={{width:"100%",height:"100%"}}
         source={{
           uri: item.image,
         }} />
+        {hasVideo ?
+          <View style={styles.center} >
+            <Icon
+              name='play'
+              color='#ffffff'
+              type='font-awesome'
+              size={32}
+          />
+          </View> : null }
+      </View>
+
     );
   }
 
@@ -332,9 +354,10 @@ class ThumbGallery extends React.Component {
           onBuffer={this.onBuffer}                // Callback when remote video is buffering
           onError={this.videoError}               // Callback when video cannot be loaded
           style={styles.video} 
-          controls={false}
+          controls={true}
           //volume={volume}
-          //onEnd={()=>{navigation.goBack()}}
+          repeat={true}
+          onEnd={()=>{console.log("Extra video ended. ", item.title);}}
           />
       );
     }else{
@@ -413,6 +436,14 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: "transparent",
   },
+  center:{
+    flex: 1,
+    position: "absolute",
+    alignItems: 'center',
+    justifyContent: "center",
+    width: "100%",
+    height: "100%",
+  },
   blackBackground: {
     backgroundColor: "black",
   },
@@ -427,13 +458,6 @@ const styles = StyleSheet.create({
   },
   noborder: {
     borderWidth: 0,
-  },
-  center: {
-    alignItems: 'center',
-    justifyContent: "center",
-    width: "100%",
-    height: "100%",
-    backgroundColor: "red"
   },
   video: {
     flex: 1,

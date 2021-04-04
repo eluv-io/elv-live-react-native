@@ -341,11 +341,17 @@ class PlayerPage extends React.Component {
           onBuffer={this.onBuffer}                // Callback when remote video is buffering
           onError={this.videoError}               // Callback when video cannot be loaded
           style={styles.video} 
-          controls={!isShowingControls}
+          controls={true}
           volume={volume}
           onEnd={()=>{navigation.goBack()}}
+          bufferConfig={{
+            minBufferMs: 1000,
+            maxBufferMs: 3000,
+            bufferForPlaybackMs: 1000,
+            bufferForPlaybackAfterRebufferMs: 1000
+          }}
+          minLoadRetryCount={5} //default 3
           />
-          {/*<this.RenderPagination index={currentViewIndex}/> */}
           <ThumbGallery
             isActive = {isActive}
             data={views} 
