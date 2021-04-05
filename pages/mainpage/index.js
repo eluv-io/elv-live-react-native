@@ -57,47 +57,49 @@ class MainPage extends React.Component {
     console.log("MainPage componentDidMount sites size: " + sites.length);
     siteData = [];
 
-    let index = 0;
     for (const key in sites){
       let site = sites[key];
       console.log("Mainpage accessing site: " + key + " " + site.title);
 
       let eventTitle = null;
       try{
-        eventTitle = site.info.event_info.event_title;
-      }catch(e){}
+        try{
+          eventTitle = site.info.event_info.event_title;
+        }catch(e){}
 
-      let eventHeader = null;
-      try{
-        eventHeader = site.info.event_info.event_header;
-      }catch(e){}
+        let eventHeader = null;
+        try{
+          eventHeader = site.info.event_info.event_header;
+        }catch(e){}
 
-      console.log("event_header: " + site.info.event_info.event_header);
+        console.log("event_header: " + site.info.event_info.event_header);
 
-      let eventSub = null;
-      try{
-        eventSub = site.info.event_info.event_subheader;
-      }catch(e){}
-      console.log("event_subheader: " + site.info.event_info.event_subheader);
+        let eventSub = null;
+        try{
+          eventSub = site.info.event_info.event_subheader;
+        }catch(e){}
+        console.log("event_subheader: " + site.info.event_info.event_subheader);
 
-      let date = null;
-      let countDown = null;
-      try{
-        date = site.info.calendar.start_time;
-        countDown = dateCountdown(date);
-      }catch(e){}
+        let date = null;
+        let countDown = null;
+        try{
+          date = site.info.calendar.start_time;
+          countDown = dateCountdown(date);
+        }catch(e){}
 
-      let item = {};
-      item.title = eventTitle;
-      item.description = eventSub;
-      item.image = site.tv_main_background;
-      item.logo = site.tv_main_logo;
-      item.release_date = countDown;
-      item.extras = site.info.extras;
-      item.isRedeemed = site.objectId in redeemItems;
-      siteData.push(item);
+        let item = {};
+        item.title = eventTitle;
+        item.description = eventSub;
+        item.image = site.tv_main_background;
+        item.logo = site.tv_main_logo;
+        item.release_date = countDown;
+        item.extras = site.info.extras;
+        item.isRedeemed = site.objectId in redeemItems;
+        siteData.push(item);
+      }catch(e){
+        console.error("Error parsing site info: " + e);
+      }
 
-      index++;
     }
 
     console.log("ComponentDidMount sites size: " + siteData.length);

@@ -45,9 +45,9 @@ function LoginPage(props) {
     <Video
       source = {BackgroundVideo}
       style={styles.background}
-      muted = {true}
+      //muted = {true}
       resizeMode ="cover"
-      repeat = {true}
+      //repeat = {true}
     />
         <Login {...props}/>
   </View>
@@ -119,6 +119,15 @@ export default class App extends React.Component {
     }else{
       console.log("no state found, setting default: ");
       this.setState({redeemItems:{}})
+    }
+  }
+
+  clearData = async () => {
+    try {
+      await DefaultPreference.set(APP_STORAGE_KEY, "");
+      await this.loadState();
+    } catch (e) {
+      console.error("Could not clear app data.");
     }
   }
 

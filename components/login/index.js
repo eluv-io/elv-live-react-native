@@ -88,6 +88,13 @@ class Login extends React.Component {
     <View style={styles.container}>
         <View style={styles.formContainer}>
           <View style={styles.inputContainer}>
+            <Text style={styles.formText}>Presents</Text>
+            <Image
+              style={styles.logo}
+              source = {{
+                uri: site.tv_main_logo
+              }}
+            />
             <LoginInput
               secureTextEntry={true}
               placeholder="Ticket Code"
@@ -131,11 +138,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0)',
-    marginTop: 300,
+    marginTop: 20,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     width:'25%',
-    maxHeight:'42%',
+    maxHeight:'50%',
     borderRadius:5,
   },
   formLabel: {
@@ -153,16 +160,22 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '80%',
-    margin: 50
+    width: '90%',
+  },
+  logo: {
+    justifyContent: 'center',
+    alignContent: 'center',
+    marginBottom: 20,
+    resizeMode: "contain",
+    width: "100%",
+    height: 225
   },
   inputContainer: {
-    justifyContent: 'center',
-    marginTop: 30,
+    justifyContent: 'flex-start',
     width: '100%',
   },
   inputStyle: {
-    marginTop: 5,
+    marginBottom: 20,
     width: '100%',
     height: 50,
     paddingHorizontal: 10,
@@ -182,11 +195,18 @@ const styles = StyleSheet.create({
     color:"black"
   },
   formText: {
+    marginBottom: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'center',
+    fontSize: 32,
+    fontWeight: "200",
+    letterSpacing: 7,
+    fontFamily: "HelveticaNeue",
+    color:"#F4E8D6"
   },
   submitButtonUnfocused: {
-    marginTop: 50,
+    marginTop: 20,
     elevation: 8,
     justifyContent: 'center',
     //backgroundColor: "#afa78e",
@@ -194,27 +214,26 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    width: '100%',
+    width: 195,
     height: 60,
     borderWidth: 2,
     borderColor: "white",
     opacity: BLUR_OPACITY,
   },
   submitButton: {
-    marginTop: 50,
+    marginTop: 20,
     elevation: 8,
     justifyContent: 'center',
     backgroundColor:'rgba(255,255,255,.8)',
     borderRadius: 5,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    width: '100%',
+    width: 195,
     height: 60,
     borderWidth: 2,
     borderColor: "white"
   },
   buttonText: {
-    fontSize: 18,
     color: "black",
     fontWeight: "bold",
     alignSelf: "center",
@@ -225,7 +244,6 @@ const styles = StyleSheet.create({
     fontFamily: "HelveticaNeue",
   },
   buttonTextUnfocused: {
-    fontSize: 18,
     color: "white",
     fontWeight: "bold",
     alignSelf: "center",
