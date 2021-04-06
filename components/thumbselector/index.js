@@ -66,15 +66,13 @@ class ThumbSelector extends React.Component {
       }
 
       console.log("thumbselector event " + evt.eventType);
-      if (evt && evt.eventType === 'right') {
+      if (evt && evt.eventType === 'right' || evt.eventType === 'swipeRight') {
         page._next();
-      } else if (evt && evt.eventType === 'up') {
-        await page.showControls();
-      } else if (evt && evt.eventType === 'left') {
+      }else if (evt && evt.eventType === 'left' || evt.eventType === 'swipeLeft') {
         page._previous();
-      } else if (evt && evt.eventType === 'down') {
+      } else if (evt && evt.eventType === 'down' || evt.eventType === 'swipeDown') {
         page.hideControls();
-      } else if (evt && evt.eventType === 'playPause') {
+      } else if (evt && evt.eventType === 'playPause' ) {
 
       } else if (evt && evt.eventType === 'select') {
         await page._select();

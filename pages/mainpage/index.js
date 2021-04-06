@@ -112,11 +112,12 @@ class MainPage extends React.Component {
     this.disableTVEventHandler();
   }
 
-  enableTVEventHandler() {
+  enableTVEventHandler = () => {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
       const {currentViewIndex, views, isShowingExtras} = page.state;
-      if(isShowingExtras){
+      const {isActive} = page.props;
+      if(isShowingExtras || !isActive || isEmpty(evt)){
         return;
       }
       
@@ -138,29 +139,15 @@ class MainPage extends React.Component {
 
       console.log("MainPage event received: "+evt.eventType);
 
-      if (evt && evt.eventType === 'right') {
-        //page.next();
-      } else if (evt && evt.eventType === 'up') {
-        //console.log("MainPage extras showControls");
-        //page.extrasRef.current.showControls();
+      if (evt.eventType === 'swipeUp' || evt.eventType === "up") {
         if(!isEmpty(extras)){
-          //console.log('mainpage showextras ',extras);
           page.setState({isShowingExtras:true});
         }
-      } else if (evt && evt.eventType === 'left') {
-        //page.previous();
-      } else if (evt && evt.eventType === 'down') {
-        //page.extrasRef.current.hideControls();
-        page.setState({isShowingExtras:false});
-      } else if (evt && evt.eventType === 'playPause') {
-
-      } else if (evt && evt.eventType === 'select') {
-        //page.select();
       }
     });
   }
 
-  disableTVEventHandler() {
+  disableTVEventHandler = () => {
     if (this.tvEventHandler) {
       this.tvEventHandler.disable();
       delete this.tvEventHandler;
@@ -428,8 +415,10 @@ const styles = StyleSheet.create({
     margin: 20
   },
   eluvioLogo:{
+    padding:10,
     width: 191,
-    height: 40
+    height: 40,
+    resizeMode:"contain"
   },
   background: {
     position: "absolute",

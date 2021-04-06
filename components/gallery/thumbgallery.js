@@ -76,16 +76,16 @@ class ThumbGallery extends React.Component {
         return;
       }
 
-      console.log("isShowingControls " + isShowingControls + " " + evt.eventType);
-      if (evt && evt.eventType === 'right') {
+      console.log("Thumbgallery isShowingControls " + isShowingControls + " " + evt.eventType);
+      if (evt && evt.eventType === 'right' || evt.eventType === 'swipeRight') {
         page._next();
-      } else if (evt && evt.eventType === 'up') {
+      } else if (evt && evt.eventType === 'up' || evt.eventType === 'swipeUp') {
         if(!isShowingControls){
           await page.showControls();
         }
-      } else if (evt && evt.eventType === 'left') {
+      } else if (evt && evt.eventType === 'left' || evt.eventType === 'swipeLeft') {
         page._previous();
-      } else if (evt && evt.eventType === 'down') {
+      } else if (evt && evt.eventType === 'down' || evt.eventType === 'swipeDown') {
         page.hideControls();
       } else if (evt && evt.eventType === 'playPause') {
 
