@@ -21,6 +21,7 @@ import {Icon} from 'react-native-elements'
 import EvilIcon from 'react-native-vector-icons/EvilIcons'
 import LinearGradient from 'react-native-linear-gradient';
 import FadeInView from '../../components/fadeinview'
+import Timer from '../../utils/timer';
 
 const BLUR_OPACITY = 0.3;
 const WINDOWWIDTH = Dimensions.get('window').width;
@@ -199,7 +200,7 @@ class Gallery extends React.Component {
     }
   }
 
-  _select(){
+  _select=()=>{
     const {isActive,select,data} = this.props;
     if(!isActive || !select){
       return;
@@ -210,6 +211,16 @@ class Gallery extends React.Component {
     console.log("Gallery select " + currentViewIndex);
     try{
       let selected = data[currentViewIndex];
+      this.setState({selected:true});
+      let that = this;
+      this.pressedTimer = Timer(() => {
+        console.log("<<<<<<<<Pressed timeout!");
+        that.setState({
+          selected: false
+        });
+      }, 1000);
+      this.pressedTimer.start();
+
       select(selected);
     }catch(e){
       console.error(e);
@@ -247,7 +258,6 @@ class Gallery extends React.Component {
   }
 
   RenderBackground = ({item,styles}) => {
-    const {currentViewIndex} = this.state;
     try{
       let gallery = item.package.info.gallery;
       let overflow = 0; 
@@ -447,7 +457,7 @@ class Gallery extends React.Component {
   }
 
   renderItem1 = ({key, item, styles}) => {
-
+      const {selected} = this.state;
       let title = null;
       try{
         title = item.title;
@@ -498,7 +508,9 @@ class Gallery extends React.Component {
             {description? <Text numberOfLines={3} style={styles.subheaderText}>{description}</Text> : null }
             {date? <Text style={styles.dateText} >{date}</Text>: null }
             <View 
-              style={[styles.button,styles.buttonFocused]}
+              style={selected?
+                [styles.button,styles.buttonSelected]:
+                [styles.button,styles.buttonFocused]}
               >
               <Text style={styles.buttonText}>{buttonText}</Text>
             </View>
@@ -638,7 +650,7 @@ const stylesCommon = StyleSheet.create({
     elevation: 8,
     justifyContent: 'center',
     backgroundColor:'rgba(0,0,0,.8)',
-    borderRadius: 5,
+    borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
     width: 250,
@@ -669,6 +681,15 @@ const stylesCommon = StyleSheet.create({
   },
   nextButton: {
     opacity: BLUR_OPACITY
+  },
+  buttonSelected: {
+    shadowOpacity: .5,
+    shadowRadius: 2,
+    shadowOffset:{width:4,height:4},
+    opacity: 1,
+    borderWidth: 0,
+    elevation:0,
+    backgroundColor: 'rgba(100,100,100,1.0)'
   },
   buttonFocused: {
     shadowOpacity: .5,
