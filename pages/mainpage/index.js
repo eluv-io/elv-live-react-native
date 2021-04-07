@@ -139,7 +139,7 @@ class MainPage extends React.Component {
           this.remoteEvents.shift();
         }
 
-        let cheatcode1 = ["playPause","left","right","left","right"];
+        let cheatcode1 = ["playpause","left","right","left","right"];
         if(endsWithList(this.remoteEvents,cheatcode1)){
           console.log("!!!!!! Cheatcode cleardata activated!");
           await appClearData();

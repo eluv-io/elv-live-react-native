@@ -53,3 +53,9 @@ let client = await ElvClient.FromConfigurationUrl({
 let crypto = JSON.stringify(await client.Crypto.GeneratePrimaryConk());
 console.log('crypto: ' + crypto);
 ```
+
+## Cheatcodes
+
+Here are sequences of remote actions to activate some advanced/development functionality. Make sure you're at the first screen when performing these sequences.
+
+1. Clearing database - "playPause","left","right","left","right"
