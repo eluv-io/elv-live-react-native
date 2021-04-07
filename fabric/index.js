@@ -7,6 +7,21 @@ import {ElvClient} from '../ElvClient-min';
 var UrlJoin = require("url-join");
 var URI = require("urijs")
 import {JQ,isEmpty} from '../utils'
+import base64 from 'react-native-base64'
+
+const CreateStaticToken = async ({configUrl,libraryId}) => {
+  try{
+    let response = await fetch(configUrl);
+    let config = await response.json();
+    let token = {"qspace_id":config.qspace.id, "qlib_id":libraryId};
+    let token64 = base64.encode(JSON.stringify(token));
+    console.log("Static Token: " + token64);
+    return token64;
+  }catch(e){
+    console.error("Could not create static token: " + e);
+  }
+  return null;
+}
 
 export default class Fabric {
 
@@ -18,13 +33,17 @@ export default class Fabric {
       staticToken
     });
     //this.client.ToggleLogging(true);
+    this.configUrl = configUrl;
+  }
 
-    this.client.SetNodes({
-      "fabricURIs": [
-        "https://host-66-220-3-86.contentfabric.io",
-      ]
+    // Initializes a new Fabric object using a static token for the given network url. 
+  // This client can be used to access public objects and metadata
+  async initWithLib({configUrl,libraryId}) {
+    let staticToken = CreateStaticToken({configUrl,libraryId})
+    this.client = await ElvClient.FromConfigurationUrl({
+      configUrl,
+      staticToken
     });
-    //this.client.SetSigner({signer});
     this.configUrl = configUrl;
   }
 

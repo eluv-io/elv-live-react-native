@@ -51,8 +51,7 @@ class Gallery extends React.Component {
     super(props);
     this.state = {
       currentViewIndex : props.index || 0,
-      layout: props.layout || 0,
-      data: this.props.data
+      layout: props.layout || 0
     }
 
     console.log("Gallery currentViewIndex: " + this.state.currentViewIndex);
@@ -524,7 +523,8 @@ class Gallery extends React.Component {
   }
 
   renderLayout1 = (styles) => {
-    const {currentViewIndex, data} = this.state;
+    const {currentViewIndex} = this.state;
+    const {data} = this.props;
     const views = [];
 
     for (const key in data){

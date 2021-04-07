@@ -2,7 +2,6 @@
   "networks": {
     "production": {
       "configUrl": "https://main.net955305.contentfabric.io/config",
-      "staticToken": "eyJxc3BhY2VfaWQiOiJpc3BjMlJVb1JlOWVSMnYzM0hBUlFVVlNwMXJZWHp3MSJ9Cgo=",
       "platform":{
         "libraryId": "",
         "objectId": "iq__suqRJUt2vmXsyiWS5ZaSGwtFU9R"
@@ -10,7 +9,6 @@
     },
     "staging": {
       "configUrl": "https://host-66-220-3-86.contentfabric.io/config?qspace=demov3&self",
-      "staticToken": "eyJxc3BhY2VfaWQiOiAiaXNwYzNBTm9WU3pOQTNQNnQ3YWJMUjY5aG81WVBQWlUiLCAicWxpYl9pZCI6ICJpbGliMzZXaTVmSkRMWGl4OGNrTDdaZmFBSndKWFdHRCJ9Cg==",
       "platform":{
         "libraryId": "ilib36Wi5fJDLXix8ckL7ZfaAJwJXWGD",
         "objectId": "iq__inauxD1KLyKWPHargCWjdCh2ayr"
@@ -18,7 +16,6 @@
     },
     "demo": {
       "configUrl": "https://host-66-220-3-86.contentfabric.io/config?qspace=demov3&self",
-      "staticToken": "eyJxc3BhY2VfaWQiOiAiaXNwYzNBTm9WU3pOQTNQNnQ3YWJMUjY5aG81WVBQWlUiLCAicWxpYl9pZCI6ICJpbGliMzZXaTVmSkRMWGl4OGNrTDdaZmFBSndKWFdHRCJ9Cg==",
       "platform":{
         "libraryId": "ilib36Wi5fJDLXix8ckL7ZfaAJwJXWGD",
         "objectId": "iq__2gkNh8CCZqFFnoRpEUmz7P3PaBQG"

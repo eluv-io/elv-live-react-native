@@ -50,3 +50,18 @@ export const dateStarted = (str) => {
   }
   return false;
 }
+
+export const endsWithList = (list1,list2) =>{
+  var j= list2.length - 1;
+  for (var i = list1.length-1; i >= 0;i--){
+    console.log(list2[j] + " != " + list1[i] + "?");
+    if(list2[j] != list1[i]){
+      return false;
+    }
+    j--;
+    if(j<=0){
+      return true;
+    }
+  }
+  return false;
+}

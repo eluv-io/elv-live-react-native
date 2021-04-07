@@ -64,7 +64,8 @@ function initPlatform(network){
       var staticToken = Config.networks[network].staticToken;
       var fabric = new Fabric();
       console.log("Loading configUrl: " + configUrl);
-      await fabric.init({configUrl, staticToken});
+      //await fabric.init({configUrl, staticToken});
+      await fabric.initWithLib({configUrl, libraryId});
       console.log('fabric init');
       var platform = new ElvPlatform({fabric,libraryId,siteId});
       resolve({fabric, platform});
@@ -75,7 +76,11 @@ function initPlatform(network){
 }
 
 let defaultState = {
-  redeemItems:{}
+  redeemItems:{},
+  ticketCode:"",
+  site:null,
+  platform:null,
+  fabric: null
 };
 
 export default class App extends React.Component {
@@ -118,14 +123,18 @@ export default class App extends React.Component {
       this.setState({redeemItems:saved.redeemItems});
     }else{
       console.log("no state found, setting default: ");
-      this.setState({redeemItems:{}})
+      this.setState(defaultState);
     }
   }
 
   clearData = async () => {
+    console.log("Clear data!");
     try {
+      //TODO: Confirmation dialog?
+      
       await DefaultPreference.set(APP_STORAGE_KEY, "");
       await this.loadState();
+      await this.reload();
     } catch (e) {
       console.error("Could not clear app data.");
     }
@@ -156,7 +165,7 @@ export default class App extends React.Component {
   reload =  async ()=>{
     console.log("app reload");
     let {site,ticketCode,redeemItems} = this.state;
-
+      console.log("Redeem items: ",redeemItems);
       let {fabric,platform} = await initPlatform("demo");
       let newSite = null;
       if(site && platform && fabric && ticketCode){
@@ -243,7 +252,8 @@ export default class App extends React.Component {
           platform,
           redeemItems,
           setAppState:this.handleSetState,
-          appReload:this.reload
+          appReload:this.reload,
+          appClearData: this.clearData
           }
         }
         >

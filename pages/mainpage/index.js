@@ -15,7 +15,7 @@ import reactNativeTvosController from "react-native-tvos-controller"
 import AppContext from '../../AppContext'
 import Gallery from '../../components/gallery'
 import ThumbSelector from '../../components/thumbselector'
-import { isEmpty, JQ, dateCountdown } from '../../utils';
+import { isEmpty, JQ, dateCountdown,endsWithList } from '../../utils';
 import { Icon } from 'react-native-elements'
 import LinearGradient from 'react-native-linear-gradient';
 import testdata from '../../testdata/extras.js';
@@ -113,6 +113,7 @@ class MainPage extends React.Component {
   }
 
   enableTVEventHandler = () => {
+    const {appClearData} = this.context;
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
       const {currentViewIndex, views, isShowingExtras} = page.state;
@@ -126,6 +127,26 @@ class MainPage extends React.Component {
       if(isEmpty(siteData)){
         return;
       }
+      console.log("<<<<<<<< MainPage event received: "+evt.eventType);
+
+      if(typeof evt.eventType  === 'string' || evt.eventType instanceof String){
+        if(!this.remoteEvents){
+          this.remoteEvents = [];
+        }
+        this.remoteEvents.push(evt.eventType.toLowerCase());
+        console.log("Current events: " + JQ(this.remoteEvents));
+        if(this.remoteEvents.length > 10){
+          this.remoteEvents.shift();
+        }
+
+        let cheatcode1 = ["playPause","left","right","left","right"];
+        if(endsWithList(this.remoteEvents,cheatcode1)){
+          console.log("!!!!!! Cheatcode cleardata activated!");
+          await appClearData();
+          page.forceUpdate();
+          return;
+        }
+      }
 
       let extras = null;
       try{
@@ -136,8 +157,6 @@ class MainPage extends React.Component {
       }catch(e){
         console.log("Couldn't get extras from site " + JQ(e));
       }
-
-      console.log("MainPage event received: "+evt.eventType);
 
       if (evt.eventType === 'swipeUp' || evt.eventType === "up") {
         if(!isEmpty(extras)){

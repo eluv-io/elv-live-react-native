@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {
   Text, 
   StyleSheet, 
@@ -8,11 +8,9 @@ import {
   TouchableOpacity,
 } 
 from 'react-native';
-import {theme, colorByComponent} from '../../AppTheme'
 import AppContext from '../../AppContext'
-import { JQ } from '../../utils';
-import {ElvClient} from '../../ElvClient-min';
-import { ReloadInstructions } from 'react-native/Libraries/NewAppScreen';
+import { isEmpty, JQ } from '../../utils';
+import Timer from '../../utils/timer';
 
 const BLUR_OPACITY = 0.5;
 
@@ -44,16 +42,23 @@ const LoginInput = (props) => {
     );
 };
 
-const LoginButton = ({ onPress, title,onFocus,isFocused }) => {
+const LoginButton = ({ onPress, title,onFocus,isFocused,isSelected }) => {
+  let buttonStyle = isFocused ? styles.submitButton : styles.submitButtonUnfocused;
+  let textStyle = isFocused ? styles.buttonText : styles.buttonTextUnfocused;
+
+  if(isSelected){
+    buttonStyle = [styles.submitButtonUnfocused,styles.submitButtonSelected];
+    textStyle = styles.buttonTextUnfocused;
+  }
 
   return (
     <TouchableOpacity 
       onPress={onPress} 
-      style={isFocused ? styles.submitButton : styles.submitButtonUnfocused}
+      style={buttonStyle}
       activeOpacity={1.0}
       onFocus={onFocus}
       >
-      <Text style={isFocused ? styles.buttonText : styles.buttonTextUnfocused}>{title}</Text>
+      <Text style={textStyle}>{title}</Text>
     </TouchableOpacity>
   );
 }
@@ -113,16 +118,25 @@ class Login extends React.Component {
           <LoginButton
             title="ENTER"
             onPress={async()=>{
-              if(!isActive) return;
-              console.log("New Submit button")
+              if(!isActive || isEmpty(code)) return;
+              console.log("New Submit button");
+
+              this.setState({selected:"enter"});
+              let that = this;
+              this.pressedTimer = Timer(() => {
+                console.log("<<<<<<<<Pressed timeout!");
+                that.setState({
+                  selected: null
+                });
+              }, 1000);
+
               setAppState({ticketCode:code});
               await appReload();
               navigation.replace('site',{...this.props.data});
             }}
-
-            style={styles.submitButton}
             onFocus={()=>{this.setState({focused:"enter"})}}
             isFocused = {focused == "enter"}
+            isSelected = {this.state.selected === "enter"}
           />
         </View>
       </View>
@@ -232,6 +246,15 @@ const styles = StyleSheet.create({
     height: 60,
     borderWidth: 2,
     borderColor: "white"
+  },
+  submitButtonSelected: {
+    shadowOpacity: .5,
+    shadowRadius: 2,
+    shadowOffset:{width:4,height:4},
+    opacity: 1,
+    borderWidth: 0,
+    elevation:0,
+    backgroundColor: 'rgba(100,100,100,1.0)'
   },
   buttonText: {
     color: "black",
