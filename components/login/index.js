@@ -241,6 +241,7 @@ const styles = StyleSheet.create({
   inputStyle: {
     marginBottom: 20,
     width: '100%',
+    height:60,
     paddingLeft:30,
     paddingRight:30,
     paddingTop:20,
