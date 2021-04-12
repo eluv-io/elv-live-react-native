@@ -6,21 +6,27 @@ import {
   TextInput, 
   Image,
   TouchableOpacity,
+  Keyboard
 } 
 from 'react-native';
 import AppContext from '../../AppContext'
 import { isEmpty, JQ } from '../../utils';
 import Timer from '../../utils/timer';
+import AppButton from '../appbutton'
 
 const BLUR_OPACITY = 0.5;
 
 const LoginInput = (props) => {
-    const {isActive, onFocus, isFocused} = props;
+    const {isActive, onFocus, isFocused,onKeyboardDidShow,onKeyboardDidHide} = props;
     const inputRef = React.useRef();
+    
     const onPress = () => {
       if(!isActive) return;
       if (inputRef.current) {
         inputRef.current.focus();
+        if(onKeyboardDidShow){
+          onKeyboardDidShow();
+        }
       }
     };
 
@@ -35,33 +41,35 @@ const LoginInput = (props) => {
       {...props}
       style={isFocused? styles.inputStyle : [styles.inputStyle, styles.unfocused]}
       clearTextOnFocus={true}
+      //BUG: the placeholder color changes to black once you enter something: RN tvos 6.4
+      placeholderTextColor = "white"
       ref = {inputRef}
+      keyboardAppearance='dark'
+      onEndEditing={onKeyboardDidHide}
       >
      </TextInput>
      </TouchableOpacity>
     );
 };
 
-const LoginButton = ({ onPress, title,onFocus,isFocused,isSelected }) => {
+const LoginButton = React.forwardRef(({ onPress, title,onFocus,isFocused,isSelected},ref) => {
   let buttonStyle = isFocused ? styles.submitButton : styles.submitButtonUnfocused;
-  let textStyle = isFocused ? styles.buttonText : styles.buttonTextUnfocused;
-
   if(isSelected){
     buttonStyle = [styles.submitButtonUnfocused,styles.submitButtonSelected];
-    textStyle = styles.buttonTextUnfocused;
   }
-
+  
   return (
-    <TouchableOpacity 
-      onPress={onPress} 
+    <AppButton
+      innerRef={ref}
       style={buttonStyle}
-      activeOpacity={1.0}
+      onPress={onPress}
       onFocus={onFocus}
-      >
-      <Text style={textStyle}>{title}</Text>
-    </TouchableOpacity>
+      text={title}
+      isFocused={isFocused}
+      title="Redeem"
+    />
   );
-}
+});
 
 class Login extends React.Component {
   static contextType = AppContext
@@ -71,93 +79,133 @@ class Login extends React.Component {
       focused : "",
       code: ""
     }
+    Keyboard.addListener("keyboardDidShow", this.onKeyboardDidShow);
+    Keyboard.addListener("keyboardDidHide", this.onKeyboardDidHide);
+    this.buttonRef = React.createRef();
   }
 
- render() {
-  const {navigation, isActive} = this.props;
-  let {code, focused} = this.state;
+  componentWillUnmount=()=>{
+    Keyboard.removeListener("keyboardDidShow", this.onKeyboardDidShow);
+    Keyboard.removeListener("keyboardDidHide", this.onKeyboardDidHide);
+  }
 
-  //XXX:
-  //code = "RLnkQi9";
+  onKeyboardDidShow = ()=>{
+    console.log("KeyboardDidShow ");
+    this.setState({showingKeyboard:true});
+  }
+  
+  onKeyboardDidHide = ()=>{
+    console.log("KeyboardDidHide");
+    try{
+      console.log("Switching focus:");
+      //FIXME: Does not work
+      this.buttonRef.current.focus();
+    }catch(e){console.error("Error switching focus to login button: "+e)}
+    this.setState({showingKeyboard:false});
+  }
 
-  const {fabric, platform, site, setAppState,appReload} = this.context;
-  try{
-  let tenantId = site.info.tenant_id;
-  let siteId = site.objectId;
-  console.log("RedeemPage site display title: " + site.title);  
-  console.log("RedeemPage site Id: " + siteId);  
-  console.log("RedeemPage site tenant Id: " + tenantId);
-  console.log("focused: " + focused);
+  render() {
+    const {navigation, isActive} = this.props;
+    let {code, focused,showingKeyboard} = this.state;
 
-  return (
-    <View style={styles.container}>
-        <View style={styles.formContainer}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.formText}>Presents</Text>
-            <Image
-              style={styles.logo}
-              source = {{
-                uri: site.tv_main_logo
-              }}
-            />
-            <LoginInput
-              secureTextEntry={true}
-              placeholder="Ticket Code"
-              placeholderTextColor="white"
-              value = {code}
-              isActive = {isActive}
-              onChangeText = {text => {
-                  if(!isActive) return;
-                  this.setState({code:text});
+    //XXX:
+    //code = "RLnkQi9";
+
+    const {fabric, platform, site, setAppState,appReload} = this.context;
+    try{
+    let tenantId = site.info.tenant_id;
+    let siteId = site.objectId;
+    //console.log("RedeemPage site display title: " + site.title);  
+    //console.log("RedeemPage site Id: " + siteId);  
+    //console.log("RedeemPage site tenant Id: " + tenantId);
+    //console.log("focused: " + focused);
+
+    return (
+      <View style={styles.container}>
+          <View style={styles.formContainer}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.formText}>Presents</Text>
+              <Image
+                style={styles.logo}
+                source = {{
+                  uri: site.tv_main_logo
+                }}
+              />
+              <LoginInput
+                secureTextEntry={true}
+                placeholder="Ticket Code"
+                placeholderTextColor="white"
+                value = {code}
+                isActive = {isActive}
+                onChangeText = {text => {
+                    if(!isActive) return;
+                    this.setState({code:text});
+                  }
                 }
-              }
-              onFocus={()=>{this.setState({focused:"code"})}}
-              isFocused = {focused == "code"}
+                onFocus={()=>{this.setState({focused:"code"})}}
+                isFocused = {focused == "code"}
+                onKeyboardDidShow={this.onKeyboardDidShow}
+                onKeyboardDidHide={this.onKeyboardDidHide}
+              />
+            </View>
+            <LoginButton
+              title="Enter Event"
+              ref = {this.buttonRef}
+              onPress={async()=>{
+              console.log("Submit button onPress" + isActive);
+                if(!isActive || isEmpty(code)) return;
+                console.log("Pressing");
+
+                this.setState({selected:"enter"});
+                let that = this;
+                this.pressedTimer = Timer(() => {
+                  console.log("<<<<<<<<Pressed timeout!");
+                  that.setState({
+                    selected: null
+                  });
+                }, 300);
+                this.pressedTimer.start();
+
+                setAppState({ticketCode:code},async ()=>{
+                  try{
+                    navigation.navigate("progress");
+                    await appReload();
+                    navigation.replace("site",{...this.props.data});
+                  }catch(e){
+                    console.error("Error redeeming ticket: " + e);
+                    navigation.replace("error", {text:"Could not redeem ticket."});
+                  }
+                });
+
+              }}
+              onFocus={()=>{this.setState({focused:"enter"})}}
+              isFocused = {focused == "enter"}
+              isSelected = {this.state.selected === "enter"}
             />
           </View>
-          <LoginButton
-            title="ENTER"
-            onPress={async()=>{
-              if(!isActive || isEmpty(code)) return;
-              console.log("New Submit button");
-
-              this.setState({selected:"enter"});
-              let that = this;
-              this.pressedTimer = Timer(() => {
-                console.log("<<<<<<<<Pressed timeout!");
-                that.setState({
-                  selected: null
-                });
-              }, 1000);
-
-              setAppState({ticketCode:code});
-              await appReload();
-              navigation.replace('site',{...this.props.data});
-            }}
-            onFocus={()=>{this.setState({focused:"enter"})}}
-            isFocused = {focused == "enter"}
-            isSelected = {this.state.selected === "enter"}
-          />
         </View>
-      </View>
-    );
-  }catch(e){
-    navigation.navigate("main");
-    return(null);
-  }
+      );
+    }catch(e){
+      navigation.navigate("main");
+      return(null);
+    }
   }
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0)',
-    marginTop: 20,
+    //backgroundColor: 'rgba(200,0,0,1)',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    width:'25%',
-    maxHeight:'50%',
-    borderRadius:5,
+    width:'100%',
+    maxHeight:'100%',
+  },
+  black:{
+    backgroundColor: 'black',
+  },
+  noOpacity:{
+    opacity:0
   },
   formLabel: {
     marginTop: 10,
@@ -173,13 +221,15 @@ const styles = StyleSheet.create({
   formContainer: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    width: '90%',
+    //backgroundColor: 'rgba(0,0,0,1)',
+    justifyContent: 'flex-start',
+    marginTop: 330,
+    width:'25%',
   },
   logo: {
     justifyContent: 'center',
     alignContent: 'center',
-    marginBottom: 20,
+    marginBottom: 50,
     resizeMode: "contain",
     width: "100%",
     height: 225
@@ -191,17 +241,25 @@ const styles = StyleSheet.create({
   inputStyle: {
     marginBottom: 20,
     width: '100%',
-    height: 50,
+    paddingLeft:30,
+    paddingRight:30,
+    paddingTop:20,
+    paddingBottom:20,
     paddingHorizontal: 10,
+    alignContent:"center",
+    textAlign:"center",
     backgroundColor: 'rgba(255,255,255,.8)',
     fontSize: 18,
-    textShadowColor: 'gray',
+    fontWeight: "300",
+    color: "black",
+    //textShadowColor: 'gray',
     letterSpacing: 3,
-    fontFamily: "HelveticaNeue",
+    fontFamily: "Helvetica",
+    fontSize: 24,
     borderRadius:10,
-    borderWidth: 2,
-    borderColor: "white",
-    opacity:1
+    //borderWidth: 1,
+    //borderColor: "white",
+    opacity:1,
     //borderWidth: 3,
     //borderColor: '#3E2E02'
   },
@@ -209,7 +267,7 @@ const styles = StyleSheet.create({
     color:"black"
   },
   formText: {
-    marginBottom: 20,
+    marginBottom: 50,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
@@ -228,9 +286,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    width: 195,
-    height: 60,
-    borderWidth: 2,
     borderColor: "white",
     opacity: BLUR_OPACITY,
   },
@@ -238,13 +293,10 @@ const styles = StyleSheet.create({
     marginTop: 20,
     elevation: 8,
     justifyContent: 'center',
-    backgroundColor:'rgba(255,255,255,.8)',
+    //backgroundColor:'rgba(255,255,255,.8)',
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    width: 195,
-    height: 60,
-    borderWidth: 2,
     borderColor: "white"
   },
   submitButtonSelected: {
@@ -256,26 +308,6 @@ const styles = StyleSheet.create({
     elevation:0,
     backgroundColor: 'rgba(100,100,100,1.0)'
   },
-  buttonText: {
-    color: "black",
-    fontWeight: "bold",
-    alignSelf: "center",
-    textTransform: "uppercase",
-    fontSize: 14,
-    textShadowColor: 'gray',
-    letterSpacing: 7,
-    fontFamily: "HelveticaNeue",
-  },
-  buttonTextUnfocused: {
-    color: "white",
-    fontWeight: "bold",
-    alignSelf: "center",
-    textTransform: "uppercase",
-    fontSize: 14,
-    textShadowColor: 'gray',
-    letterSpacing: 7,
-    fontFamily: "HelveticaNeue",
-  },
   linearGradient: {
     flex: 1,
     resizeMode: "cover",
@@ -286,7 +318,8 @@ const styles = StyleSheet.create({
     borderRadius:5
   },
   unfocused: {
-    opacity: BLUR_OPACITY
+    opacity: BLUR_OPACITY,
+    backgroundColor: 'rgba(200,200,200,.5)'
   }
 });
 

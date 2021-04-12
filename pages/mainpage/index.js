@@ -40,6 +40,7 @@ class MainPage extends React.Component {
     this.previous = this.previous.bind(this);
     this.select = this.select.bind(this);
     this.onExtrasVisible = this.onExtrasVisible.bind(this);
+    this.onSelectExtra = this.onSelectExtra.bind(this);
 
     //setInterval(()=>{if(this.props.isActive)this.forceUpdate()},60000);
   }
@@ -54,7 +55,7 @@ class MainPage extends React.Component {
     const {platform,redeemItems} = this.context;
 
     let sites = platform.getSites();
-    console.log("MainPage componentDidMount sites size: " + sites.length);
+    //console.log("MainPage componentDidMount sites size: " + sites.length);
     siteData = [];
 
     for (const key in sites){
@@ -72,13 +73,13 @@ class MainPage extends React.Component {
           eventHeader = site.info.event_info.event_header;
         }catch(e){}
 
-        console.log("event_header: " + site.info.event_info.event_header);
+        //console.log("event_header: " + site.info.event_info.event_header);
 
         let eventSub = null;
         try{
           eventSub = site.info.event_info.event_subheader;
         }catch(e){}
-        console.log("event_subheader: " + site.info.event_info.event_subheader);
+        //console.log("event_subheader: " + site.info.event_info.event_subheader);
 
         let date = null;
         let countDown = null;
@@ -102,7 +103,7 @@ class MainPage extends React.Component {
 
     }
 
-    console.log("ComponentDidMount sites size: " + siteData.length);
+    //console.log("ComponentDidMount sites size: " + siteData.length);
 
     return siteData;
   }
@@ -121,10 +122,14 @@ class MainPage extends React.Component {
       if(isShowingExtras || !isActive || isEmpty(evt)){
         return;
       }
-      
-      let siteData = page.loadSiteData();
 
-      if(isEmpty(siteData)){
+      if(evt.eventType == "focus"){
+        //page.forceUpdate();
+        return;
+      }
+
+      
+      if(evt.eventType == "blur" || evt.eventType == "focus"){
         return;
       }
       console.log("<<<<<<<< MainPage event received: "+evt.eventType);
@@ -134,31 +139,37 @@ class MainPage extends React.Component {
           this.remoteEvents = [];
         }
         this.remoteEvents.push(evt.eventType.toLowerCase());
-        console.log("Current events: " + JQ(this.remoteEvents));
+        //console.log("Current events: " + JQ(this.remoteEvents));
         if(this.remoteEvents.length > 10){
           this.remoteEvents.shift();
         }
 
         let cheatcode1 = ["playpause","left","right","left","right"];
         if(endsWithList(this.remoteEvents,cheatcode1)){
-          console.log("!!!!!! Cheatcode cleardata activated!");
+          console.log("!!!!!! Cheatcode cleardata activated! " + JQ(this.remoteEvents));
           await appClearData();
           page.forceUpdate();
           return;
         }
       }
-
-      let extras = null;
-      try{
-        let site = siteData[currentViewIndex];
-        //console.log("Mainpage render current site: " + site.title);
-        extras = site.extras;
-        //console.log("Mainpage render current site extras: " + site.extras.length);
-      }catch(e){
-        console.log("Couldn't get extras from site " + JQ(e));
-      }
-
       if (evt.eventType === 'swipeUp' || evt.eventType === "up") {
+        let siteData = page.loadSiteData();
+
+        if(isEmpty(siteData)){
+          return;
+        }
+
+        let extras = null;
+        try{
+          let site = siteData[currentViewIndex];
+          //console.log("Mainpage render current site: " + site.title);
+          extras = site.extras;
+          //console.log("Mainpage render current site extras: " + site.extras.length);
+        }catch(e){
+          console.log("Couldn't get extras from site " + JQ(e));
+        }
+
+
         if(!isEmpty(extras)){
           page.setState({isShowingExtras:true});
         }
@@ -255,16 +266,21 @@ class MainPage extends React.Component {
     console.log("select site index " + currentViewIndex);
     try{
       let site = sites[currentViewIndex];
-      console.log("select site " + JQ(site.title));
+      console.log("select site " + JQ(site.tv_main_logo));
+
       let redeemInfo = redeemItems[site.objectId];
       if(!isEmpty(redeemInfo) && !isEmpty(redeemInfo.ticketCode)){
         setAppState({site,ticketCode: redeemInfo.ticketCode},
-          async ()=>{
+          async (state)=>{
             try{
+              let {site} = state;
+              let logo = site.tv_main_logo;
+              let title = site.title;
+              navigation.transition("presents","site",{logo, title},11000);
               await appReload();
-              navigation.navigate("site");
             }catch(e){
               console.error("Error loading extra info: " + e);
+              navigation.setNext("error", {text:"Could not retrieve event info."});
             }
           }
         );
@@ -312,24 +328,31 @@ class MainPage extends React.Component {
         console.log("Package not available: ");
         const sites = await this.getSites();
         let site = sites[currentViewIndex];
-        console.log("select site " + JQ(site.title));
+        console.log("select site extras 1 " + site.title);
+
         let redeemInfo = redeemItems[site.objectId];
+        let Context = this.context;
         if(!isEmpty(redeemInfo) && !isEmpty(redeemInfo.ticketCode)){
           setAppState({site,ticketCode: redeemInfo.ticketCode},
-            async ()=>{
+            async (state)=>{
               try{
+                console.log("select site extras 2" + JQ(site));
+                let logo = site.tv_main_logo;
+                let title = site.title;
+                navigation.navigate("presents",{logo, title},11000);
                 await appReload();
                 console.log("\nApp reloaded.");
-                const {site} = this.context;
+                site = Context;
                 let extra = site.info.extras[index];
                 let data = getData(extra);
                 if(!isEmpty(data)){
-                  navigation.navigate("gallery",data);
+                  navigation.replace("gallery",data);
                 }else{
                   throw "Gallery data is empty.";
                 }
               }catch(e){
                 console.error("Error loading extra info: " + e);
+                navigation.setNext("error", {text:"Could not retrieve event info."});
               }
             }
           );
@@ -344,19 +367,11 @@ class MainPage extends React.Component {
     }
   }
 
-  RedeemButton = ({title}) => (
-      <View 
-        style={[styles.button,styles.buttonFocused]}
-        >
-        <Text style={styles.buttonText}>{title}</Text>
-      </View>
-  );
-
   render() {
     const {platform,setAppState} = this.context;
     const {navigation, isActive} = this.props;
     const {currentViewIndex,isShowingExtras} = this.state;
-
+    console.log("Mainpage>>>render");
     let siteData = this.loadSiteData();
 
     if(isEmpty(siteData)){

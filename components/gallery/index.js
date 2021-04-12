@@ -15,7 +15,7 @@ from 'react-native';
 import Swiper from 'react-native-swiper'
 import reactNativeTvosController from "react-native-tvos-controller"
 import AppContext from '../../AppContext'
-import {Site} from '../../fabric/site'
+import AppButton from '../../components/appbutton'
 import { isEmpty, JQ, dateCountdown,RandomInt} from '../../utils';
 import {Icon} from 'react-native-elements'
 import EvilIcon from 'react-native-vector-icons/EvilIcons'
@@ -24,6 +24,7 @@ import FadeInView from '../../components/fadeinview'
 import Timer from '../../utils/timer';
 
 const BLUR_OPACITY = 0.3;
+const IMAGE_OFFSET = '15%';
 const WINDOWWIDTH = Dimensions.get('window').width;
 const WINDOWHEIGHT = Dimensions.get('window').height;
 /*
@@ -129,6 +130,11 @@ class Gallery extends React.Component {
       if(!page.isActive()){
         return;
       }
+      
+      if(evt.eventType == "blur" || evt.eventType == "focus"){
+        return;
+      }
+
 
       console.log("Gallery event: " + evt.eventType);
 
@@ -217,7 +223,7 @@ class Gallery extends React.Component {
         that.setState({
           selected: false
         });
-      }, 1000);
+      }, 100);
       this.pressedTimer.start();
 
       select(selected);
@@ -249,6 +255,13 @@ class Gallery extends React.Component {
 
   render() {
       const {layout} = this.state;
+
+      console.log("<<<<<<Gallery render.");
+      for(var index in this.props.data){
+        let item = this.props.data[index];
+        console.log(" Item: " + item.title);
+      }
+
       if(layout == 0){
         return this.renderLayout0({...stylesCommon, ...stylesLayout0});
       }else {
@@ -456,7 +469,8 @@ class Gallery extends React.Component {
   }
 
   renderItem1 = ({key, item, styles}) => {
-      const {selected} = this.state;
+      const {currentViewIndex} = this.state;
+      const {isActive} = this.props;
       let title = null;
       try{
         title = item.title;
@@ -486,13 +500,15 @@ class Gallery extends React.Component {
       if(item.isRedeemed){
         buttonText = "Enter Event";
       }
+        
+      console.log("Gallery renderItem1: " + title + " currentViewIndex: " + currentViewIndex + " item.index " + item.index);
 
       return(
       <View key = {key} style={styles.container}>
         {this.RenderBackground({item,styles})}
           <LinearGradient 
             start={{x: 0, y: 0}} end={{x: 1, y: 0}} 
-            colors={['rgba(0,0,0,1)', 'rgba(0,0,0,.90)', 'rgba(0,0,0,0)']}
+            colors={['rgba(0,0,0,1)', 'rgba(0,0,0,0)']}
             style={styles.linearGradient} 
             />
           <View style={styles.contentContainer}>
@@ -505,7 +521,9 @@ class Gallery extends React.Component {
             /> : null }
             {title ? <Text numberOfLines={1} style={styles.headerText}>{title}</Text> : null }
             {description? <Text numberOfLines={3} style={styles.subheaderText}>{description}</Text> : null }
+            
             {date? <Text style={styles.dateText} >{date}</Text>: null }
+            {/*
             <View 
               style={selected?
                 [styles.button,styles.buttonSelected]:
@@ -513,6 +531,22 @@ class Gallery extends React.Component {
               >
               <Text style={styles.buttonText}>{buttonText}</Text>
             </View>
+            */}
+              <AppButton 
+                style = {{
+                  marginTop: 30,
+                  marginBottom: 10,
+                  margin: 30,
+                  elevation: 8,
+                  justifyContent: 'center',
+                  paddingVertical: 10,
+                  paddingHorizontal: 12,
+                }}
+                text={buttonText}
+                isActive = {isActive}
+                isFocused={currentViewIndex == item.index}
+                title = {title}
+                />
           </View>
       </View>
       );
@@ -529,7 +563,7 @@ class Gallery extends React.Component {
 
     for (const key in data){
       let item = data[key];
-
+      item.index = key;
       views.push(
         this.renderItem1({key, item,styles})
       );
@@ -827,16 +861,16 @@ const stylesLayout1 = StyleSheet.create({
     resizeMode: 'cover',
     width: "100%",
     height: "100%",
-    left:'15%',
+    left:IMAGE_OFFSET,
     top:0
   },
   linearGradient: {
     position: "absolute",
-    left:0,
+    left:IMAGE_OFFSET,
     top:0,
     alignItems: 'center',
     justifyContent: "center",
-    width: "60%",
+    width: "40%",
     height: "100%"
   },
   contentContainer: {

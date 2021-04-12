@@ -107,7 +107,7 @@ export default class Fabric {
       // eslint-disable-next-line no-console
       console.error(error);
 
-      return false;
+      return null;
     }
   }
   

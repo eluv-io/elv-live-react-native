@@ -15,23 +15,24 @@ import ReactNative, {
   ScrollView,
   View,
   ImageBackground,
+  TouchableOpacity,
   Text,
 } from 'react-native';
 
 import GalleryPage from './pages/gallerypage'
 import Login from './components/login'
+import AppButton from './components/appbutton'
 import SitePage from './pages/sitepage'
 import PlayerPage from './pages/playerpage'
 import MainPage from './pages/mainpage'
+import PresentsPage from './pages/presentspage'
 import Fabric from './fabric';
 import Config from './config.json';
 import AppContext, {initialState} from './AppContext'
-import LinearGradient from 'react-native-linear-gradient'
 import { Navigation, Route } from './components/navigation';
 import {JQ, isEmpty} from './utils'
-import Video, {FilterType} from 'react-native-video';
+import Video from 'react-native-video';
 import BackgroundVideo from './static/videos/EluvioLive.mp4'
-import FadeInOut from 'react-native-fade-in-out';
 import Spinner from 'react-native-loading-spinner-overlay';
 import { LogBox } from 'react-native';
 import DefaultPreference from 'react-native-default-preference';
@@ -54,6 +55,62 @@ function LoginPage(props) {
   );
 }
 
+function ErrorPage(props){
+  let {text} = props.data;
+  console.log("ErrorPage: " + JQ(props.data));
+ 
+  if(isEmpty(text)){
+    text = "An Unexpected error occured. Press to continue.";
+  }
+
+  return (
+    <View style={styles.background}>
+      <Text style={styles.text}>{text}</Text>
+      <AppButton 
+        hasTVPreferredFocus={true}
+        onPress = {()=>{
+          props.navigation.goBack();
+        }}
+        isFocused = {props.isActive}
+        text="Continue"
+      />
+    </View>
+  );
+
+/*
+  return (
+    <View style={styles.background}>
+    <Text style={styles.text}>{text}</Text>
+    <TouchableOpacity
+      style={styles.continueButton} 
+      activeOpacity ={0.6}
+      hasTVPreferredFocus={true}
+      onPress = {()=>{
+        props.navigation.goBack();
+      }}
+    >
+      <Text style={styles.buttonText}>Continue</Text>
+    </TouchableOpacity>
+
+  </View>
+  );
+  */
+}
+
+function ProgressPage(props){
+  console.log("ProgressPage.");
+ 
+  return (
+    <View style={styles.background}>
+    <Spinner
+      visible={props.isActive}
+      textContent={'Loading...'}
+      textStyle={styles.text}
+    />
+    </View>
+  );
+}
+
 function initPlatform(network){
   return new Promise(async (resolve, reject) => {
     console.log('loadPlatform');
@@ -61,7 +118,7 @@ function initPlatform(network){
       var configUrl = Config.networks[network].configUrl;
       var libraryId = Config.networks[network].platform.libraryId;
       var siteId = Config.networks[network].platform.objectId;
-      var staticToken = Config.networks[network].staticToken;
+      //var staticToken = Config.networks[network].staticToken;
       var fabric = new Fabric();
       console.log("Loading configUrl: " + configUrl);
       //await fabric.init({configUrl, staticToken});
@@ -93,9 +150,6 @@ export default class App extends React.Component {
   }
 
   componentDidMount = async () => {
-    //await this.storeData({test:"ya ya ya!"});
-    //let data = await this.getData();
-    //console.log("Data retrieved: ",data);
     await this.loadState();
     await this.reload();
     
@@ -131,7 +185,7 @@ export default class App extends React.Component {
     console.log("Clear data!");
     try {
       //TODO: Confirmation dialog?
-      
+
       await DefaultPreference.set(APP_STORAGE_KEY, "");
       await this.loadState();
       await this.reload();
@@ -172,8 +226,7 @@ export default class App extends React.Component {
         let tenantId = site.info.tenant_id;
         let siteId = await this.redeemCode(fabric,site,redeemItems,tenantId,ticketCode);
         if(!siteId){
-          console.log("Error redeeming site.");
-          return;
+          throw "Error redeeming site";
         }
         
         platform.setFabric(fabric);
@@ -203,7 +256,7 @@ export default class App extends React.Component {
 
   //Use callback to execute after setState finishes.
   handleSetState  = (state,callback) => {
-    this.setState(state,callback);
+    this.setState(state,()=>{if(callback)callback(this.state)});
   }
 
   getRedeemedCodes = () =>{
@@ -237,10 +290,13 @@ export default class App extends React.Component {
 
     if(isEmpty(platform)){
       return (
+      <View style={styles.container}>
         <Spinner
+          visible={true}
           textContent={'Loading...'}
-          textStyle={styles.spinnerTextStyle}
+          textStyle={styles.text}
         />
+        </View>
       );
     }
     
@@ -262,7 +318,10 @@ export default class App extends React.Component {
             <Route name="redeem" component={LoginPage} />
             <Route name="site" component={SitePage} />
             <Route name="player" component={PlayerPage} />
-            <Route name="gallery" component={GalleryPage} />          
+            <Route name="gallery" component={GalleryPage} />
+            <Route name="presents" component={PresentsPage} />
+            <Route name="error" component={ErrorPage} />
+            <Route name="progress" component={ProgressPage} />
         </Navigation>
       </AppContext.Provider>
     );
@@ -278,13 +337,47 @@ const styles = StyleSheet.create({
   },
   background: {
     position: "absolute",
+    display: "flex",
     alignItems: 'center',
     justifyContent: "center",
-    backgroundColor: 'rgba(0,0,0,0)',
+    backgroundColor: 'black',
     width: "100%",
     height: "100%"
   },
   spinnerTextStyle: {
     color: '#FFF'
+  },
+  errorMessage: {
+    color: '#FFF'
+  },
+  buttonText: {
+    fontSize: 18,
+    color: "white",
+    fontWeight: "bold",
+    alignSelf: "center",
+    textTransform: "uppercase",
+    fontSize: 14,
+    textShadowColor: 'gray',
+    letterSpacing: 7,
+    fontFamily: "HelveticaNeue",
+  },
+  text: {
+    fontFamily: "Helvetica",
+    textAlign: 'center',
+    margin:60,
+    color: '#fff',
+    fontSize: 36,
+    fontWeight: "500"
+  },
+  continueButton: {
+    alignItems: 'center',
+    justifyContent: 'center',    
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    width: 200,
+    height: 60,
+    borderWidth: 2,
+    borderRadius: 10,
+    borderColor: "white",
   },
 });

@@ -1,12 +1,12 @@
 {
   "images" : [
     {
-      "filename" : "background-tester.png",
+      "filename" : "background_E Circle Icon @1x.jpg",
       "idiom" : "tv",
       "scale" : "1x"
     },
     {
-      "filename" : "background-tester-1.png",
+      "filename" : "background_E Circle Icon @2x.jpg",
       "idiom" : "tv",
       "scale" : "2x"
     }

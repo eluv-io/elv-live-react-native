@@ -1,8 +1,15 @@
 import React, {useEffect} from 'react';
-import { View, StyleSheet, Animated, Dimensions, BackHandler, TVMenuControl,Platform } from 'react-native';
-
+import { View, 
+  StyleSheet, 
+  Animated, 
+  Dimensions, 
+  BackHandler, 
+  TVMenuControl,
+  TVEventHandler } from 'react-native';
+import Timer from '../../utils/timer';
 import FadeInView from '../fadeinview'
 const { width } = Dimensions.get('window');
+import { isEmpty } from '../../utils';
 
 export const Route = () => null;
 
@@ -31,6 +38,9 @@ export class Navigation extends React.Component {
       stack: [{scene:sceneConfig[initialSceneName],data:null}],
     };
 
+    // Holds {sceneName, data} to be shown after a timeout or keypress
+    this.queued = null;
+
     //Needed so BackHandler can detect the menu button on ios
     TVMenuControl.enableTVMenuKey();
 
@@ -38,8 +48,55 @@ export class Navigation extends React.Component {
       console.log("Back pressed.");
       this.goBack();
       return true;
-
     }); 
+  }
+
+  async componentDidMount() {
+    this.enableTVEventHandler();
+  }
+
+  async componentWillUnmount(){
+    this.disableTVEventHandler();
+  }
+
+  showMessage = (sceneName, text) =>{
+    if(!isEmpty(this.state.sceneConfig[sceneName])){
+      this.navigate(sceneName,text);
+      this.queued=null;
+    }
+  }
+
+  switchToQueued = () =>{
+    try{
+      if(!isEmpty(this.queued)){
+        this.replace(this.queued.sceneName, this.queued.data);
+        this.queued = null;
+      }
+    }catch(e){}
+  }
+
+  cancelTransition = () =>{
+    this.queued = null;
+  }
+
+  enableTVEventHandler = () => {
+    this.tvEventHandler = new TVEventHandler();
+    this.tvEventHandler.enable(this, async function (page, evt) {
+      const {currentViewIndex, views, isShowingExtras} = page.state;
+      if(evt.eventType == "blur" || evt.eventType == "focus"){
+        return;
+      }
+
+      console.log("Navigation event: " + evt.eventType);
+      page.switchToQueued();
+    });
+  }
+
+  disableTVEventHandler = () => {
+    if (this.tvEventHandler) {
+      this.tvEventHandler.disable();
+      delete this.tvEventHandler;
+    }
   }
 
   animate = () =>{
@@ -49,6 +106,30 @@ export class Navigation extends React.Component {
       duration: 250,
       useNativeDriver: true,
     }).start();
+  }
+
+  //Transitions from scene1 to scene2 with delay in ms. If the delay is 0 (default), 
+  // the user has to press a button
+  transition = (scene1, scene2, data=null, delayMS=0) => {
+    this.navigate (scene1,data);
+    this.queued={sceneName: scene2,data};
+
+    if(delayMS > 0){
+      if(!isEmpty(this.pressedTimer)){
+        this.pressedTimer.stop();
+        this.pressedTimer = null;
+      }
+
+      this.pressedTimer = Timer(() => {
+        console.log("<<<<<<<<Queued timeout!>>>>>>>>");
+        this.switchToQueued();
+      }, delayMS);
+      this.pressedTimer.start();
+    }
+  }
+
+  setNext(sceneName,data){
+    this.queued={sceneName,data};
   }
 
   navigate = (sceneName, data=null) => {
@@ -81,6 +162,7 @@ export class Navigation extends React.Component {
   }
 
   goBack = (toFirst=false) => {
+    this.cancelTransition();
     this.setState(state => {
       const {stack} = state;
       if (stack.length > 1) {
@@ -98,7 +180,6 @@ export class Navigation extends React.Component {
         TVMenuControl.disableTVMenuKey();
         BackHandler.exitApp();
       }
-
       return state;
     });
   }
