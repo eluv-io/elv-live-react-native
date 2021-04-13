@@ -41,22 +41,24 @@ class PlayerPage extends React.Component {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
       const {currentViewIndex, views, isShowingControls} = page.state;
-      console.log("Player page event before: " + evt.eventType);
+      console.log("Player page event: " + evt.eventType);
 
       if (evt && evt.eventType === 'right') {
-        //page.next();
+      /*
         let volume = page.state.volume;
         console.log("volume " + volume);
         volume += 0.1;
         page.setState({volume});
+        */
       } else if (evt && evt.eventType === 'up') {
 
       } else if (evt && evt.eventType === 'left') {
-        //page.previous();
+      /*
         let volume = page.state.volume;
         console.log("volume " + volume);
         volume -= 0.1;
         page.setState({volume});
+        */
       } else if (evt && evt.eventType === 'down') {
 
       } else if (evt && evt.eventType === 'playPause') {
@@ -236,28 +238,25 @@ class PlayerPage extends React.Component {
   async init() {
     const {site,fabric,setState} = this.context;
     console.log("SitePage init()");
-    //XXX: temporary to get views
     try{
       let channel = site["channels"]["default"];
-      console.log("Channels: ", JQ(channel));
+      //console.log("Channels: ", JQ(channel));
 
       let channelHash = channel["."]["source"];
-      console.log("Channel hash:", channelHash);
+      //console.log("Channel hash:", channelHash);
 
       let offerings = await fabric.getOfferings(channelHash);
       let offering = Object.keys(offerings)[0];
-      console.log("offering: " + JQ(offering));
+      //console.log("offering: " + JQ(offering));
 
-      //videoUrl = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8";
       let videoUrl = await fabric.getChannelVideoUrl({channelHash, offering});
       console.log("videoUrl: " + videoUrl);
       if(!videoUrl){
-        //TODO: Proper error.
         this.setState({error:"Error occured."});
         return;
       }
       let sid = fabric.getSessionId({uri:videoUrl});
-      console.log("sid: " + sid);
+      //console.log("sid: " + sid);
       this.setState({channelHash,offering,videoUrl,sid});
     }catch(e){
       this.setState({error:"Could not get video uri."});
@@ -273,36 +272,16 @@ class PlayerPage extends React.Component {
 
   }
 
-  RenderPagination = () => {
-    let {videoUrl, currentViewIndex, views, isShowingControls} = this.state;
-    if(!views || !isShowingControls) return null;
-
-    const items = [];
-    for (var i = 0; i < views.length; i++){
-      console.log("paginate: " + i);
-      let view = views[i];
-      items.push(
-        <Image
-          key = {i}
-          style={i == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}
-          source={{
-            uri: view.image_uri ,
-          }}
-        />
-      );
-    }
-
-    return (
-      <View style={styles.paginationStyle}>
-        {items}
-      </View>
-    )
-  }
-
   render() {
     let {videoUrl, views, error, isShowingControls,volume} = this.state;
     const {isActive,navigation} = this.props;
     console.log("PlayerPage: videoUrl " + videoUrl + " error: " +  JQ(error) + " isActive " + isActive + " isShowingControls: " + isShowingControls);
+
+    //TESTING LIVE: 
+    //error = null;
+    //videoUrl = "https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8"
+    //VOD
+    //videoUrl = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8";
 
     if(error != null){
       console.log("Error loading video: " + JQ(error));
@@ -322,9 +301,8 @@ class PlayerPage extends React.Component {
       </View>
       );
     }
-    //console.log("PlayerPage: views " + JQ(views));
-
-   if(!videoUrl){
+    
+    if(!videoUrl){
       return (
       <View style={styles.container}>
         <Text style={styles.text}>Loading...</Text>
