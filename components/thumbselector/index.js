@@ -65,6 +65,10 @@ class ThumbSelector extends React.Component {
         return;
       }
 
+      if(evt.eventType == "blur" || evt.eventType == "focus"){
+        return;
+      }
+
       console.log("thumbselector event " + evt.eventType);
       if (evt && evt.eventType === 'right' || evt.eventType === 'swipeRight') {
         page._next();

@@ -181,7 +181,6 @@ class Login extends React.Component {
                     navigation.replace("error", {text:"Could not redeem ticket."});
                   }
                 });
-
               }}
               onFocus={()=>{this.setState({focused:"enter"})}}
               isFocused = {focused == "enter"}

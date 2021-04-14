@@ -112,7 +112,6 @@ class Gallery extends React.Component {
 
   async componentDidMount() {
     this.enableTVEventHandler();
-
   }
 
   componentWillUnmount(){
@@ -126,17 +125,18 @@ class Gallery extends React.Component {
   enableTVEventHandler() {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
-      const {currentViewIndex, views} = page.state;
-      if(!page.isActive()){
+      console.log("Gallery event: " + evt.eventType + " Active? " + isActive);
+      const {isActive} = page.props;
+      if(!isActive){
         return;
       }
-      
+
       if(evt.eventType == "blur" || evt.eventType == "focus"){
         return;
       }
 
 
-      console.log("Gallery event: " + evt.eventType);
+      console.log("Gallery event active: " + evt.eventType);
 
       if (evt && evt.eventType === 'right' || evt.eventType === 'swipeRight') {
         page._next();
@@ -577,6 +577,7 @@ class Gallery extends React.Component {
             index={currentViewIndex}
             ref={this.swiperRef}
             renderPagination={this.renderPagination}
+            scrollEnabled={this.isActive()}
             >
           {views}
           </Swiper>
