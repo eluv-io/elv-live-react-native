@@ -313,7 +313,7 @@ export default class App extends React.Component {
           }
         }
         >
-        <Navigation default="player">
+        <Navigation default="main">
             <Route name="main" component={MainPage} />
             <Route name="redeem" component={LoginPage} />
             <Route name="site" component={SitePage} />

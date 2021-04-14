@@ -152,7 +152,7 @@ class Login extends React.Component {
               title="Enter Event"
               ref = {this.buttonRef}
               onPress={async()=>{
-              console.log("Submit button onPress" + isActive);
+                console.log("Submit button onPress" + isActive);
                 if(!isActive || isEmpty(code)) return;
                 console.log("Pressing");
 
@@ -170,7 +170,12 @@ class Login extends React.Component {
                   try{
                     navigation.navigate("progress");
                     await appReload();
-                    navigation.replace("site",{...this.props.data});
+                    if(!this.props.data){
+                      //TODO: go directly to playerpage if site is available to play
+                      navigation.replace("site");
+                    }else{
+                      navigation.replace("site",{...this.props.data});
+                    }
                   }catch(e){
                     console.error("Error redeeming ticket: " + e);
                     navigation.replace("error", {text:"Could not redeem ticket."});

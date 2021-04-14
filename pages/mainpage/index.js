@@ -88,6 +88,10 @@ class MainPage extends React.Component {
           countDown = dateCountdown(date);
         }catch(e){}
 
+        if(isEmpty(countDown)){
+          countDown = site.info.event_info.date;
+        }
+
         let item = {};
         item.title = eventTitle;
         item.description = eventSub;
