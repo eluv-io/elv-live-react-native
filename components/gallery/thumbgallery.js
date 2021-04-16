@@ -285,7 +285,7 @@ class ThumbGallery extends React.Component {
     let hasVideo = item.video != undefined && item.video.sources != undefined;
     let hasImage = !isEmpty(item.image);
 
-    if(hasImage){
+    if(!hasImage){
       return (
         <View key={`${index}`} style={index == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}>
           <Text 
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
     width:THUMBWIDTH,
     height:THUMBWIDTH * 9/16
   },
- mainImage: {
+  mainImage: {
     position: "absolute",
     alignItems: 'center',
     justifyContent: "center",
