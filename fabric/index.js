@@ -14,9 +14,9 @@ const CreateStaticToken = async ({configUrl,libraryId}) => {
     let response = await fetch(configUrl);
     let config = await response.json();
     let token = {"qspace_id":config.qspace.id, "qlib_id":libraryId};
-    let token64 = base64.encode(JSON.stringify(token));
-    console.log("Static Token: " + token64);
-    return token64;
+    let staticToken = base64.encode(JSON.stringify(token));
+    console.log("Static Token: " + staticToken);
+    return {config,staticToken};
   }catch(e){
     console.error("Could not create static token: " + e);
   }
@@ -39,12 +39,14 @@ export default class Fabric {
     // Initializes a new Fabric object using a static token for the given network url. 
   // This client can be used to access public objects and metadata
   async initWithLib({configUrl,libraryId}) {
-    let staticToken = CreateStaticToken({configUrl,libraryId})
+    let {config,staticToken} = await CreateStaticToken({configUrl,libraryId})
     this.client = await ElvClient.FromConfigurationUrl({
       configUrl,
       staticToken
     });
     this.configUrl = configUrl;
+    console.log("CONFIG response 2: " + JQ(config));
+    this.staticToken =staticToken;
   }
 
   async initFromMnemonic({configUrl, mnemonic}) {
@@ -90,17 +92,47 @@ export default class Fabric {
     this.configUrl = client.configUrl;
   }
 
+  baseUrl = async ({versionHash})=>{
+    let baseUrl = await this.client.FabricUrl({
+      //versionHash: versionHash,
+      //"rep": `channel/${offering}/options.json`
+    });
+
+    return URI(baseUrl).scheme() + ":" + "//" + URI(baseUrl).host();
+  }
+
   redeemCode = async (tenantId, code) =>{
     //console.log("RedeemCode tenantId: " + tenantId + " code: " + code);
-    try { 
+    try {
+      
       let siteId = await this.client.RedeemCode({
         tenantId,
         code
       });
 
-      console.log("Redeemed SiteID: ");
-      console.log(JQ(siteId));
       return siteId;
+      
+      //TEMPORARY until we get it into ElvClient
+      /*
+      const as = "https://host-66-220-3-86.contentfabric.io/as";
+      let url = as + "/otp/ntp/" + tenantId;
+      console.log("Redeem URL: ", url);
+      let res = await fetch(url, {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        method: 'POST',
+        body: JSON.stringify({"_PASSWORD":code})
+      });
+      console.log("Redeem response: ", JQ(res));
+      let resJson = await res.text();
+      console.log("Redeem json: ", JQ(resJson));
+      this.token = resJson;
+
+      console.log("Redeemed token: " + this.token);
+      return this.token;
+      */
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Error redeeming code:");
@@ -114,44 +146,99 @@ export default class Fabric {
   
   //CHANNEL
 
-  //XXX: Use elvclient's channel implementation when available
   async getOfferings(channelHash){
     try {
-      let channelOptionsUrl = await this.client.FabricUrl({
-        versionHash: channelHash,
-        "rep": "channel/options.json"
-      });
+        let queryParams = {
+          "sid": sid
+        };
 
-      console.log("Channel options url: " + channelOptionsUrl);
-      let response = await fetch(channelOptionsUrl);
-      let json = await response.json();
-      return json;
+        if(this.token != null){
+          queryParams = {
+            "sid": sid,
+            "authorization":this.token
+          };
+        }
+
+      let assetMeta = await this.client.ContentObjectMetadata({
+        versionHash: channelHash,
+        metadataSubtree: "public/asset_metadata",
+        resolveLinks: true,
+        resolveIncludeSource: true,
+        resolveIgnoreErrors: true,
+        linkDepthLimit: 5,
+        queryParams,
+        select:["offerings"]
+      });
+      
+      console.log("Channel asset_metadata: " + JQ(assetMeta));
+      return assetMeta["offerings"];
     } catch (error) {
       console.error(error);
     }
     return null;
   }
 
-  async getOfferingOptions({channelHash, offering}) {
+
+  async getChannelVideoUrl({channelHash, offerings,offering}) {
+    console.log("getChannelVideoUrl");
+    let endpoint = await this.baseUrl({versionHash:channelHash});
+    console.log("endpoint: " + endpoint);
+
+    let uri = offerings[offering]["uri"];
+    let formatsUrl;
+    if (uri[0] == '/') {
+      // Absolute URL
+      formatsUrl = endpoint + uri;
+    } else {
+      formatsUrl = endpoint + "/q/" + channelHash + "/rep/channel/" + uri;
+    }
+    console.log("formatsUrl: " + formatsUrl);
+    let res = await fetch(formatsUrl);
+    let formats = await res.json();
+    
+    //TODO: DRM
+    let format = "hls-clear";
+    let baseUrl = formatsUrl.substring(0, formatsUrl.lastIndexOf("/"));
+    let playlistUrl = baseUrl + "/" + formats[format].uri;
+    return playlistUrl;
+  }
+
+  /*
+  async getOfferingOptions({channelHash, offerings,offering}) {
 
     // Step 2 - retrieve playout options for the offering
     //let url = qfab + "/q/" + channelHash + "/rep/channel/" + offering + "/options.json?authorization=" + token + resolveIgnoreErrors;
-      
-    let url = await this.client.FabricUrl({
+
+    let baseUrl = await this.client.FabricUrl({
       versionHash: channelHash,
       "rep": `channel/${offering}/options.json`
     });
+    
+    let endpoint = URI(baseUrl).scheme() + ":" + "//" + URI(baseUrl).host();
+    console.log("endpoint: " + endpoint);
 
-    console.log("Offering Playout URL: ", url);
-    let response = await fetch(url);
-    let playoutOptions = await response.json();
-
-    return playoutOptions;
+    let uri = offerings[offering]["uri"];
+    let formatsUrl;
+    if (uri[0] == '/') {
+      // Absolute URL
+      formatsUrl = endpoint + uri;
+    } else {
+      formatsUrl = endpoint + "/q/" + channelHash + "/rep/channel/" + uri;
+    }
+    console.log("formatsUrl: " + formatsUrl);
+    let res = await fetch(formatsUrl);
+    let formats = await res.json();
+    
+    //TODO: DRM
+    let format = "hls-clear";
+    let baseUrl = formatsUrl.substring(0, formatsUrl.lastIndexOf("/"));
+    let playlistUrl = baseUrl + "/" + formats[format].uri;
+    return formats;
   }
 
-  async getChannelVideoUrl({channelHash, offering}) {
+  async getChannelVideoUrl({channelHash, offerings,offering}) {
     
-    let playoutOptions = await this.getOfferingOptions({channelHash, offering});
+    let playoutOptions = await this.getOfferingOptions({channelHash, offerings, offering});
     console.log("playoutOptions: offering " + offering + " - " + JQ(playoutOptions));
     
     if(!playoutOptions || !offering){
@@ -171,6 +258,8 @@ export default class Fabric {
 
     // Step 2 - pick 'hls-clear' and retrieve HLS playlist URL
     //let hlsPlaylistUrl = qfab + "/q/" + channelHash + "/rep/channel/" + offering + "/" + playoutOptions["hls-clear"].uri;
+
+    //let hlsUri = offerings[offering]["uri"];
  
     let basePath = await this.client.FabricUrl({
       versionHash: channelHash,
@@ -180,12 +269,13 @@ export default class Fabric {
 
     //Strip auth
     basePath =  URI(basePath).query("").toString();
-    console.log("playoutOptions uri " + basePath);
+    console.log("basePath uri " + basePath);
 
     let hlsPlaylistUrl = UrlJoin(basePath, hlsUri);
 
     return hlsPlaylistUrl;
   }
+*/
 
   getSessionId({uri}) {
     // ATTENTION: this session ID will be returned as an individual field in the playout options
@@ -199,12 +289,15 @@ export default class Fabric {
     if(!sid  || !offering || !channelHash){
       throw {error:"Invalid arguments to getChannelViews."};
     }
+    
+    let queryParams = {
+      "sid": sid
+    };
+
     let url = await this.client.FabricUrl({
       versionHash: channelHash,
       "rep": `channel/${offering}/views.json`,
-      "queryParams": {
-        "sid": sid
-      }
+      queryParams
     });
 
     console.log("Channel views URL: ", url);
@@ -220,12 +313,21 @@ export default class Fabric {
       throw {error:"Invalid arguments to getChannelViews."};
     }
 
+    let queryParams = {
+      "sid": sid
+    };
+
+    if(this.token != null){
+      queryParams = {
+        "sid": sid,
+        "authorization":this.token
+      };
+    }
+
     let url = await this.client.FabricUrl({
       versionHash: channelHash,
       "rep": `channel/${offering}/select_view`,
-      "queryParams": {
-        "sid": sid
-      }
+      queryParams
     });
 
 

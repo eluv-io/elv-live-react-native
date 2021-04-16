@@ -10,6 +10,7 @@ import Timer from '../../utils/timer';
 import FadeInView from '../fadeinview'
 const { width } = Dimensions.get('window');
 import { isEmpty } from '../../utils';
+import AppContext from '../../AppContext'
 
 export const Route = () => null;
 
@@ -25,6 +26,7 @@ const buildSceneConfig = (children = []) => {
 
 
 export class Navigation extends React.Component {
+  static contextType = AppContext;
   _animatedValue = new Animated.Value(0);
 
   constructor(props) {
@@ -67,6 +69,11 @@ export class Navigation extends React.Component {
   }
 
   switchToQueued = () =>{
+    const {reloadFinished} = this.context;
+    if(!reloadFinished){
+      return;
+    }
+
     try{
       if(!isEmpty(this.queued)){
         this.replace(this.queued.sceneName, this.queued.data);
@@ -121,7 +128,6 @@ export class Navigation extends React.Component {
       }
 
       this.pressedTimer = Timer(() => {
-        console.log("<<<<<<<<Queued timeout!>>>>>>>>");
         this.switchToQueued();
       }, delayMS);
       this.pressedTimer.start();

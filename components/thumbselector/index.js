@@ -221,6 +221,12 @@ class ThumbSelector extends React.Component {
         imageStyle = styles.paginationImageActive
       }
     }
+    
+    //console.log("Thumbselector image: ", item.image);
+
+    if(isEmpty(item.image)){
+      return null;
+    }
 
     return (
       <View style={this.props.showImageLabels ? styles.paginationItemsLabel : styles.paginationItems}>
@@ -246,21 +252,21 @@ class ThumbSelector extends React.Component {
   RenderContent = ({title,description}) => {
     let {currentViewIndex, showText} = this.state;
     let {isActive, data, slide} = this.props;
-    if(!data) return null;
+    if(isEmpty(data)) return null;
 
     const items = [];
     
-    for (var i = 0; i < data.length; i++){
-      let item = data[i];
-      item.index = i;
-      item.id = `${item.index}`;
-      //console.log("thumbselector item: " + JQ(item));
+    for (key in data){
+      let item = data[key];
+      item.index = key;
       try{
         if(item.image.url){
           item.image = item.image.url;
         }
-      }catch(e){}
-
+      }catch(e){
+        console.error("Error parsing extras for thumbselector: " + e);
+        return null;
+      }
       items.push(
         item
       );
@@ -295,10 +301,9 @@ class ThumbSelector extends React.Component {
   render() {
     const {currentViewIndex,showBackground, slide} = this.state;
     const {data, isActive} = this.props;
-    console.log("Thumbselector render: isActive " + isActive);
     const views = [];
 
-    if(!data){
+    if(isEmpty(data)){
       return null;
     }
 

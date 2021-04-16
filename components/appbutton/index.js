@@ -58,13 +58,10 @@ class AppButtonPrivate extends React.Component {
       return null;
     }
 
-    //console.log("Appbutton onPress. " + onPress);
     this.setState({isPressed:true});
     let pressedTimer = Timer(() => {
-      //console.log("<<<<<<<<Appbutton timeout!");
       this.setState({isPressed:false});
       if(onPress){
-        //console.log("Calling onPress")
         onPress();
       }
     }, 200);
@@ -79,7 +76,7 @@ class AppButtonPrivate extends React.Component {
   }
 
   render() {
-    const {text, isFocused, onPress, style, isActive, ...otherProps} = this.props;
+    const {text, isFocused, onPress, style, isActive, onFocus, ...otherProps} = this.props;
     const {isPressed} = this.state;
 
     if(isEmpty(text)){
@@ -91,8 +88,26 @@ class AppButtonPrivate extends React.Component {
       buttonStyle = [styles.button,styles.buttonSelected,style];
     }
 
+    //We need a real button if onFocus is passed in
+    if(onFocus){
+      return (
+        //Don't use native focusable components, it will mess up the react-native-swiper because of the focus management.
+        <TouchableOpacity
+          style={buttonStyle} 
+          activeOpacity ={1}
+          hasTVPreferredFocus={isFocused}
+          ref={this.props.innerRef}
+          onFocus={onFocus}
+          {...otherProps}
+        >
+          <Text style={styles.buttonText}>{text}</Text>
+        </TouchableOpacity>
+      );
+    }
+
     return (
-      <TouchableOpacity
+      //Don't use native focusable components, it will mess up the react-native-swiper because of the focus management.
+      <View
         style={buttonStyle} 
         activeOpacity ={1}
         hasTVPreferredFocus={isFocused}
@@ -100,7 +115,7 @@ class AppButtonPrivate extends React.Component {
         {...otherProps}
       >
         <Text style={styles.buttonText}>{text}</Text>
-      </TouchableOpacity>
+      </View>
     );
   }
 }

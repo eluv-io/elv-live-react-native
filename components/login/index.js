@@ -52,7 +52,7 @@ const LoginInput = (props) => {
     );
 };
 
-const LoginButton = React.forwardRef(({ onPress, title,onFocus,isFocused,isSelected},ref) => {
+const LoginButton = ({ onPress, title,onFocus,isFocused,isSelected}) => {
   let buttonStyle = isFocused ? styles.submitButton : styles.submitButtonUnfocused;
   if(isSelected){
     buttonStyle = [styles.submitButtonUnfocused,styles.submitButtonSelected];
@@ -60,7 +60,6 @@ const LoginButton = React.forwardRef(({ onPress, title,onFocus,isFocused,isSelec
   
   return (
     <AppButton
-      innerRef={ref}
       style={buttonStyle}
       onPress={onPress}
       onFocus={onFocus}
@@ -69,7 +68,7 @@ const LoginButton = React.forwardRef(({ onPress, title,onFocus,isFocused,isSelec
       title="Redeem"
     />
   );
-});
+}
 
 class Login extends React.Component {
   static contextType = AppContext
@@ -79,9 +78,11 @@ class Login extends React.Component {
       focused : "",
       code: ""
     }
+  }
+
+  async componentDidMount() {
     Keyboard.addListener("keyboardDidShow", this.onKeyboardDidShow);
     Keyboard.addListener("keyboardDidHide", this.onKeyboardDidHide);
-    this.buttonRef = React.createRef();
   }
 
   componentWillUnmount=()=>{
@@ -98,8 +99,6 @@ class Login extends React.Component {
     console.log("KeyboardDidHide");
     try{
       console.log("Switching focus:");
-      //FIXME: Does not work
-      this.buttonRef.current.focus();
     }catch(e){console.error("Error switching focus to login button: "+e)}
     this.setState({showingKeyboard:false});
   }
@@ -118,7 +117,7 @@ class Login extends React.Component {
     //console.log("RedeemPage site display title: " + site.title);  
     //console.log("RedeemPage site Id: " + siteId);  
     //console.log("RedeemPage site tenant Id: " + tenantId);
-    //console.log("focused: " + focused);
+    console.log("Login focused: " + focused);
 
     return (
       <View style={styles.container}>
@@ -152,30 +151,35 @@ class Login extends React.Component {
               title="Enter Event"
               ref = {this.buttonRef}
               onPress={async()=>{
-                console.log("Submit button onPress" + isActive);
+                console.log("Submit:  button onPress" + isActive);
                 if(!isActive || isEmpty(code)) return;
-                console.log("Pressing");
+                console.log("Submit: Pressing");
 
                 this.setState({selected:"enter"});
                 let that = this;
                 this.pressedTimer = Timer(() => {
-                  console.log("<<<<<<<<Pressed timeout!");
+                  //console.log("<<<<<<<<Pressed timeout!");
                   that.setState({
                     selected: null
                   });
                 }, 300);
                 this.pressedTimer.start();
-
+                console.log("Submit: Setting app state: ");
                 setAppState({ticketCode:code},async ()=>{
                   try{
+                    console.log("Submit: setAppState finished");
                     navigation.navigate("progress");
-                    await appReload();
-                    if(!this.props.data){
+                    console.log("Submit: reloadingApp");
+                    await appReload(()=>{
+                      if(!this.props.data){
                       //TODO: go directly to playerpage if site is available to play
+                      console.log("Submit: navigation to site");
                       navigation.replace("site");
                     }else{
+                      console.log("Submit: navigation to site with data.");
                       navigation.replace("site",{...this.props.data});
                     }
+                    });
                   }catch(e){
                     console.error("Error redeeming ticket: " + e);
                     navigation.replace("error", {text:"Could not redeem ticket."});

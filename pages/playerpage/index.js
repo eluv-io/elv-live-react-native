@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, Image,TouchableOpacity,TVEventHandler} from 'react-native';
 import Video from 'react-native-video';
-import { JQ } from '../../utils';
+import { isEmpty, JQ } from '../../utils';
 import Timer from '../../utils/timer';
 import AppContext from '../../AppContext'
 import ThumbGallery from '../../components/gallery/thumbgallery'
@@ -41,7 +41,7 @@ class PlayerPage extends React.Component {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
       const {currentViewIndex, views, isShowingControls} = page.state;
-      console.log("Player page event: " + evt.eventType);
+      //console.log("Player page event: " + evt.eventType);
 
       if (evt && evt.eventType === 'right') {
       /*
@@ -79,35 +79,39 @@ class PlayerPage extends React.Component {
   showControls = async ()=>{
     const {platform,site,fabric,setState} = this.context;
     let {channelHash, offering, isShowingControls, sid, currentViewIndex} = this.state;
+    console.log("Player page Show controls ",sid,offering,isShowingControls);
+
     if(isShowingControls || !sid){
       return;
     }
-
-    console.log("Show controls")
     let views = [];
     try{
+     console.log("Getting channel views. ");
       let currentViews = await fabric.getChannelViews({channelHash, offering, sid});
-      //console.log("views response: " + JQ(currentViews));
+      console.log("views response: " + JQ(currentViews));
       if(!currentViews.errors){
         for(index in currentViews){
           let view = currentViews[index];
-          //console.log("Found view: " + JQ(view));
-          let uri = new URI(platform.getCurrentHost() + "" + view.image_uri);
-          uri.addSearch("width",THUMBWIDTH);
-          view.image = uri.toString();
+          console.log("Found view: " + JQ(view));
+          if(!isEmpty(view.image_uri)){
+            let uri = new URI(platform.getCurrentHost() + "" + view.image_uri);
+            uri.addSearch("width",THUMBWIDTH);
+            view.image = uri.toString();
+          }
+          view.title = view.view_display_label;
           view.isAvailable = true;
-          //console.log("Created image uri with width: " + view.image_uri);
+          console.log("Created image uri with width: " + view.image_uri);
           if(view.currently_selected){
             currentViewIndex = index;
           }
           views.push(view);
         }
       }
+      isShowingControls = true;
+      this.setState({currentViewIndex,views,isShowingControls});
     }catch(error){
       console.log("error: " + JQ(error));
     }
-    isShowingControls = true;
-    this.setState({currentViewIndex,views,isShowingControls});
     
     /*
     this.controlsTimer = Timer(() => {
@@ -235,33 +239,42 @@ class PlayerPage extends React.Component {
     this.disableTVEventHandler();
   }
 
-  async init() {
-    const {site,fabric,setState} = this.context;
+ async init() {
+    const {site,fabric,appReload,setState} = this.context;
     console.log("SitePage init()");
     try{
-      let channel = site["channels"]["default"];
-      //console.log("Channels: ", JQ(channel));
+      let channels = await site.getLatestChannels();
+
+      //let channel = site["channels"]["default"];
+      let channel = channels["default"];
+      console.log("Channel: ", JQ(channel));
 
       let channelHash = channel["."]["source"];
-      //console.log("Channel hash:", channelHash);
+      console.log("Channel hash:", channelHash);
 
-      let offerings = await fabric.getOfferings(channelHash);
+      //let offerings = await fabric.getOfferings(channelHash);
+      let offeringsUrl = channel["offerings"]["url"];
+      let response = await fetch(offeringsUrl);
+      let offerings = await response.json();
+      console.log("offerings: " + JQ(offerings));
       let offering = Object.keys(offerings)[0];
-      //console.log("offering: " + JQ(offering));
+      console.log("offering: " + JQ(offering));
 
-      let videoUrl = await fabric.getChannelVideoUrl({channelHash, offering});
+      let videoUrl = await fabric.getChannelVideoUrl({channelHash, offerings,offering});
+    
       console.log("videoUrl: " + videoUrl);
       if(!videoUrl){
         this.setState({error:"Error occured."});
         return;
       }
       let sid = fabric.getSessionId({uri:videoUrl});
-      //console.log("sid: " + sid);
+      console.log("sid: " + sid);
       this.setState({channelHash,offering,videoUrl,sid});
     }catch(e){
-      this.setState({error:"Could not get video uri."});
+      this.setState({error:"Could not get video uri. " + e});
     }
   }
+
 
   videoError = (error) => {
     console.log("VideoError: " + JQ(error));
@@ -282,6 +295,9 @@ class PlayerPage extends React.Component {
     //videoUrl = "https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8"
     //VOD
     //videoUrl = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8";
+    //videoUrl = "https://storage.googleapis.com/gaetan/hls.js/master-fmp4-bug.m3u8";
+    //videoUrl = "https://host-66-220-3-86.contentfabric.io/q/hq__KcdB8hztcqY5PNn9D978PyHR8AxyiHkeiKmLNxMof4b4skhy9NSaVJaQ8XWus6Dx19SWPGzCbn/rep/playout/default/hls-clear/playlist.m3u8?authorization=eyJ0b2siOiJhc2Nzal9hZ2UzMkFlMVJ6WXJEWnNOWDFaTUgxd2FnbUI2Z1Boc2hzdlM3Zkx0WG9rcnJ0WWNEVlY2d1hzN2dnTmlhemp1RFdBRVZRcER6VjEyVmlTeXN0VGZSSjJUcXFMNTd0eTl2dzFUREZwdXRRZm1kZVFqZ0gyNHdOazdLaWlWeXU0M0hnVm5kekNuM3c3UnZtbWVORmthREo5M0ZYZFJ0dlNnMkhOV21LVWUzRUE5VkZhZWlVaTJ3cllhbVB1RXZoWUdoM0x0Z0FqTUt4bXZ2cm5hYzRpR2piVWtDY1FQQkFuMkhuTXB2akF4eTJrRlJDdHlERlRhWVJjYW5mdU1BM1JwVm42aFFCaVlLZzlIdnRtcWZ4TjVFbWFrcHZQQUd3MjhxY1RGS0NXWEV0clFxR1VrYXlKRG5aYmtzUVpWQzNGQjUxdHhxd3ZOVTJFcEtlZHJLQ0NWd1lQRDdwb005enExZjkyelVpelp1VXBDemR0Q2U3YWdzUVNQNXBTVXk1SGZ6c2trN3ZpelV0Wkg1R1JwS0xvY0JWTFliRFBKdWh0YUN5TEROUWlNd0V3R3ZKNnFzUDFReUtWVURnMjNndU5iWUhvQWd5Qm5TcVNaYkVlVnNEVVcxOEJwV21GUnRjSHBDdEE0Ym16bm5zRm9jNjdGTUU0ZHlTWEtObm9ueEhicjRMUnlQcmgyRGsyOXh1aEd2NFRoRDZtOHVnV3V1eGhlNVZNWVQ5OGlISzgzeENyZEc4Z3QiLCJxaWQiOiJpcV9fMlVtbkN6bnZXZHJlRGtlVjEzYWlIWGlld2VKcSIsIm9pZCI6ImQ6UU9UUFgySlJhdTQyUWRVIn0%3D";
+    //videoUrl = "https://host-38-102-0-227.contentfabric.io/qlibs/ilib4UgUTory7GwH1k1syc77Uxnq7bMq/q/hq__ALJ26skJzkNPwyTbV5dvi72UqRAvTmdxYUx3j5EfXtc4vH5cUdi1Kksh23uQAphLxSCsyHdL1W/rep/channel/ga/hls-clear/live.m3u8?sid=1102904DF5&authorization=eyJxc3BhY2VfaWQiOiJpc3BjM0FOb1ZTek5BM1A2dDdhYkxSNjlobzVZUFBaVSIsImFkZHIiOiIweGJhOGJmYTY2MTQ4OWUxNWFiZmE5NWYxMDcxODk0MjRlMDc1NjhkNGQiLCJ0eF9pZCI6IjB4YmQxOGFjNzE1NzBiM2Q1YjVjMjAyOWE0NDFkYzVhODNkOGViNjBiNjA1ODBkODFmNGZjYjY4M2ViMzhhMzBiYSIsInFsaWJfaWQiOiJpbGliNFVnVVRvcnk3R3dIMWsxc3ljNzdVeG5xN2JNcSJ9.RVMyNTZLXzVSaW5VOXRBcnV0QlE5SkFoMlp2NWExeTU5Tlh6djJRaTFqakxxMnNNRmN1VEdwRmFodUhWa2FSb1R3M0pid1ZIZDZ6dGpIMldrYWpmaXEyRFJpRW5RSjla";
 
     if(error != null){
       console.log("Error loading video: " + JQ(error));
@@ -292,6 +308,7 @@ class PlayerPage extends React.Component {
           style={styles.retryButton} 
           activeOpacity ={0.6}
           hasTVPreferredFocus={true}
+          volume={100}
           onPress = {()=>{
             this.reload();
           }}
@@ -320,8 +337,9 @@ class PlayerPage extends React.Component {
           onError={this.videoError}               // Callback when video cannot be loaded
           style={styles.video} 
           controls={true}
-          volume={volume}
+          //volume={1} //XXX:
           onEnd={()=>{navigation.goBack()}}
+          onBandwidthUpdate={(bitrate)=>{console.log("Video onBandwidthUpdate: ", bitrate)}}
           bufferConfig={{
             minBufferMs: 1000,
             maxBufferMs: 3000,

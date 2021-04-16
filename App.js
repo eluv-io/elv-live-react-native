@@ -17,6 +17,7 @@ import ReactNative, {
   ImageBackground,
   TouchableOpacity,
   Text,
+  AppState
 } from 'react-native';
 
 import GalleryPage from './pages/gallerypage'
@@ -137,7 +138,8 @@ let defaultState = {
   ticketCode:"",
   site:null,
   platform:null,
-  fabric: null
+  fabric: null,
+  reloadFinished: false
 };
 
 export default class App extends React.Component {
@@ -147,24 +149,32 @@ export default class App extends React.Component {
     this.reload = this.reload.bind(this);
     LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
     LogBox.ignoreAllLogs();
+    this.appState = null;
   }
 
   componentDidMount = async () => {
     await this.loadState();
     await this.reload();
-    
-    /*
-    loadPlatform("demo").then(
-      ({fabric,platform}) => {
-        console.log("Successfully initialized the Fabric client. ");
-        this.setState({fabric,platform})
-      },
-      error=>{
-        console.log("Could not initialize the Fabric client: " + error);
-      }
-    );
-    */
+    AppState.addEventListener("change", this._handleAppStateChange);
   }
+
+  componentWillUnmount = ()=>{
+    AppState.removeEventListener("change");
+    console.log("App will unmount.");
+  }
+
+  _handleAppStateChange = async (nextAppState) => {
+    if (!this.appState || (this.appState.match(/inactive|background/) &&
+      nextAppState === "active")
+    ) {
+      console.log("App has come to the foreground!");
+      await this.loadState();
+      await this.reload();
+    }
+
+    this.appState = nextAppState;
+    console.log("AppState", this.appState.current);
+  };
 
   saveState = async () => {
     await this.storeData({redeemItems: this.state.redeemItems});
@@ -216,16 +226,18 @@ export default class App extends React.Component {
     }
   }
 
-  reload =  async ()=>{
+  reload =  async (callback)=>{
     console.log("app reload");
-    let {site,ticketCode,redeemItems} = this.state;
+    let app = this;
+    this.setState({reloadFinished:false},async ()=>{
+      let {site,ticketCode,redeemItems} = app.state;
       console.log("Redeem items: ",redeemItems);
       let {fabric,platform} = await initPlatform("demo");
       let newSite = null;
       if(site && platform && fabric && ticketCode){
         let tenantId = site.info.tenant_id;
-        let siteId = await this.redeemCode(fabric,site,redeemItems,tenantId,ticketCode);
-        if(!siteId){
+        let status = await app.redeemCode(fabric,site,redeemItems,tenantId,ticketCode);
+        if(!status){
           throw "Error redeeming site";
         }
         
@@ -235,8 +247,8 @@ export default class App extends React.Component {
         let sites = await platform.getSites();
         for(index in sites){
           let test = sites[index];
-          if(test.slug == site.slug){
-            console.log("newSite found");
+          if(test.objectId == site.objectId){
+            console.log("******** newSite found ***********");
             newSite = test;
             break;
           }  
@@ -246,12 +258,15 @@ export default class App extends React.Component {
         await platform.load();
       }
 
-      if(newSite){
-        console.log("App setting new State: ");
-        this.setState({fabric,platform, site:newSite});
-      }else{
-        this.setState({fabric,platform, site:null});
-      }
+      console.log("App setting new State");
+      app.setState({fabric,platform, site:newSite, reloadFinished:true},()=>{
+        console.log("App state set.");
+        if(callback){
+          console.log("Calling reload callback");
+          callback(app.state);
+        }
+      });
+    });
   }
 
   //Use callback to execute after setState finishes.
@@ -309,7 +324,8 @@ export default class App extends React.Component {
           redeemItems,
           setAppState:this.handleSetState,
           appReload:this.reload,
-          appClearData: this.clearData
+          appClearData: this.clearData,
+          reloadFinished: this.state.reloadFinished
           }
         }
         >

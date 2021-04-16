@@ -1,12 +1,12 @@
 {
   "images" : [
     {
-      "filename" : "ring_E Circle Icon @1x.png",
+      "filename" : "AppIcon_Ring4_14.png",
       "idiom" : "tv",
       "scale" : "1x"
     },
     {
-      "filename" : "ring_E Circle Icon @2x.png",
+      "filename" : "AppIcon_Ring4_14@2x.png",
       "idiom" : "tv",
       "scale" : "2x"
     }

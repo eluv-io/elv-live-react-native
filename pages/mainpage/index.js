@@ -98,7 +98,31 @@ class MainPage extends React.Component {
         item.image = site.tv_main_background;
         item.logo = site.tv_main_logo;
         item.release_date = countDown;
-        item.extras = site.info.extras;
+        const extras = [];
+    
+        for (i in site.info.extras){
+          let extra = site.info.extras[i];
+          extra.index = i;
+          extra.id = `${i}`;
+          if(!extra.image){
+            continue;
+          }
+          try{
+            if(extra.image.url){
+              extra.image = item.image.url;
+            }
+          }catch(e){
+            console.error("Error parsing extras for thumbselector: " + e);
+            continue;
+          }
+          //console.log("Extra image " + extra.image);
+          extras.push(
+            extra
+          );
+        }
+
+        item.extras = extras;
+        //console.log("Item: "+ item.title + " extras: " + extras.length);
         item.isRedeemed = site.objectId in redeemItems;
         siteData.push(item);
       }catch(e){
@@ -136,7 +160,7 @@ class MainPage extends React.Component {
       if(evt.eventType == "blur" || evt.eventType == "focus"){
         return;
       }
-      console.log("<<<<<<<< MainPage event received: "+evt.eventType);
+      //console.log("<<<<<<<< MainPage event received: "+evt.eventType);
 
       if(typeof evt.eventType  === 'string' || evt.eventType instanceof String){
         if(!this.remoteEvents){
@@ -283,7 +307,7 @@ class MainPage extends React.Component {
               navigation.transition("presents","site",{logo, title},11000);
               await appReload();
             }catch(e){
-              console.error("Error loading extra info: " + e);
+              console.error("Error loading site info: " + e);
               navigation.setNext("error", {text:"Could not retrieve event info."});
             }
           }
@@ -300,7 +324,8 @@ class MainPage extends React.Component {
 
   //Callback for Thumbselector
   onSelectExtra = async ({item,index}) => {
-    console.log("\n MainPage onSelectExtra()");
+    let extraIndex = index;
+    console.log("\n MainPage onSelectExtra() " + extraIndex);
     const {setAppState,redeemItems,appReload} = this.context;
     const {isActive,navigation} = this.props;
     const {currentViewIndex,isShowingExtras} = this.state;
@@ -312,8 +337,8 @@ class MainPage extends React.Component {
     const getData = (item)=>{
         let data = [];
         try{
-          for(const index in item.package.info.gallery){
-            let galleryItem = {...item.package.info.gallery[index]};
+          for(const i in item.package.info.gallery){
+            let galleryItem = {...item.package.info.gallery[i]};
             if(galleryItem.image.url != undefined){
               galleryItem.image = galleryItem.image.url;
             }
@@ -335,28 +360,26 @@ class MainPage extends React.Component {
         console.log("select site extras 1 " + site.title);
 
         let redeemInfo = redeemItems[site.objectId];
-        let Context = this.context;
         if(!isEmpty(redeemInfo) && !isEmpty(redeemInfo.ticketCode)){
           setAppState({site,ticketCode: redeemInfo.ticketCode},
-            async (state)=>{
+            async ()=>{
               try{
-                console.log("select site extras 2" + JQ(site));
-                let logo = site.tv_main_logo;
-                let title = site.title;
-                navigation.navigate("presents",{logo, title},11000);
-                await appReload();
-                console.log("\nApp reloaded.");
-                site = Context;
-                let extra = site.info.extras[index];
-                let data = getData(extra);
-                if(!isEmpty(data)){
-                  navigation.replace("gallery",data);
-                }else{
-                  throw "Gallery data is empty.";
-                }
+                console.log("App state set. selectedIndex " + extraIndex);
+                navigation.navigate("progress");
+                await appReload((state)=>{
+                  console.log("App reloaded. selectedIndex " + extraIndex);
+                  let {site} = state;
+                  let extra = site.info.extras[extraIndex];
+                  let data = getData(extra);
+                  if(!isEmpty(data)){
+                    navigation.replace("gallery",data);
+                  }else{
+                    navigation.replace("error", {text:"Could not retrieve event info."});
+                  }
+                });
               }catch(e){
                 console.error("Error loading extra info: " + e);
-                navigation.setNext("error", {text:"Could not retrieve event info."});
+                navigation.replace("error", {text:"Could not retrieve event info."});
               }
             }
           );
@@ -368,6 +391,7 @@ class MainPage extends React.Component {
       }
     }catch(e){
       console.error(e);
+      navigation.navigate("error", {text:"Could not retrieve event info."});
     }
   }
 
@@ -375,7 +399,7 @@ class MainPage extends React.Component {
     const {platform,setAppState} = this.context;
     const {navigation, isActive} = this.props;
     const {currentViewIndex,isShowingExtras} = this.state;
-    console.log("Mainpage>>>render");
+    //console.log("Mainpage>>>render");
     let siteData = this.loadSiteData();
 
     if(isEmpty(siteData)){
@@ -390,11 +414,13 @@ class MainPage extends React.Component {
     let extras = null;
     try{
       let site = siteData[currentViewIndex];
+      //console.log("<<<<< site.extras " + JQ(site.extras));
       extras = site.extras;
     }catch(e){
       console.log("Couldn't get extras from site " + JQ(e));
     }
 
+    //console.log("<<<<< extras " + JQ(extras));
     let eluvioLogo = platform.eluvioLogo || "";
 
     return (

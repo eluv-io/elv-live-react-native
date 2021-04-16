@@ -25,7 +25,7 @@ const BLUR_OPACITY = 0.3;
 
 
 class SitePage extends React.Component {
-  static contextType = AppContext
+  static contextType = AppContext;
 
   constructor(props) {
     super(props);
@@ -44,13 +44,21 @@ class SitePage extends React.Component {
   }
 
   async componentDidMount() {
+    console.log("Sitepage componentDidMount");
+    let extras = await this.getExtras();
+    this.setState({extras});
+  }
+
+  getExtras = async () => {
     const {site} = this.context;
     const {data} = this.props;
     const {redeemItems} = this.context;
 
-    try{
-      let extras = [];
+    let siteIsRedeemed = site.objectId in redeemItems;
+    console.log("getExtras isRedeemed: " + siteIsRedeemed);
+    let extras = [];
 
+    try{
       //Push the main event site as the first extra
       let main = {};
       main.title = site.info.event_info.event_title;
@@ -65,21 +73,24 @@ class SitePage extends React.Component {
         countDown = dateCountdown(date);
       }catch(e){}
 
+      if(isEmpty(countDown)){
+        countDown = site.info.event_info.date;
+      }
+
       main.release_date = countDown;
       main.channels = site.channels;
       //XXX: TODO - find a way to check if the channel is available to play
       main.isAvailable = dateStarted(date);
-      main.isRedeemed = site.objectId in redeemItems;
+      main.isRedeemed = siteIsRedeemed;
       extras.push(main);
-
+    }catch(e){
+      console.log(error);
+    }
+    try{
       for(index in site.info.extras){
         let extra = site.info.extras[index];
         extras.push(extra);
-        if(index == 1){
-          console.log("Found extra: " + JQ(extra));      
-        }  
       }
-      this.setState({extras});
 
       if(data && this.galleryRef.current && !isNaN(data.extra)){
         //Add one to account for the main event inserted at the beginning.
@@ -87,11 +98,11 @@ class SitePage extends React.Component {
         console.log("SitePage select: " + currentViewIndex);
         this.galleryRef.current.setIndex(currentViewIndex);
       }
-
-    }catch(error){
-      console.log(error);
+    }catch(e){
+      console.log(e);
     }
 
+    return extras;
   }
 
   componentWillUnmount(){
@@ -135,49 +146,15 @@ class SitePage extends React.Component {
     }
   }
 
-  RenderPagination = ({views,currentViewIndex, isVisible}) => {
-    if(!views || !isVisible) return null;
-
-    const items = [];
-    for (var i = 0; i < views.length; i++){
-      console.log("paginate: " + i);
-      let view = views[i];
-      items.push(
-        <Image
-          key = {i}
-          style={i == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}
-          source={{
-            uri: view.image_uri,
-          }}
-        />
-      );
-    }
-
-    return (
-      <View style={styles.paginationStyle}>
-        {items}
-      </View>
-    )
-  }
-
-  //Create mosaic album cover
-  getGalleryCoverImage(extra){
-    const {platform} = this.context;
-    let uri = new URI(platform.getCurrentHost() + "" + extra.image);
-    //let uri = extra.images["landscape"];
-    return uri.toString();
-  }
-
   render() {
     const {platform,setAppState} = this.context;
     const {navigation, isActive} = this.props;
-    const {currentViewIndex, extras} = this.state;
+    const {currentViewIndex,extras} = this.state;
 
     const views = [];
-    const extra = extras[currentViewIndex];
 
     let data = extras;
-    //console.log("SitePage render() " + JQ(extras));
+    console.log("SitePage render() ");
     return (
       <View style={styles.container}>
         <Gallery

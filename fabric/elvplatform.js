@@ -61,11 +61,11 @@ class ElvPlatform {
         resolveIncludeSource: true,
         resolveIgnoreErrors: true,
         produceLinkUrls: true,
-        linkDepthLimit: 3,
-        //channelAuth: true,
+        linkDepthLimit: 10,
         select,
         noCache:true
       });
+
       //console.log("Platform asset_metadata: " + JQ(this.siteInfo["asset_metadata"]["featured_events"][0]["ritaora"]["info"]["extras"][1]));
 
       /*this.siteInfo.baseLinkUrl = await this.client.LinkUrl({
@@ -93,6 +93,22 @@ class ElvPlatform {
           let item = sites[index];
           let key = Object.keys(item)[0]
           let site = sites[index][key];
+          site.getLatestChannels = async()=>{
+            let siteInfo = await this.client.ContentObjectMetadata({
+              libraryId:site.libraryId,
+              objectId:site.objectId,
+              metadataSubtree: "public/asset_metadata",
+              resolveLinks: true,
+              resolveIncludeSource: true,
+              resolveIgnoreErrors: true,
+              produceLinkUrls: true,
+              linkDepthLimit: 5,
+              select:"channels",
+              noCache:true
+            });
+            console.log("Site refreshed: "+ JQ(siteInfo));
+            return siteInfo["channels"];
+          }
           //console.log("Featured site extras: " + JQ(site.info.extras));
           site.metaDataPath = `public/asset_metadata/${eventsKey}/${index}/${key}`;
           this.availableSites.push(await this.resolveSite(site,key));
@@ -128,7 +144,8 @@ class ElvPlatform {
 
   resolveSite = async (site,key) =>{
     site.versionHash = site["."].source;
-    site.objectId = this.client.utils.DecodeVersionHash(site.versionHash ).objectId;
+    site.objectId = await this.client.utils.DecodeVersionHash(site.versionHash ).objectId;
+    site.libraryId = await this.client.ContentObjectLibraryId({objectId:site.objectId});
     site.slug = key;
     site.tv_main_background = this.createLink(
         this.siteInfo.baseLinkUrl,
@@ -144,7 +161,7 @@ class ElvPlatform {
     for(const index in site.info.extras){
         let extra = site.info.extras[index];
         extra.basePath = UrlJoin(site.metaDataPath,`/info/extras/${index}`);
-        console.log("Extra base path: " + extra.basePath);
+        console.log("Extra: ",extra);
         let packageLink = extra["package"];
         if(packageLink["info"] != undefined){
           extra.isAvailable = true;
@@ -195,10 +212,12 @@ class ElvPlatform {
           extra.isAvailable = false;
         }
 
-        extra.image = this.createLink(
-        this.siteInfo.baseLinkUrl,
-          "/meta/" + site.metaDataPath+`/info/extras/${index}/image`
-        );
+        if(!isEmpty(extra.image)){
+          extra.image = this.createLink(
+          this.siteInfo.baseLinkUrl,
+            "/meta/" + site.metaDataPath+`/info/extras/${index}/image`
+          );
+        }
     }
 
     return site;

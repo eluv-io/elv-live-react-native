@@ -1,12 +1,12 @@
 {
   "images" : [
     {
-      "filename" : "spotlight + E_E Circle Icon @1x.png",
+      "filename" : "AppIcon_E+Spotlight 4_14.png",
       "idiom" : "tv",
       "scale" : "1x"
     },
     {
-      "filename" : "spotlight + E_E Circle Icon @2x.png",
+      "filename" : "AppIcon_E+Spotlight 4_14@2x.png",
       "idiom" : "tv",
       "scale" : "2x"
     }

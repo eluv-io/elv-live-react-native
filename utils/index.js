@@ -26,15 +26,13 @@ export const dateCountdown = (str) =>{
     if(isAfter(new Date(),date)){
       return null;
     }
-
-    console.log("Date: " + JQ(date));
     let duration = intervalToDuration({
       start: new Date(),
       end: date
     });
     return formatDuration(duration,{format:["years","months","days","hours","minutes"]}).replace("minutes","minutes\n");
   }catch(e){
-    console.log("Could not convert date: " + str + " error:" + JQ(e));
+    console.log("dateCountdown: Could not convert date: " + str + " error:" + JQ(e));
   }
   return null;
 }
@@ -46,7 +44,7 @@ export const dateStarted = (str) => {
       return true;
     }
   }catch(e){
-    console.log("Could not convert date: " + str + " error:" + JQ(e));
+    console.log("dateStarted: Could not convert date: " + str + " error:" + JQ(e));
   }
   return false;
 }

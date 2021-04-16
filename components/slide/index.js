@@ -27,8 +27,6 @@ Slide = (props) => {
       ).start();
     },[props.show]);
 
-    console.log("Slide: show " + show);
-
     return (
         <Animated.View
           style={[props.styles, {

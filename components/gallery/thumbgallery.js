@@ -107,29 +107,37 @@ class ThumbGallery extends React.Component {
     const {platform,fabric} = this.context;
     let {isShowingControls, currentViewIndex} = this.state;
     let {onShowControls, isActive} = this.props;
-    if(isShowingControls){
+    
+    if(isShowingControls || !isActive){
         return;
     }
 
-    console.log("Show controls")
+    if(onShowControls != undefined){
+      await onShowControls();
+    }
+    
+    let {data} = this.props;
+
+    if(isEmpty(data)){
+      return;
+    }
+
+    console.log("Thumbgallery Show controls");
     isShowingControls = true;
     this.setState({isShowingControls});
     if(this.controlsTimer){
+      console.log("Thumbgallery controlsTimer start!");
       this.controlsTimer.start();
     }else{
       this.controlsTimer = Timer(() => {
         if(!isActive) return;
-        console.log("timeout!");
+        console.log("Thumbgallery controlsTimer timeout!");
         this.setState({
           isShowingControls: false
         });
       }, FADE_MS);
+      this.controlsTimer.start();
     }
-    if(onShowControls != undefined){
-      onShowControls();
-    }
-
-
   }
   
   hideControls(){
@@ -250,7 +258,7 @@ class ThumbGallery extends React.Component {
     console.log("Thumbgallery select " + currentViewIndex);
 
     let videoUrl = selected.videoUrl;
-    if(!videoUrl){
+    if(!videoUrl && selected.createVideoUrl != undefined){
       videoUrl = await selected.createVideoUrl();
       selected.videoUrl = videoUrl;
       console.log("videoUrl found: " + videoUrl);
@@ -275,8 +283,31 @@ class ThumbGallery extends React.Component {
     let {currentViewIndex} = this.state;
     //console.log("Thumbgallery RenderItem "+ JQ(item));
     let hasVideo = item.video != undefined && item.video.sources != undefined;
+    let hasImage = !isEmpty(item.image);
+
+    if(hasImage){
+      return (
+        <View key={`${index}`} style={index == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}>
+          <Text 
+              style=
+              {{
+                width:"100%",
+                height:"100%",
+                fontSize:36,
+                textAlign:'center',
+                borderWidth:1, 
+                borderColor:"white",
+                heigth: 100,
+                color: "white"
+              }}>
+            {item.title}
+          </Text>
+      </View>
+      );
+    }
+    
     return (
-      <View style={index == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}>
+      <View key={`${index}`} style={index == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}>
       <Image
         style={{width:"100%",height:"100%"}}
         source={{
@@ -292,13 +323,12 @@ class ThumbGallery extends React.Component {
           />
           </View> : null }
       </View>
-
     );
   }
 
   RenderContent = ({title,description}) => {
     let {currentViewIndex, isShowingControls, showText} = this.state;
-    let {data} = this.props;
+    let {data,showBackground} = this.props;
     if(!data) return null;
 
     const items = [];
@@ -306,7 +336,7 @@ class ThumbGallery extends React.Component {
     for (var i = 0; i < data.length; i++){
       let item = data[i];
       item.index = i;
-      item.id = item.imageUrl || item.image;
+      item.id = i;
       items.push(
         item
       );
@@ -315,22 +345,22 @@ class ThumbGallery extends React.Component {
     return (
       <View style={styles.controlsContainer}>
         <FadeInView duration={isShowingControls? 500:1500} fadeOut={isShowingControls == false} style={styles.controlsContainer}>
-          {showText? <View style={styles.contentContainer}>
+          {showBackground && showText? <View style={styles.contentContainer}>
               {title ? <Text numberOfLines={1} style={styles.headerText}>{title}</Text> : null }
               {description? <Text numberOfLines={3} style={styles.subheaderText}>{description}</Text> : null }
           </View> : null }
 
-        <View style={styles.paginationStyle}>
-          <FlatList
-            data={items}
-            renderItem={({item,index,separator}) => {
-              return this.RenderItem({item,index,separator});
-            }}
-            keyExtractor={item => item.id}
-            horizontal={true}
-            ref = {this.flatlist}
-            contentContainerStyle={styles.flatListContainer}
-            />
+          <View style={styles.paginationStyle}>
+            <FlatList
+              data={items}
+              renderItem={({item,index,separator}) => {
+                return this.RenderItem({item,index,separator});
+              }}
+              keyExtractor={item => `${item.id}`}
+              horizontal={true}
+              ref = {this.flatlist}
+              contentContainerStyle={styles.flatListContainer}
+              />
           </View>
         </FadeInView>
       </View>
@@ -557,6 +587,7 @@ const styles = StyleSheet.create({
   paginationImage: {
     marginRight:5,
     marginLeft:5,
+    alignItems: 'center',
     resizeMode: 'cover',
     width:THUMBWIDTH * .8,
     height:THUMBWIDTH * 9/16 * .8
@@ -564,6 +595,7 @@ const styles = StyleSheet.create({
   paginationImageActive: {
     marginRight:1,
     marginLeft:1,
+    alignItems: 'center',
     resizeMode: 'cover',
     width:THUMBWIDTH,
     height:THUMBWIDTH * 9/16

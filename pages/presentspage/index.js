@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useContext} from 'react';
 import {
   Text, 
   StyleSheet, 
@@ -13,10 +13,14 @@ from 'react-native';
 import Video from 'react-native-video';
 import BackgroundVideo from '../../static/videos/EluvioLive.mp4'
 import { isEmpty, JQ } from '../../utils';
+import AppContext from '../../AppContext'
+import FadeInView from '../../components/fadeinview'
 
 function PresentsPage(props) {
   const {logo,title} = props.data;
-  console.log("Presents page props: " + JQ(props.data));
+  const {reloadFinished} = useContext(AppContext);
+  //console.log("Presents page props: " + JQ(props.data));
+  //console.log("reloadFinished: " + reloadFinished);
   return (
     <View style={styles.container}>
     <Video
@@ -35,6 +39,18 @@ function PresentsPage(props) {
         }}
       />
       }
+      
+      
+      {!reloadFinished?
+      <FadeInView key={0} duration={2000} style={styles.messageContainer}>
+      <Text style={styles.messageText}>Loading...</Text>
+      </FadeInView>
+      :
+      <FadeInView key={1} duration={2000} style={styles.messageContainer}>
+        <Text style={styles.messageText}>Press to continue</Text>
+      </FadeInView>
+      }
+      
 
     </View>
   </View>
@@ -47,6 +63,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'black'
+  },
+  messageContainer: {
+    position:"absolute",
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    bottom:100,
+    width:"100%"
+  },
+  messageText: {
+    fontFamily: "Helvetica",
+    textAlign: 'center',
+    margin:60,
+    color: '#fff',
+    fontSize: 36,
+    fontWeight: "500"
   },
   background: {
     position: "absolute",

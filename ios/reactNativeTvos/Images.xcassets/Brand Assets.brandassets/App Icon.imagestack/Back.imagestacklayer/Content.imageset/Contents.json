@@ -1,12 +1,12 @@
 {
   "images" : [
     {
-      "filename" : "background_E Circle Icon @1x.jpg",
+      "filename" : "AppIcon_Background 4_14.jpg",
       "idiom" : "tv",
       "scale" : "1x"
     },
     {
-      "filename" : "background_E Circle Icon @2x.jpg",
+      "filename" : "AppIcon_Background 4_14@2x.jpg",
       "idiom" : "tv",
       "scale" : "2x"
     }

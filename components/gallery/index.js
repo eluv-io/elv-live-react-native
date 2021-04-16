@@ -55,7 +55,6 @@ class Gallery extends React.Component {
       layout: props.layout || 0
     }
 
-    console.log("Gallery currentViewIndex: " + this.state.currentViewIndex);
     this.tvEventHandler = null;
     this.swiperRef = React.createRef();
     this.subscribed = false;
@@ -125,7 +124,7 @@ class Gallery extends React.Component {
   enableTVEventHandler() {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
-      console.log("Gallery event: " + evt.eventType + " Active? " + isActive);
+      //console.log("Gallery event: " + evt.eventType + " Active? " + isActive);
       const {isActive} = page.props;
       if(!isActive){
         return;
@@ -134,7 +133,6 @@ class Gallery extends React.Component {
       if(evt.eventType == "blur" || evt.eventType == "focus"){
         return;
       }
-
 
       console.log("Gallery event active: " + evt.eventType);
 
@@ -213,13 +211,11 @@ class Gallery extends React.Component {
 
     const {currentViewIndex} = this.state;
 
-    console.log("Gallery select " + currentViewIndex);
     try{
       let selected = data[currentViewIndex];
       this.setState({selected:true});
       let that = this;
       this.pressedTimer = Timer(() => {
-        console.log("<<<<<<<<Pressed timeout!");
         that.setState({
           selected: false
         });
@@ -238,6 +234,9 @@ class Gallery extends React.Component {
   }
 
   renderPagination = (index, total, context) => {
+    if(total <= 1){
+      return null;
+    }
     const {currentViewIndex} = this.state;
     const items = [];
     for (var i = 0; i < total; i++){
@@ -255,11 +254,8 @@ class Gallery extends React.Component {
 
   render() {
       const {layout} = this.state;
-
-      console.log("<<<<<<Gallery render.");
       for(var index in this.props.data){
         let item = this.props.data[index];
-        console.log(" Item: " + item.title);
       }
 
       if(layout == 0){
@@ -287,7 +283,6 @@ class Gallery extends React.Component {
         let views = item.views;
         let index = 0;
         if(!views){
-          console.log("Create views");
           views = [];
           for (key in gallery){
             if(index > imageWidths.length-1){
@@ -298,7 +293,6 @@ class Gallery extends React.Component {
             let width = imageWidths[index];
             let image = galleryItem.image.url !== undefined ? galleryItem.image.url : galleryItem.image;
             let hasVideo = galleryItem.video != undefined && galleryItem.video.sources != undefined ;
-            console.log("hasVideo: " + hasVideo);
             views.push(
             <View 
               style={{
@@ -356,18 +350,17 @@ class Gallery extends React.Component {
           </View>
         );
       }
-    }catch(error){
-      return (
-        <FadeInView duration={500} style={styles.fade}>
-        <Image
-          style={styles.mainImage}
-          source={{
-            uri: item.image
-          }}
-        />
-        </FadeInView>
-      );
-    }
+    }catch(e){}
+    return (
+      <FadeInView duration={500} style={styles.fade}>
+      <Image
+        style={styles.mainImage}
+        source={{
+          uri: item.image
+        }}
+      />
+      </FadeInView>
+    );
   }
 
   renderItem0 = ({key, item, styles}) => {
@@ -413,19 +406,21 @@ class Gallery extends React.Component {
     const {data,firstLayout} = this.props;
     const views = [];
 
-
-    for (const key in data){
-      let item = data[key];
-      let renderItem = null;
-      if(firstLayout && firstLayout == 1 && key == 0){
-        let style = {...stylesCommon, ...stylesLayout1};
-        renderItem = this.renderItem1({key,item,styles:style});
-      }else{
-        renderItem = this.renderItem0({key,item,styles});
+    try{
+      for (const key in data){
+        let item = data[key];
+        let renderItem = null;
+        if(firstLayout && firstLayout == 1 && key == 0){
+          let style = {...stylesCommon, ...stylesLayout1};
+          renderItem = this.renderItem1({key,item,styles:style});
+        }else{
+          renderItem = this.renderItem0({key,item,styles});
+        }
+        item.index = key;
+        views.push(renderItem);
       }
-
-      views.push(renderItem);
-      index++;
+    }catch(e){
+      console.error("Gallery render error: " +e);
     }
 
     return (
@@ -440,7 +435,7 @@ class Gallery extends React.Component {
           {views}
           </Swiper>
           <View 
-            style={this.isActive() ? styles.controlsContainer : styles.noOpacity} 
+            style={this.isActive() && views.length > 1 ? styles.controlsContainer : styles.noOpacity} 
           >
             <View 
               style={styles.nextContainer} 
@@ -469,87 +464,81 @@ class Gallery extends React.Component {
   }
 
   renderItem1 = ({key, item, styles}) => {
-      const {currentViewIndex} = this.state;
-      const {isActive} = this.props;
-      let title = null;
-      try{
-        title = item.title;
-      }catch(e){}
+    const {currentViewIndex} = this.state;
+    const {isActive} = this.props;
+    let title = null;
+    if(!item){
+      console.error("Gallery renderItem1 item is null.");
+      return null;
+    }
 
-      let description= null;
-      try{
-        description = item.description;
-      }catch(e){}
+    try{
+      title = item.title;
+    }catch(e){}
 
-      let date = null;
-      try{
-        date = item.release_date;
-      }catch(e){}
+    let description= null;
+    try{
+      description = item.description;
+    }catch(e){}
 
-      let logo = null;
-      try{
-        logo = item.logo;
-      }catch(e){}
+    let date = null;
+    try{
+      date = item.release_date;
+    }catch(e){}
 
-      let image = null;
-      try{
-        image = item.image;
-      }catch(e){}
+    let logo = null;
+    try{
+      logo = item.logo;
+    }catch(e){}
 
-      let buttonText = "Redeem Ticket";
-      if(item.isRedeemed){
-        buttonText = "Enter Event";
-      }
+    let image = null;
+    try{
+      image = item.image;
+    }catch(e){}
+
+    let buttonText = "Redeem Ticket";
+    if(item.isRedeemed){
+      buttonText = "Enter Event";
+    }
+
+    return(
+    <View key = {key} style={styles.container}>
+      {this.RenderBackground({item,styles})}
+      <LinearGradient 
+        start={{x: 0, y: 0}} end={{x: 1, y: 0}} 
+        colors={['rgba(0,0,0,1)', 'rgba(0,0,0,0)']}
+        style={styles.linearGradient} 
+        />
+      <View style={styles.contentContainer}>
+        {item.logo?
+        <Image
+          style={styles.logo}
+          source={{
+            uri: item.logo
+          }}
+        /> : null }
+        {title ? <Text numberOfLines={1} style={styles.headerText}>{title}</Text> : null }
+        {description? <Text numberOfLines={3} style={styles.subheaderText}>{description}</Text> : null }
         
-      console.log("Gallery renderItem1: " + title + " currentViewIndex: " + currentViewIndex + " item.index " + item.index);
-
-      return(
-      <View key = {key} style={styles.container}>
-        {this.RenderBackground({item,styles})}
-          <LinearGradient 
-            start={{x: 0, y: 0}} end={{x: 1, y: 0}} 
-            colors={['rgba(0,0,0,1)', 'rgba(0,0,0,0)']}
-            style={styles.linearGradient} 
-            />
-          <View style={styles.contentContainer}>
-            {item.logo?
-            <Image
-              style={styles.logo}
-              source={{
-                uri: item.logo
-              }}
-            /> : null }
-            {title ? <Text numberOfLines={1} style={styles.headerText}>{title}</Text> : null }
-            {description? <Text numberOfLines={3} style={styles.subheaderText}>{description}</Text> : null }
-            
-            {date? <Text style={styles.dateText} >{date}</Text>: null }
-            {/*
-            <View 
-              style={selected?
-                [styles.button,styles.buttonSelected]:
-                [styles.button,styles.buttonFocused]}
-              >
-              <Text style={styles.buttonText}>{buttonText}</Text>
-            </View>
-            */}
-              <AppButton 
-                style = {{
-                  marginTop: 30,
-                  marginBottom: 10,
-                  margin: 30,
-                  elevation: 8,
-                  justifyContent: 'center',
-                  paddingVertical: 10,
-                  paddingHorizontal: 12,
-                }}
-                text={buttonText}
-                isActive = {isActive}
-                isFocused={currentViewIndex == item.index}
-                title = {title}
-                />
-          </View>
+        {date? <Text style={styles.dateText} >{date}</Text>: null }
+          <AppButton 
+          style = {{
+            marginTop: 30,
+            marginBottom: 10,
+            margin: 30,
+            elevation: 8,
+            justifyContent: 'center',
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+          }}
+          text={buttonText}
+          isActive = {isActive}
+          isFocused={currentViewIndex == item.index}
+          title = {title}
+          />
       </View>
-      );
+    </View>
+    );
   }
 
   changeViewIndex=(index)=>{
@@ -561,7 +550,7 @@ class Gallery extends React.Component {
     const {data} = this.props;
     const views = [];
 
-    for (const key in data){
+    for (key in data){
       let item = data[key];
       item.index = key;
       views.push(
