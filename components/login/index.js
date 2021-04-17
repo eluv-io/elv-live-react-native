@@ -158,33 +158,30 @@ class Login extends React.Component {
                 this.setState({selected:"enter"});
                 let that = this;
                 this.pressedTimer = Timer(() => {
-                  //console.log("<<<<<<<<Pressed timeout!");
                   that.setState({
                     selected: null
                   });
                 }, 300);
                 this.pressedTimer.start();
                 console.log("Submit: Setting app state: ");
-                setAppState({ticketCode:code},async ()=>{
-                  try{
-                    console.log("Submit: setAppState finished");
-                    navigation.navigate("progress");
-                    console.log("Submit: reloadingApp");
-                    await appReload(()=>{
-                      if(!this.props.data){
-                      //TODO: go directly to playerpage if site is available to play
-                      console.log("Submit: navigation to site");
-                      navigation.replace("site");
-                    }else{
-                      console.log("Submit: navigation to site with data.");
-                      navigation.replace("site",{...this.props.data});
-                    }
-                    });
-                  }catch(e){
-                    console.error("Error redeeming ticket: " + e);
-                    navigation.replace("error", {text:"Could not redeem ticket."});
+                await setAppState({ticketCode:code});
+                try{
+                  console.log("Submit: setAppState finished");
+                  navigation.navigate("progress");
+                  console.log("Submit: reloadingApp");
+                  await appReload();
+                  if(!this.props.data){
+                    //TODO: go directly to playerpage if site is available to play
+                    console.log("Submit: navigation to site");
+                    navigation.replace("site");
+                  }else{
+                    console.log("Submit: navigation to site with data.");
+                    navigation.replace("site",{...this.props.data});
                   }
-                });
+                }catch(e){
+                  console.error("Error redeeming ticket: " + e);
+                  navigation.replace("error", {text:"Could not redeem ticket."});
+                }
               }}
               onFocus={()=>{this.setState({focused:"enter"})}}
               isFocused = {focused == "enter"}

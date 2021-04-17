@@ -226,53 +226,56 @@ export default class App extends React.Component {
     }
   }
 
-  reload =  async (callback)=>{
+  reload =  async ()=>{
     console.log("app reload");
-    let app = this;
-    this.setState({reloadFinished:false},async ()=>{
-      let {site,ticketCode,redeemItems} = app.state;
-      console.log("Redeem items: ",redeemItems);
-      let {fabric,platform} = await initPlatform("demo");
-      let newSite = null;
-      if(site && platform && fabric && ticketCode){
-        let tenantId = site.info.tenant_id;
-        let status = await app.redeemCode(fabric,site,redeemItems,tenantId,ticketCode);
-        if(!status){
-          throw "Error redeeming site";
-        }
-        
-        platform.setFabric(fabric);
-        await platform.load();
-        
-        let sites = await platform.getSites();
-        for(index in sites){
-          let test = sites[index];
-          if(test.objectId == site.objectId){
-            console.log("******** newSite found ***********");
-            newSite = test;
-            break;
-          }  
-        }
-      }else{
-        platform.setFabric(fabric);
-        await platform.load();
-      }
+    await this.handleSetState({reloadFinished:false});
 
-      console.log("App setting new State");
-      app.setState({fabric,platform, site:newSite, reloadFinished:true},()=>{
-        console.log("App state set.");
-        if(callback){
-          console.log("Calling reload callback");
-          callback(app.state);
-        }
-      });
-    });
+    let {site,ticketCode,redeemItems} = this.state;
+    console.log("Redeem items: ",redeemItems);
+    let {fabric,platform} = await initPlatform("demo");
+    let newSite = null;
+    if(site && platform && fabric && ticketCode){
+      let tenantId = site.info.tenant_id;
+      let status = await this.redeemCode(fabric,site,redeemItems,tenantId,ticketCode);
+      if(!status){
+        console.error("Error redeeming site. Invalid code.");
+        throw "Error redeeming site";
+      }
+      
+      platform.setFabric(fabric);
+      await platform.load();
+      
+      let sites = await platform.getSites();
+      for(index in sites){
+        let test = sites[index];
+        if(test.objectId == site.objectId){
+          console.log("******** newSite found ***********");
+          newSite = test;
+          break;
+        }  
+      }
+    }else{
+      platform.setFabric(fabric);
+      await platform.load();
+    }
+
+    console.log("App setting new State");
+    await this.handleSetState({fabric,platform, site:newSite, reloadFinished:true});
   }
 
   //Use callback to execute after setState finishes.
+  /*
   handleSetState  = (state,callback) => {
     this.setState(state,()=>{if(callback)callback(this.state)});
+  }*/
+
+  //You can use async/await now
+  handleSetState = (state)=>{
+    return new Promise((resolve) => {
+      this.setState(state, resolve)
+    });
   }
+
 
   getRedeemedCodes = () =>{
     return this.state.redeemItems;
@@ -281,6 +284,7 @@ export default class App extends React.Component {
   //Internal
   redeemCode = async (fabric,site, redeemItems, tenantId,ticketCode) =>{
     let id = await fabric.redeemCode(tenantId,ticketCode);
+    console.log("App redeemCode response: " + id);
     if(id != null){
       let items = {...redeemItems};
       let objectId = site.objectId;

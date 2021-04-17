@@ -298,24 +298,20 @@ class MainPage extends React.Component {
 
       let redeemInfo = redeemItems[site.objectId];
       if(!isEmpty(redeemInfo) && !isEmpty(redeemInfo.ticketCode)){
-        setAppState({site,ticketCode: redeemInfo.ticketCode},
-          async (state)=>{
-            try{
-              let {site} = state;
-              let logo = site.tv_main_logo;
-              let title = site.title;
-              navigation.transition("presents","site",{logo, title},11000);
-              await appReload();
-            }catch(e){
-              console.error("Error loading site info: " + e);
-              navigation.setNext("error", {text:"Could not retrieve event info."});
-            }
-          }
-        );
+        await setAppState({site,ticketCode: redeemInfo.ticketCode});
+        try{
+          let {site} = this.context;
+          let logo = site.tv_main_logo;
+          let title = site.title;
+          navigation.transition("presents","site",{logo, title},11000);
+          await appReload();
+        }catch(e){
+          console.error("Error loading site info: " + e);
+          navigation.setNext("error", {text:"Could not retrieve event info."});
+        }
       }else{
-        setAppState({site},async ()=>{
-          navigation.navigate("redeem");
-        });
+        await setAppState({site});
+        navigation.navigate("redeem");
       }
     }catch(e){
       console.error(e);
@@ -361,30 +357,26 @@ class MainPage extends React.Component {
 
         let redeemInfo = redeemItems[site.objectId];
         if(!isEmpty(redeemInfo) && !isEmpty(redeemInfo.ticketCode)){
-          setAppState({site,ticketCode: redeemInfo.ticketCode},
-            async ()=>{
-              try{
-                console.log("App state set. selectedIndex " + extraIndex);
-                navigation.navigate("progress");
-                await appReload((state)=>{
-                  console.log("App reloaded. selectedIndex " + extraIndex);
-                  let {site} = state;
-                  let extra = site.info.extras[extraIndex];
-                  let data = getData(extra);
-                  if(!isEmpty(data)){
-                    navigation.replace("gallery",data);
-                  }else{
-                    navigation.replace("error", {text:"Could not retrieve event info."});
-                  }
-                });
-              }catch(e){
-                console.error("Error loading extra info: " + e);
-                navigation.replace("error", {text:"Could not retrieve event info."});
-              }
+          await setAppState({site,ticketCode: redeemInfo.ticketCode});
+          try{
+            console.log("App state set. selectedIndex " + extraIndex);
+            navigation.navigate("progress");
+            await appReload();
+            console.log("App reloaded. selectedIndex " + extraIndex);
+            let {site} = this.context;
+            let extra = site.info.extras[extraIndex];
+            let data = getData(extra);
+            if(!isEmpty(data)){
+              navigation.replace("gallery",data);
+            }else{
+              navigation.replace("error", {text:"Could not retrieve event info."});
             }
-          );
+          }catch(e){
+            console.error("Error loading extra info: " + e);
+            navigation.replace("error", {text:"Could not retrieve event info."});
+          }
         }else{
-          setAppState({site});
+          await setAppState({site});
           //Redeem and then go to package view
           navigation.navigate("redeem",{extra:index});
         }

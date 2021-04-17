@@ -15,7 +15,7 @@
       }
     },
     "demo": {
-      "configUrl": "https://host-38-102-0-227.contentfabric.io/config?self=true&qspace=demov3",
+      "configUrl": "https://demov3.net955210.contentfabric.io/config",
       "platform":{
         "libraryId": "ilib36Wi5fJDLXix8ckL7ZfaAJwJXWGD",
         "objectId": "iq__2gkNh8CCZqFFnoRpEUmz7P3PaBQG"
