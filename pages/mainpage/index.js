@@ -369,11 +369,11 @@ class MainPage extends React.Component {
             if(!isEmpty(data)){
               navigation.replace("gallery",data);
             }else{
-              navigation.replace("error", {text:"Could not retrieve event info."});
+              navigation.replace("error", {text:"Could not retrieve event info.", next:["redeem",{extra:index}]});
             }
           }catch(e){
             console.error("Error loading extra info: " + e);
-            navigation.replace("error", {text:"Could not retrieve event info."});
+            navigation.replace("error", {text:"Could not retrieve event info.", next:["redeem",{extra:index}]});
           }
         }else{
           await setAppState({site});

@@ -57,7 +57,7 @@ function LoginPage(props) {
 }
 
 function ErrorPage(props){
-  let {text} = props.data;
+  let {text,next} = props.data;
   console.log("ErrorPage: " + JQ(props.data));
  
   if(isEmpty(text)){
@@ -70,6 +70,11 @@ function ErrorPage(props){
       <AppButton 
         hasTVPreferredFocus={true}
         onPress = {()=>{
+          if(!isEmpty(next)){
+            console.log("ErrorPage: " + JQ(next));
+            props.navigation.replace(next[0],next[1]);
+            return;
+          }
           props.navigation.goBack();
         }}
         isFocused = {props.isActive}
@@ -77,25 +82,6 @@ function ErrorPage(props){
       />
     </View>
   );
-
-/*
-  return (
-    <View style={styles.background}>
-    <Text style={styles.text}>{text}</Text>
-    <TouchableOpacity
-      style={styles.continueButton} 
-      activeOpacity ={0.6}
-      hasTVPreferredFocus={true}
-      onPress = {()=>{
-        props.navigation.goBack();
-      }}
-    >
-      <Text style={styles.buttonText}>Continue</Text>
-    </TouchableOpacity>
-
-  </View>
-  );
-  */
 }
 
 function ProgressPage(props){

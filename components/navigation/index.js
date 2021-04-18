@@ -118,6 +118,12 @@ export class Navigation extends React.Component {
   //Transitions from scene1 to scene2 with delay in ms. If the delay is 0 (default), 
   // the user has to press a button
   transition = (scene1, scene2, data=null, delayMS=0) => {
+    if(!this.state.sceneConfig[scene1] || !this.state.sceneConfig[scene2]){
+      console.error("Navigation transition error, no sceneName " + sceneName);
+      return;
+    }
+
+
     this.navigate (scene1,data);
     this.queued={sceneName: scene2,data};
 
@@ -144,6 +150,12 @@ export class Navigation extends React.Component {
       TVMenuControl.enableTVMenuKey();
     }
 
+    let scene = this.state.sceneConfig[sceneName];
+    if(!scene){
+      console.error("Navigation navigate error, no sceneName " + sceneName);
+      return;
+    }
+
     this.setState(state => ({
       ...state,
       stack: [...state.stack, {scene:state.sceneConfig[sceneName],data}],
@@ -156,6 +168,12 @@ export class Navigation extends React.Component {
       TVMenuControl.enableTVMenuKey();
     }
 
+    let scene = this.state.sceneConfig[sceneName];
+    if(!scene){
+      console.error("Navigation replace error, no sceneName " + sceneName);
+      return;
+    }
+    
     this.setState(state => {
       const {stack} = state;
       let newStack = stack;
@@ -195,6 +213,10 @@ export class Navigation extends React.Component {
       <View style={styles.container}>
         {this.state.stack.map(({scene,data}, index) => {
           console.log(`Navigation render: ${index} ${scene}`);
+          if(!scene){
+            return null;
+          }
+
           const CurrentScene = scene.component;
           /*
           let comp = React.Render(CurrentScene);
