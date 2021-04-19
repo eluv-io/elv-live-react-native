@@ -269,12 +269,12 @@ export default class App extends React.Component {
 
   //Internal
   redeemCode = async (fabric,site, redeemItems, tenantId,ticketCode) =>{
-    let id = await fabric.redeemCode(tenantId,ticketCode);
-    console.log("App redeemCode response: " + id);
-    if(id != null){
+    let otpId = await fabric.redeemCode(tenantId,ticketCode);
+    console.log("App redeemCode response: " + otpId);
+    if(otpId != null){
       let items = {...redeemItems};
       let objectId = site.objectId;
-      items[objectId] = {ticketCode,tenantId};
+      items[objectId] = {ticketCode,tenantId,otpId};
       console.log("redeem success. ", items);
       this.setState(
         {redeemItems:items},
@@ -283,7 +283,7 @@ export default class App extends React.Component {
           console.log("saved: ", await this.getData());
         }
       );
-      return id;
+      return otpId;
     }
     return null;
   }

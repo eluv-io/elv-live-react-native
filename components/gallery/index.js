@@ -466,6 +466,7 @@ class Gallery extends React.Component {
   renderItem1 = ({key, item, styles}) => {
     const {currentViewIndex} = this.state;
     const {isActive} = this.props;
+
     let title = null;
     if(!item){
       console.error("Gallery renderItem1 item is null.");
@@ -482,6 +483,7 @@ class Gallery extends React.Component {
     }catch(e){}
 
     let date = null;
+
     try{
       date = item.release_date;
     }catch(e){}

@@ -157,15 +157,37 @@ class ElvPlatform {
         "/meta/" + site.metaDataPath+"/info/event_images/tv_main_logo"
     );
 
+    site.getTicketInfo = (otpId)=>{
+      //console.log("site: getTicketDate " + otpId);
+      try{
+        //console.log("site: " + JQ(site.info.tickets));
+        for(index in site.info.tickets){
+          let ticket = site.info.tickets[index];
+          
+          for(index2 in ticket.skus){
+            let sku = ticket.skus[index2];
+            //console.log("sku: " + JQ(sku));
+            if(sku.otp_id === otpId){
+              return sku;
+            }
+          }
+        }
+      }catch(e){
+        console.error("Could not find ticket date for otpId " + otpId + " " +e);
+      }
+
+      return null;
+    }
+
     //console.log("resolving extras: " + JQ(site.info.extras));
     for(const index in site.info.extras){
         let extra = site.info.extras[index];
         extra.basePath = UrlJoin(site.metaDataPath,`/info/extras/${index}`);
-        console.log("Extra: ",extra);
+        //console.log("Extra: ",extra);
         let packageLink = extra["package"];
         if(packageLink["info"] != undefined){
           extra.isAvailable = true;
-          console.log("package available.");
+          //console.log("package available.");
           try{
             //Trying to get the video urls for all extras with videos
             //extra.videoUrl = extra.package.video
@@ -175,12 +197,13 @@ class ElvPlatform {
               let item = gallery[itemIndex];
               item.createVideoUrl=async()=>{
                 try{
-                  console.log("item video: " + JQ(item.video));
+                  //console.log("item video: " + JQ(item.video));
                   if(item.video.sources.default){
                   console.log("item video source default: " + JQ(item.video.sources.default));
                     let linkPath =  UrlJoin(extra.basePath, `/package/info/gallery/${itemIndex}/video/sources/default`);
-                    console.log("PlayoutOptions linkPath: " + JQ(linkPath));
+                    //console.log("PlayoutOptions linkPath: " + JQ(linkPath));
 
+                    //TODO:
                     let playoutOptions = await this.client.PlayoutOptions({
                       libraryId: this.siteLibraryId,
                       objectId: this.siteId,
@@ -189,7 +212,7 @@ class ElvPlatform {
                       drms: ["aes-128","sample-aes", "clear"],
                       offering: "default"
                     });
-                    console.log("PlayoutOptions response: " + JQ(playoutOptions));
+                    //console.log("PlayoutOptions response: " + JQ(playoutOptions));
 
                     let playoutUrl = (playoutOptions.hls.playoutMethods.clear || 
                       playoutOptions.hls.playoutMethods["sample-aes"] || 

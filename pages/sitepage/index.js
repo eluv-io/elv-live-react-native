@@ -65,26 +65,58 @@ class SitePage extends React.Component {
       main.description = site.info.event_info.event_subheader;
       main.image = site.tv_main_background;
       main.logo = site.tv_main_logo;
+      main.objectId = site.objectId;
       
       let date = null;
-      let countDown = null;
+      let dateString = null;
+
       try{
-        date = site.info.calendar.start_time;
-        countDown = dateCountdown(date);
+        const {redeemItems} = this.context;
+        let {otpId} = redeemItems[site.objectId];
+        let ticketInfo = site.getTicketInfo(otpId);
+
+        //ticketInfo.start_time = "2021-04-19T17:00:00-04:00";
+        //ticketInfo.end_time = "2021-04-19T17:02:00-04:00";
+        //console.log("ticketInfo: " + JQ(ticketInfo));
+        if(ticketInfo != null){
+          if(!isEmpty(ticketInfo.start_time)){
+            date = ticketInfo.start_time;
+            //console.log("setting date: " + date);
+
+            //We are before the start date
+            if(!dateStarted(date)){
+              //console.log("Date has not started.");
+              dateString = dateCountdown(date);
+            }else{
+              //console.log("Date has started.");
+              let endtime = ticketInfo.end_time;
+              //console.log("Endtime: " + endtime);
+              if(!dateStarted(endtime)){
+                //console.log("Endtime has NOT passed");
+                dateString = "Currently in progress";
+              }else{
+                //console.log("Endtime has passed.");
+                dateString = "Event has ended";
+              }
+            }
+          }
+        }
       }catch(e){}
 
       if(isEmpty(countDown)){
         countDown = site.info.event_info.date;
       }
 
-      main.release_date = countDown;
+      console.log("date string: " + dateString);
+
+      main.release_date = dateString;
       main.channels = site.channels;
       //XXX: TODO - find a way to check if the channel is available to play
       main.isAvailable = dateStarted(date);
       main.isRedeemed = siteIsRedeemed;
       extras.push(main);
     }catch(e){
-      console.log(error);
+      console.log(e);
     }
     try{
       for(index in site.info.extras){
@@ -154,7 +186,7 @@ class SitePage extends React.Component {
     const views = [];
 
     let data = extras;
-    console.log("SitePage render() ");
+    //console.log("SitePage render() ");
     return (
       <View style={styles.container}>
         <Gallery

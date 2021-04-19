@@ -105,12 +105,13 @@ export default class Fabric {
     //console.log("RedeemCode tenantId: " + tenantId + " code: " + code);
     try {
       
-      let siteId = await this.client.RedeemCode({
+      let {ntpId} = await this.client.RedeemCode({
         tenantId,
-        code
+        code,
+        includeNTPId: true
       });
 
-      return siteId;
+      return ntpId;
       
       //TEMPORARY until we get it into ElvClient
       /*
