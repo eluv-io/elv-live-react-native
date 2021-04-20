@@ -9,7 +9,8 @@ import {
   TVFocusGuideView,
   TVEventHandler,
   FlatList,
-  SafeAreaView
+  SafeAreaView,
+  ActivityIndicator
 } 
 from 'react-native';
 import AppContext from '../../AppContext'
@@ -20,6 +21,7 @@ import FadeInView from '../../components/fadeinview'
 import Timer from '../../utils/timer';
 import extras from '../../testdata/extras';
 import Video from 'react-native-video';
+import Spinner from 'react-native-loading-spinner-overlay';
 
 const BLUR_OPACITY = 0.3;
 const THUMBWIDTH = 300;
@@ -133,7 +135,8 @@ class ThumbGallery extends React.Component {
         if(!isActive) return;
         console.log("Thumbgallery controlsTimer timeout!");
         this.setState({
-          isShowingControls: false
+          isShowingControls: false,
+          progress: false
         });
       }, FADE_MS);
       this.controlsTimer.start();
@@ -147,7 +150,8 @@ class ThumbGallery extends React.Component {
 
   _next(){
     const {isActive, data,next} = this.props;
-    if(!isActive){
+    const {progress} = this.state;
+    if(!isActive || progress){
       return;
     }
 
@@ -185,7 +189,8 @@ class ThumbGallery extends React.Component {
   
   _previous(){
     const {isActive, data, previous} = this.props;
-    if(!isActive){
+    const {progress} = this.state;
+    if(!isActive || progress){
       return;
     }
 
@@ -223,7 +228,9 @@ class ThumbGallery extends React.Component {
 
   _select = async () => {
     const {isActive,data,select} = this.props;
-    if(!isActive || !data){
+    const {progress} = this.state;
+
+    if(!isActive || !data || progress){
       return;
     }
 
@@ -239,6 +246,7 @@ class ThumbGallery extends React.Component {
       }
 
       await this.getVideo();
+      this.setState({progress:true});
     }catch(e){
       console.error(e);
     }
@@ -280,11 +288,39 @@ class ThumbGallery extends React.Component {
 
 
   RenderItem = ({ item, index }) => {
-    let {currentViewIndex} = this.state;
-    //console.log("Thumbgallery RenderItem "+ JQ(item));
+    let {currentViewIndex,progress} = this.state;
+    console.log("Thumbgallery RenderItem "+ progress);
     let hasVideo = item.video != undefined && item.video.sources != undefined;
     let hasImage = !isEmpty(item.image);
 
+    let element = null;
+
+    if(!hasImage){
+      element = (
+        <Text 
+              style=
+              {{
+                width:"100%",
+                height:"100%",
+                fontSize:36,
+                textAlign:'center',
+                borderWidth:1, 
+                borderColor:"white",
+                heigth: 100,
+                color: "white"
+              }}>
+            {item.title}
+          </Text>
+      );
+    }else{
+      element = (<Image
+        style={{width:"100%",height:"100%"}}
+        source={{
+          uri: item.image,
+        }} />);
+    }
+
+/*
     if(!hasImage){
       return (
         <View key={`${index}`} style={index == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}>
@@ -302,17 +338,6 @@ class ThumbGallery extends React.Component {
               }}>
             {item.title}
           </Text>
-      </View>
-      );
-    }
-    
-    return (
-      <View key={`${index}`} style={index == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}>
-      <Image
-        style={{width:"100%",height:"100%"}}
-        source={{
-          uri: item.image,
-        }} />
         {hasVideo ?
           <View style={styles.center} >
             <Icon
@@ -322,6 +347,37 @@ class ThumbGallery extends React.Component {
               size={32}
           />
           </View> : null }
+        {currentViewIndex == index && progress?
+        <View style={styles.center} >
+          <ActivityIndicator
+            size="small" color={"white"}
+          /><Text style={styles.text}>Loading...</Text>
+          </View> :null
+        }
+      </View>
+      );
+    }
+    */
+
+    return (
+      <View key={`${index}`} style={index == currentViewIndex ? styles.paginationImageActive: styles.paginationImage}>
+        {element}
+        {hasVideo ?
+          <View style={styles.center} >
+            <Icon
+              name='play'
+              color='#ffffff'
+              type='font-awesome'
+              size={32}
+          />
+          </View> : null }
+        {currentViewIndex == index && progress?
+        <View style={styles.center} >
+          <ActivityIndicator
+            size="small" color={"white"}
+          /><Text style={styles.text}>Loading...</Text>
+          </View> :null
+        }
       </View>
     );
   }
@@ -651,7 +707,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 36,
     fontWeight: "300"
-  }
+  },
+  text: {
+    fontFamily: "Helvetica",
+    textAlign: 'center',
+    margin:20,
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: "300"
+  },
 });
 
 export default ThumbGallery;

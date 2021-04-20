@@ -141,11 +141,12 @@ export default class App extends React.Component {
   componentDidMount = async () => {
     await this.loadState();
     await this.reload();
-    AppState.addEventListener("change", this._handleAppStateChange);
+    //There's a delay using this.
+    //AppState.addEventListener("change", this._handleAppStateChange);
   }
 
   componentWillUnmount = ()=>{
-    AppState.removeEventListener("change");
+    //AppState.removeEventListener("change");
     console.log("App will unmount.");
   }
 

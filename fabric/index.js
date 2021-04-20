@@ -199,6 +199,7 @@ export default class Fabric {
     console.log("formatsUrl: " + formatsUrl);
     let res = await fetch(formatsUrl);
     let formats = await res.json();
+    console.log("formats response: " + JQ(formats));
     
     //TODO: DRM
     let format = "hls-clear";
