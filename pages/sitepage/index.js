@@ -40,7 +40,15 @@ class SitePage extends React.Component {
     this.subscribed = false;
 
     this.select = this.select.bind(this);
-    setInterval(()=>{if(this.props.isActive)this.forceUpdate()},60000);
+    this.updateInterval = setInterval(async ()=>{
+      //console.log("Sitepage timer.");
+      if(this.props.isActive){
+        //console.log("update!");
+        let extras = await this.getExtras();
+        this.setState({extras});
+        }
+      },
+      1000);
   }
 
   async componentDidMount() {
@@ -51,11 +59,14 @@ class SitePage extends React.Component {
 
   getExtras = async () => {
     const {site} = this.context;
-    const {data} = this.props;
+    const {data,navigation,isActive} = this.props;
     const {redeemItems} = this.context;
+    if(!isActive){
+      return[];
+    }
 
     let siteIsRedeemed = site.objectId in redeemItems;
-    console.log("getExtras isRedeemed: " + siteIsRedeemed);
+    //console.log("getExtras isRedeemed: " + siteIsRedeemed);
     let extras = [];
 
     try{
@@ -75,18 +86,21 @@ class SitePage extends React.Component {
         let {otpId} = redeemItems[site.objectId];
         let ticketInfo = site.getTicketInfo(otpId);
 
-        //ticketInfo.start_time = "2021-04-19T17:00:00-04:00";
+        ticketInfo.start_time = "2021-04-19T21:28:00-04:00";
         //ticketInfo.end_time = "2021-04-19T17:02:00-04:00";
         //console.log("ticketInfo: " + JQ(ticketInfo));
         if(ticketInfo != null){
           if(!isEmpty(ticketInfo.start_time)){
             date = ticketInfo.start_time;
-            //console.log("setting date: " + date);
+            //console.log("setting start date: " + date);
 
             //We are before the start date
             if(!dateStarted(date)){
               //console.log("Date has not started.");
               dateString = dateCountdown(date);
+              if(isEmpty(dateString)){
+                dateString = "Starting shortly...";
+              }
             }else{
               //console.log("Date has started.");
               let endtime = ticketInfo.end_time;
@@ -94,6 +108,8 @@ class SitePage extends React.Component {
               if(!dateStarted(endtime)){
                 //console.log("Endtime has NOT passed");
                 dateString = "Currently in progress";
+                navigation.navigate("player");
+                clearInterval(this.updateInterval);
               }else{
                 //console.log("Endtime has passed.");
                 dateString = "Event has ended";
@@ -101,13 +117,13 @@ class SitePage extends React.Component {
             }
           }
         }
-      }catch(e){}
+      }catch(e){console.error(e);}
 
-      if(isEmpty(countDown)){
-        countDown = site.info.event_info.date;
+      if(isEmpty(dateString)){
+        dateString = site.info.event_info.date;
       }
 
-      console.log("date string: " + dateString);
+      //console.log("date string: " + dateString);
 
       main.release_date = dateString;
       main.channels = site.channels;
@@ -138,7 +154,7 @@ class SitePage extends React.Component {
   }
 
   componentWillUnmount(){
-
+    clearInterval(this.updateInterval);
   }
 
   select(item){

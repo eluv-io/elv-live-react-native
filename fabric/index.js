@@ -13,7 +13,10 @@ const CreateStaticToken = async ({configUrl,libraryId}) => {
   try{
     let response = await fetch(configUrl);
     let config = await response.json();
-    let token = {"qspace_id":config.qspace.id, "qlib_id":libraryId};
+    let token = {"qspace_id":config.qspace.id};
+    if(!isEmpty(libraryId)){
+      token = {"qspace_id":config.qspace.id, "qlib_id":libraryId};
+    }
     let staticToken = base64.encode(JSON.stringify(token));
     console.log("Static Token: " + staticToken);
     return {config,staticToken};
