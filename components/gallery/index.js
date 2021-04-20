@@ -213,6 +213,10 @@ class Gallery extends React.Component {
 
     try{
       let selected = data[currentViewIndex];
+      if(!selected.isAvailable){
+        return;
+      }
+
       this.setState({selected:true});
       let that = this;
       this.pressedTimer = Timer(() => {
@@ -503,6 +507,8 @@ class Gallery extends React.Component {
       buttonText = "Enter Event";
     }
 
+    console.log("isAvailable " + item.isAvailable);
+
     return(
     <View key = {key} style={styles.container}>
       {this.RenderBackground({item,styles})}
@@ -523,21 +529,14 @@ class Gallery extends React.Component {
         {description? <Text numberOfLines={3} style={styles.subheaderText}>{description}</Text> : null }
         
         {date? <Text style={styles.dateText} >{date}</Text>: null }
+        {item.isAvailable ?
           <AppButton 
-          style = {{
-            marginTop: 30,
-            marginBottom: 10,
-            margin: 30,
-            elevation: 8,
-            justifyContent: 'center',
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-          }}
+          style = {styles.button}
           text={buttonText}
           isActive = {isActive}
           isFocused={currentViewIndex == item.index}
           title = {title}
-          />
+          /> : null }
       </View>
     </View>
     );
@@ -669,32 +668,13 @@ const stylesCommon = StyleSheet.create({
     width: "100%",
     height: '100%',
   },
-  button: {
-    marginTop: 30,
+  button:{
+    marginTop: 50,
     marginBottom: 10,
-    margin: 30,
     elevation: 8,
     justifyContent: 'center',
-    backgroundColor:'rgba(0,0,0,.8)',
-    borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    width: 250,
-    height: 60,
-    borderWidth: 2,
-    borderColor: "white",
-    color: "white",
-    opacity:BLUR_OPACITY
-  },
-  buttonText: {
-    color: "white",
-    fontWeight: "bold",
-    alignSelf: "center",
-    textTransform: "uppercase",
-    fontSize: 14,
-    textShadowColor: 'gray',
-    letterSpacing: 7,
-    fontFamily: "HelveticaNeue",
   },
   nextContainer: {
     padding:30,
@@ -707,21 +687,6 @@ const stylesCommon = StyleSheet.create({
   },
   nextButton: {
     opacity: BLUR_OPACITY
-  },
-  buttonSelected: {
-    shadowOpacity: .5,
-    shadowRadius: 2,
-    shadowOffset:{width:4,height:4},
-    opacity: 1,
-    borderWidth: 0,
-    elevation:0,
-    backgroundColor: 'rgba(100,100,100,1.0)'
-  },
-  buttonFocused: {
-    shadowOpacity: .5,
-    shadowRadius: 2,
-    shadowOffset:{width:4,height:4},
-    opacity: 1
   },
   previousButton: {
     opacity: BLUR_OPACITY

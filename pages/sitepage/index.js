@@ -80,15 +80,17 @@ class SitePage extends React.Component {
       
       let date = null;
       let dateString = null;
+      let isAvailable = false;
 
       try{
         const {redeemItems} = this.context;
         let {otpId} = redeemItems[site.objectId];
         let ticketInfo = site.getTicketInfo(otpId);
 
-        ticketInfo.start_time = "2021-04-19T21:28:00-04:00";
-        //ticketInfo.end_time = "2021-04-19T17:02:00-04:00";
+        //ticketInfo.start_time = "2021-04-21T02:20:00-04:00";
+        //ticketInfo.end_time = "2021-04-20T02:30:00-04:00";
         //console.log("ticketInfo: " + JQ(ticketInfo));
+
         if(ticketInfo != null){
           if(!isEmpty(ticketInfo.start_time)){
             date = ticketInfo.start_time;
@@ -101,18 +103,22 @@ class SitePage extends React.Component {
               if(isEmpty(dateString)){
                 dateString = "Starting shortly...";
               }
+              isAvailable = false;
             }else{
               //console.log("Date has started.");
               let endtime = ticketInfo.end_time;
               //console.log("Endtime: " + endtime);
+              isAvailable = true;
               if(!dateStarted(endtime)){
                 //console.log("Endtime has NOT passed");
                 dateString = "Currently in progress";
                 navigation.navigate("player");
                 clearInterval(this.updateInterval);
+                
               }else{
                 //console.log("Endtime has passed.");
                 dateString = "Event has ended";
+                //isAvailable = false;
               }
             }
           }
@@ -121,6 +127,7 @@ class SitePage extends React.Component {
 
       if(isEmpty(dateString)){
         dateString = site.info.event_info.date;
+        isAvailable = true;
       }
 
       //console.log("date string: " + dateString);
@@ -128,7 +135,7 @@ class SitePage extends React.Component {
       main.release_date = dateString;
       main.channels = site.channels;
       //XXX: TODO - find a way to check if the channel is available to play
-      main.isAvailable = dateStarted(date);
+      main.isAvailable = isAvailable;
       main.isRedeemed = siteIsRedeemed;
       extras.push(main);
     }catch(e){

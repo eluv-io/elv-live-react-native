@@ -98,6 +98,7 @@ class MainPage extends React.Component {
         item.image = site.tv_main_background;
         item.logo = site.tv_main_logo;
         item.release_date = countDown;
+        item.isAvailable = true;
         const extras = [];
     
         for (i in site.info.extras){

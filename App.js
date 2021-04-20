@@ -9,15 +9,9 @@
 import React, {useState, useEffect} from 'react';
 
 import ReactNative, {
-  SafeAreaView,
-  Button,
   StyleSheet,
-  ScrollView,
   View,
-  ImageBackground,
-  TouchableOpacity,
   Text,
-  AppState
 } from 'react-native';
 
 import GalleryPage from './pages/gallerypage'
