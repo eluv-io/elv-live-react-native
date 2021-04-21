@@ -58,5 +58,5 @@ console.log('crypto: ' + crypto);
 
 Here are sequences of remote actions to activate some advanced/development functionality. Make sure you're at the first screen when performing these sequences.
 
-1. Clearing database - "playPause","left","right","left","right"
-2. Toggle debug - "playpause","up","up","up","up","down","down","down","down"
+1. Clearing database - "playpause","playpause","playpause","left","right","left","right"
+2. Toggle debug - "playpause","playpause","playpause","up","up","up","up"
