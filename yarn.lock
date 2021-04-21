@@ -8322,6 +8322,11 @@ react-native-default-preference@^1.4.3:
   resolved "https://registry.yarnpkg.com/react-native-default-preference/-/react-native-default-preference-1.4.3.tgz#3c6411d32ea4ebc5286fbf5915546fc57a6014f6"
   integrity sha512-sQDYwGEdxwKwXKP/8Intc81FyH33Rv8ZvOxdmPX4NM75RAIVeBc13pdabEqycAimNZoY5IDvGp4o1cTTa5gNrA==
 
+react-native-device-info@^8.1.2:
+  version "8.1.2"
+  resolved "https://registry.yarnpkg.com/react-native-device-info/-/react-native-device-info-8.1.2.tgz#142f2f05e27689858d5aa73dae36f0c37c965031"
+  integrity sha512-5jaQBL42H3g8+KXkFlIy2lMyKyPPETI8eUYgEg7JylW7rltkMPngn/wDnupgP4NhDYI+fBdMRGdRjEeetFr0IQ==
+
 react-native-elements@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/react-native-elements/-/react-native-elements-3.2.0.tgz#0880801ad5be6d1da9848b57659b0f62b8ebb9f4"
@@ -8459,6 +8464,11 @@ react-native-unimodules@^0.12.0:
     unimodules-permissions-interface "~5.4.0"
     unimodules-sensors-interface "~5.4.0"
     unimodules-task-manager-interface "~5.4.0"
+
+react-native-uuid@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/react-native-uuid/-/react-native-uuid-2.0.1.tgz#ed4e2dfb1683eddb66967eb5dca140dfe1abddb9"
+  integrity sha512-cptnoIbL53GTCrWlb/+jrDC6tvb7ypIyzbXNJcpR3Vab0mkeaaVd5qnB3f0whXYzS+SMoSQLcUUB0gEWqkPC0g==
 
 react-native-vector-icons@^8.1.0:
   version "8.1.0"

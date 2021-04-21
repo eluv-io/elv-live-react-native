@@ -11,6 +11,7 @@ import base64 from 'react-native-base64'
 
 const CreateStaticToken = async ({configUrl,libraryId}) => {
   try{
+    console.time("CreateStaticToken");
     let response = await fetch(configUrl);
     let config = await response.json();
     let token = {"qspace_id":config.qspace.id};
@@ -22,6 +23,8 @@ const CreateStaticToken = async ({configUrl,libraryId}) => {
     return {config,staticToken};
   }catch(e){
     console.error("Could not create static token: " + e);
+  }finally{
+    console.timeEnd("CreateStaticToken");
   }
   return null;
 }
@@ -43,13 +46,15 @@ export default class Fabric {
   // This client can be used to access public objects and metadata
   async initWithLib({configUrl,libraryId}) {
     let {config,staticToken} = await CreateStaticToken({configUrl,libraryId})
+    console.time("Fabric FromConfigurationUrl");
     this.client = await ElvClient.FromConfigurationUrl({
       configUrl,
       staticToken
     });
+    console.timeEnd("Fabric FromConfigurationUrl");
     this.configUrl = configUrl;
-    console.log("CONFIG response 2: " + JQ(config));
     this.staticToken =staticToken;
+
   }
 
   async initFromMnemonic({configUrl, mnemonic}) {
@@ -105,9 +110,8 @@ export default class Fabric {
   }
 
   redeemCode = async (tenantId, code) =>{
-    //console.log("RedeemCode tenantId: " + tenantId + " code: " + code);
+    console.time("Fabric redeemCode");
     try {
-      
       let {ntpId} = await this.client.RedeemCode({
         tenantId,
         code,
@@ -116,34 +120,12 @@ export default class Fabric {
 
       return ntpId;
       
-      //TEMPORARY until we get it into ElvClient
-      /*
-      const as = "https://host-66-220-3-86.contentfabric.io/as";
-      let url = as + "/otp/ntp/" + tenantId;
-      console.log("Redeem URL: ", url);
-      let res = await fetch(url, {
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        method: 'POST',
-        body: JSON.stringify({"_PASSWORD":code})
-      });
-      console.log("Redeem response: ", JQ(res));
-      let resJson = await res.text();
-      console.log("Redeem json: ", JQ(resJson));
-      this.token = resJson;
-
-      console.log("Redeemed token: " + this.token);
-      return this.token;
-      */
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error("Error redeeming code:");
-      // eslint-disable-next-line no-console
-      console.error(error);
-
+      console.error("Error redeeming code:" + error);
       return null;
+    } finally{
+      console.timeEnd("Fabric redeemCode");
     }
   }
   

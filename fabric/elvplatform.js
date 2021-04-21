@@ -32,18 +32,15 @@ class ElvPlatform {
     let select=[];
 
     try {
-      console.log("Platform load");
+      console.time("* Platform load *");
       if(!this.siteLibraryId){
         this.siteLibraryId = await this.client.ContentObjectLibraryId({objectId: this.siteId});
       }
       console.log("siteLibraryId: " + this.siteLibraryId);
-      //const versionHash = await this.client.LatestVersionHash({objectId: this.siteId});
-      //console.log("versionHash: " + versionHash);
-      
+   
       this.siteParams = {
         libraryId: this.siteLibraryId,
         objectId: this.siteId,
-        //versionHash
       };
 
       let eventsKey = "featured_events";
@@ -65,14 +62,6 @@ class ElvPlatform {
         select,
         noCache:true
       });
-
-      //console.log("Platform asset_metadata: " + JQ(this.siteInfo["asset_metadata"]["featured_events"][0]["ritaora"]["info"]["extras"][1]));
-
-      /*this.siteInfo.baseLinkUrl = await this.client.LinkUrl({
-        libraryId: this.siteLibraryId,
-        objectId: this.siteId,
-        linkPath: "public/asset_metadata"
-      }); */
 
       this.siteInfo.baseLinkUrl = await this.client.FabricUrl({...this.siteParams});
       let baseURI = URI(this.siteInfo.baseLinkUrl);
@@ -117,19 +106,14 @@ class ElvPlatform {
           console.error(error);
         }
       }
-      
-      //XXX: test site
-      //this.availableSites.push(testSite);
-      //console.log(JQ(testSite));
-
-      console.log("Platform loaded. ");
-      console.log("Length: " + this.availableSites.length);
 
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Failed to load platform:");
       // eslint-disable-next-line no-console
       console.error(error);
+    }finally{
+      console.timeEnd("* Platform load *");
     }
   }
 

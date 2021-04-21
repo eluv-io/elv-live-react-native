@@ -507,8 +507,6 @@ class Gallery extends React.Component {
       buttonText = "Enter Event";
     }
 
-    console.log("isAvailable " + item.isAvailable);
-
     return(
     <View key = {key} style={styles.container}>
       {this.RenderBackground({item,styles})}

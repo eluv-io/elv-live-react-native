@@ -268,6 +268,7 @@ class ThumbGallery extends React.Component {
     let videoUrl = selected.videoUrl;
     if(!videoUrl && selected.createVideoUrl != undefined){
       videoUrl = await selected.createVideoUrl();
+      videoUrl += getQueryParams();
       selected.videoUrl = videoUrl;
       console.log("videoUrl found: " + videoUrl);
     }

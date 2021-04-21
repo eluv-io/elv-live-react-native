@@ -143,14 +143,17 @@ class MainPage extends React.Component {
   }
 
   enableTVEventHandler = () => {
-    const {appClearData} = this.context;
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
       const {currentViewIndex, views, isShowingExtras} = page.state;
+      const {appClearData,showDebug,setAppState} = page.context;
+
       const {isActive} = page.props;
-      if(isShowingExtras || !isActive || isEmpty(evt)){
+      if(!isActive || isEmpty(evt)){
         return;
       }
+      
+      console.log("cheat showDebug: " + showDebug);
 
       if(evt.eventType == "focus"){
         //page.forceUpdate();
@@ -161,7 +164,6 @@ class MainPage extends React.Component {
       if(evt.eventType == "blur" || evt.eventType == "focus"){
         return;
       }
-      //console.log("<<<<<<<< MainPage event received: "+evt.eventType);
 
       if(typeof evt.eventType  === 'string' || evt.eventType instanceof String){
         if(!this.remoteEvents){
@@ -173,14 +175,28 @@ class MainPage extends React.Component {
           this.remoteEvents.shift();
         }
 
-        let cheatcode1 = ["playpause","left","right","left","right"];
-        if(endsWithList(this.remoteEvents,cheatcode1)){
+        let cheatcodeClear = ["playpause","playpause","playpause","left","right","left","right"];
+        if(endsWithList(this.remoteEvents,cheatcodeClear)){
           console.log("!!!!!! Cheatcode cleardata activated! " + JQ(this.remoteEvents));
           await appClearData();
           page.forceUpdate();
           return;
         }
+
+        let cheatcodeDebug = ["playpause","playpause","playpause","up","up","up","up"];
+        if(endsWithList(this.remoteEvents,cheatcodeDebug)){
+          console.log("!!!!!! Cheatcode debug activated! " + JQ(this.remoteEvents));
+          setAppState({showDebug:!showDebug});
+          return;
+        }
       }
+      
+      if(isShowingExtras || !isActive || isEmpty(evt)){
+        return;
+      }
+
+      console.log("<<<<<<<< MainPage event received: "+evt.eventType);
+
       if (evt.eventType === 'swipeUp' || evt.eventType === "up") {
         let siteData = page.loadSiteData();
 

@@ -10,7 +10,10 @@ target 'reactNativeTvos' do
 
   config = use_native_modules!
 
-  use_react_native!(:path => config["reactNativePath"])
+  use_react_native!(
+    :path => config["reactNativePath"],
+    :hermes_enabled => true
+  )
 
   use_flipper_tvos!
 # If you want to use Flipper only for iOS, you can replace the line above with
@@ -39,7 +42,10 @@ target 'reactNativeTvos-tvOS' do
 
   config = use_native_modules!
 
-  use_react_native!(:path => config["reactNativePath"])
+  use_react_native!(
+    :path => config["reactNativePath"],
+    :hermes_enabled => true
+  )
 
   use_flipper_tvos!
 

@@ -283,6 +283,8 @@ PODS:
     - React-jsi (= 0.63.4-0)
   - RNDefaultPreference (1.4.3):
     - React
+  - RNDeviceInfo (8.1.2):
+    - React-Core
   - RNTVOSController (0.2.4):
     - React-Core
     - RNTVOSController/Default (= 0.2.4)
@@ -330,6 +332,7 @@ DEPENDENCIES:
   - React-RCTText (from `../node_modules/react-native/Libraries/Text`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - RNDefaultPreference (from `../node_modules/react-native-default-preference`)
+  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNTVOSController (from `../node_modules/react-native-tvos-controller`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -407,6 +410,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNDefaultPreference:
     :path: "../node_modules/react-native-default-preference"
+  RNDeviceInfo:
+    :path: "../node_modules/react-native-device-info"
   RNTVOSController:
     :path: "../node_modules/react-native-tvos-controller"
   RNVectorIcons:
@@ -454,11 +459,12 @@ SPEC CHECKSUMS:
   React-RCTText: c14fecaa52f682ffc920d21dc06accee58ac0475
   ReactCommon: d8af14f3e586d78c8e8443e32fedb4c2eb745402
   RNDefaultPreference: 2f8d6d54230edbd78708ada8d63bb275e5a8415b
+  RNDeviceInfo: 3266783bcb6aa4b0c785d6080a407f8a5fc68326
   RNTVOSController: 50806e5e5140685c9b74560f65adca10904d0dd7
   RNVectorIcons: 31cebfcf94e8cf8686eb5303ae0357da64d7a5a4
   Yoga: 1cb424a95ffa7e14cacce4c0ac07ba8e59393ebf
   YogaKit: 1e22bf2228b3a5ac8cc88965153061ae92c494b5
 
-PODFILE CHECKSUM: f06bc1a3d7eeb737503f3a62fd1c5bf2a30f1550
+PODFILE CHECKSUM: e8137f93344abe57b2ac8592b952558d22d22a91
 
 COCOAPODS: 1.9.3

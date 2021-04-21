@@ -32,8 +32,13 @@ import Spinner from 'react-native-loading-spinner-overlay';
 import { LogBox } from 'react-native';
 import DefaultPreference from 'react-native-default-preference';
 import { ElvPlatform } from './fabric/elvplatform';
+import DeviceInfo from 'react-native-device-info';
+import uuid from 'react-native-uuid';
 
 const APP_STORAGE_KEY = "@eluvio_live";
+const APP_VERSION = 1.0;
+
+const isHermes = () => !!global.HermesInternal;
 
 function LoginPage(props) {
   return (
@@ -94,21 +99,20 @@ function ProgressPage(props){
 
 function initPlatform(network){
   return new Promise(async (resolve, reject) => {
-    console.log('loadPlatform');
+    console.time("****** App initplatform ******");
     try {
       var configUrl = Config.networks[network].configUrl;
       var libraryId = Config.networks[network].platform.libraryId;
       var siteId = Config.networks[network].platform.objectId;
-      //var staticToken = Config.networks[network].staticToken;
       var fabric = new Fabric();
       console.log("Loading configUrl: " + configUrl);
-      //await fabric.init({configUrl, staticToken});
       await fabric.initWithLib({configUrl, libraryId});
-      console.log('fabric init');
       var platform = new ElvPlatform({fabric,libraryId,siteId});
       resolve({fabric, platform});
     } catch (e) {
       reject(e);
+    } finally{
+      console.timeEnd("****** App initplatform ******");
     }
   })
 }
@@ -119,17 +123,27 @@ let defaultState = {
   site:null,
   platform:null,
   fabric: null,
-  reloadFinished: false
+  reloadFinished: false,
+  showDebug:false
 };
 
 export default class App extends React.Component {
   state = initialState
   constructor(props) {
     super(props);
+    this.state = defaultState;
+
     this.reload = this.reload.bind(this);
     LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
     LogBox.ignoreAllLogs();
     this.appState = null;
+    this.sessionTag = uuid.v4();
+    console.log("Using Hermes engine? " + isHermes());
+    if (__DEV__) {
+      console.log('Running in Debug Mode.');
+    }else{
+      console.log('Running in Release Mode.');
+    }
   }
 
   componentDidMount = async () => {
@@ -137,11 +151,16 @@ export default class App extends React.Component {
     await this.reload();
     //There's a delay using this.
     //AppState.addEventListener("change", this._handleAppStateChange);
+    console.log("Session params: " + this.getQueryParams());
   }
 
   componentWillUnmount = ()=>{
     //AppState.removeEventListener("change");
     console.log("App will unmount.");
+  }
+
+  getQueryParams = ()=>{
+    return `&session_id=${encodeURIComponent(this.sessionTag)}&app_id=${encodeURIComponent(DeviceInfo.getBundleId())}&app_version=${encodeURIComponent(APP_VERSION)}&system_version=${encodeURIComponent(DeviceInfo.getSystemVersion())}`;
   }
 
   _handleAppStateChange = async (nextAppState) => {
@@ -162,6 +181,7 @@ export default class App extends React.Component {
   };
 
   loadState = async () => {
+    console.time("****** App loadState ******");
     let saved = await this.getData();
     console.log("loadState ", saved);
     if(saved != null && !isEmpty(saved.redeemItems != undefined)){
@@ -170,10 +190,11 @@ export default class App extends React.Component {
       console.log("no state found, setting default: ");
       this.setState(defaultState);
     }
+    console.timeEnd("****** App loadState ******");
   }
 
   clearData = async () => {
-    console.log("Clear data!");
+    console.time("****** App clearData ******");
     try {
       //TODO: Confirmation dialog?
 
@@ -182,20 +203,25 @@ export default class App extends React.Component {
       await this.reload();
     } catch (e) {
       console.error("Could not clear app data.");
+    } finally {
+      console.timeEnd("****** App clearData ******");
     }
   }
 
   storeData = async (value) => {
-    console.log("storeData ", value);
+    console.time("****** App storeData ******");
     try {
       const jsonValue = JSON.stringify(value);
       await DefaultPreference.set(APP_STORAGE_KEY, jsonValue);
     } catch (e) {
       console.error("Could not save app data.");
+    }finally{
+      console.timeEnd("****** App storeData ******");
     }
   }
 
   getData = async () => {
+    console.time("****** App getData ******");
     try {
       const jsonValue = await DefaultPreference.get(APP_STORAGE_KEY);
       console.log("retrieved from prefs: ", jsonValue);
@@ -204,11 +230,13 @@ export default class App extends React.Component {
     } catch(e) {
       console.error("Could not retrieve app data.");
       return null;
+    } finally {
+      console.timeEnd("****** App getData ******");
     }
   }
 
   reload =  async ()=>{
-    console.log("app reload");
+    console.time("****** App reload ******");
     await this.handleSetState({reloadFinished:false});
 
     let {site,ticketCode,redeemItems} = this.state;
@@ -240,8 +268,8 @@ export default class App extends React.Component {
       await platform.load();
     }
 
-    console.log("App setting new State");
     await this.handleSetState({fabric,platform, site:newSite, reloadFinished:true});
+    console.time("****** App reload ******");
   }
 
   //Use callback to execute after setState finishes.
@@ -253,7 +281,8 @@ export default class App extends React.Component {
   //You can use async/await now
   handleSetState = (state)=>{
     return new Promise((resolve) => {
-      this.setState(state, resolve)
+      console.log("handleSetState: " + JQ(state.showDebug));
+      this.setState(state, resolve);
     });
   }
 
@@ -264,27 +293,52 @@ export default class App extends React.Component {
 
   //Internal
   redeemCode = async (fabric,site, redeemItems, tenantId,ticketCode) =>{
+    console.time("* App redeemCode *");
     let otpId = await fabric.redeemCode(tenantId,ticketCode);
     console.log("App redeemCode response: " + otpId);
     if(otpId != null){
       let items = {...redeemItems};
       let objectId = site.objectId;
       items[objectId] = {ticketCode,tenantId,otpId};
-      console.log("redeem success. ", items);
+      console.log("Redeem success. ");
       this.setState(
         {redeemItems:items},
         async ()=>{
           await this.saveState();
-          console.log("saved: ", await this.getData());
         }
       );
+      console.timeEnd("* App redeemCode *");
       return otpId;
     }
+    console.timeEnd("* App redeemCode *");
     return null;
   }
 
+  RenderDebug =() =>{
+    let {showDebug} = this.state;
+    console.log("showDebug: " + showDebug);
+    if(!showDebug){
+      return null;
+    }
+
+    return (
+      <Text 
+        style={{
+          position:"absolute", 
+          right:0, 
+          top:0,
+          color:"white",
+          fontSize: 20
+        }}
+        >
+        {"QueryParams: "+this.getQueryParams()}
+      </Text>
+    );
+
+  }
+
   render() {
-    const {fabric, site, platform, redeemItems} = this.state;
+    const {fabric, site, platform, redeemItems,showDebug,reloadFinished} = this.state;
 
     //FIXME: Find working spinner
 
@@ -307,10 +361,12 @@ export default class App extends React.Component {
           site,
           platform,
           redeemItems,
+          showDebug,
+          getQueryParams:this.getQueryParams,
           setAppState:this.handleSetState,
           appReload:this.reload,
           appClearData: this.clearData,
-          reloadFinished: this.state.reloadFinished
+          reloadFinished: reloadFinished
           }
         }
         >
@@ -324,6 +380,7 @@ export default class App extends React.Component {
             <Route name="error" component={ErrorPage} />
             <Route name="progress" component={ProgressPage} />
         </Navigation>
+        <this.RenderDebug />
       </AppContext.Provider>
     );
   }

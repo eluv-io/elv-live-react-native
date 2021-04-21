@@ -240,7 +240,7 @@ class PlayerPage extends React.Component {
   }
 
  async init() {
-    const {site,fabric,appReload,setState} = this.context;
+    const {site,fabric,getQueryParams,appReload,setState} = this.context;
     console.log("SitePage init()");
     try{
       let channels = await site.getLatestChannels();
@@ -261,7 +261,7 @@ class PlayerPage extends React.Component {
       console.log("offering: " + JQ(offering));
 
       let videoUrl = await fabric.getChannelVideoUrl({channelHash, offerings,offering});
-    
+      videoUrl += getQueryParams();
       console.log("videoUrl: " + videoUrl);
       if(!videoUrl){
         this.setState({error:"Error occured."});
