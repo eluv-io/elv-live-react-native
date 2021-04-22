@@ -1,4 +1,8 @@
 import { intervalToDuration,formatDuration, format, isAfter } from "date-fns";
+var URI = require("urijs");
+const bs58 = require('bs58')
+var VarInt = require('varint')
+var Buffer = require('buffer/').Buffer
 
 export const JQ =  obj => JSON.stringify(obj, null, 2);
 
@@ -65,4 +69,65 @@ export const endsWithList = (list1,list2) =>{
   }
   console.log("return false end.");
   return false;
+}
+
+export const normalizeUrl = (urlString) => {
+  let normalized = URI(urlString).toString();
+  return normalized;
+}
+
+export const B58 = arr => {
+  return bs58.encode(Buffer.from(arr));
+}
+
+export const fromB58 = str => {
+  return bs58.decode(str);
+}
+
+/**
+  * Decode the specified version hash into its component parts
+  *
+  * @param versionHash
+  *
+  * @returns {Object} - Components of the version hash.
+  */
+export const decodeVersionHash = (versionHash) => {
+  if(!(versionHash.startsWith("hq__") || versionHash.startsWith("tq__"))) {
+    throw `DecodeVersionHash: Invalid version hash: "${versionHash}"`;
+  }
+
+  versionHash = versionHash.slice(4);
+
+  // Decode base58 payload
+  let bytes = fromB58(versionHash);
+
+  // Remove 32 byte SHA256 digest
+  const digestBytes = bytes.slice(0, 32);
+  const digest = digestBytes.toString("hex");
+  bytes = bytes.slice(32);
+
+  // Determine size of varint content size
+  let sizeLength = 0;
+  while(bytes[sizeLength] >= 128) {
+    sizeLength++;
+  }
+  sizeLength++;
+
+  // Remove size
+  const sizeBytes = bytes.slice(0, sizeLength);
+  const size = VarInt.decode(sizeBytes);
+  bytes = bytes.slice(sizeLength);
+
+  // Remaining bytes is object ID
+  const objectId = "iq__" + B58(bytes);
+
+  // Part hash is B58 encoded version hash without the ID
+  const partHash = "hqp_" + B58(Buffer.concat([digestBytes, sizeBytes]));
+
+  return {
+    digest,
+    size,
+    objectId,
+    partHash
+  };
 }

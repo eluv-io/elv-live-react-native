@@ -21,7 +21,7 @@ import FadeInView from '../../components/fadeinview'
 import Timer from '../../utils/timer';
 import extras from '../../testdata/extras';
 import Video from 'react-native-video';
-import Spinner from 'react-native-loading-spinner-overlay';
+var URI = require("urijs");
 
 const BLUR_OPACITY = 0.3;
 const THUMBWIDTH = 300;
@@ -38,7 +38,9 @@ class ThumbGallery extends React.Component {
       layout: props.layout || 0,
       isShowingControls: false,
       showBackground: props.showBackground === undefined? true : props.showBackground,
-      showText: props.showText === undefined? true : props.showText
+      showText: props.showText === undefined? true : props.showText,
+      progress: false,
+      videoUrl: null
     }
     this.tvEventHandler = null;
     this.flatlist = React.createRef();
@@ -148,7 +150,7 @@ class ThumbGallery extends React.Component {
     this.setState({isShowingControls:false});
   }
 
-  _next(){
+  _next = async()=>{
     const {isActive, data,next} = this.props;
     const {progress} = this.state;
     if(!isActive || progress){
@@ -184,10 +186,10 @@ class ThumbGallery extends React.Component {
     if(next){
       next();
     }
-    this.getVideo();
+    await this.getVideo();
   }
   
-  _previous(){
+  _previous = async()=>{ 
     const {isActive, data, previous} = this.props;
     const {progress} = this.state;
     if(!isActive || progress){
@@ -223,11 +225,11 @@ class ThumbGallery extends React.Component {
     if(previous){
       previous();
     }
-    this.getVideo();
+    await this.getVideo();
   }
 
   _select = async () => {
-    const {isActive,data,select} = this.props;
+    const {isActive,data,select,showProgress} = this.props;
     const {progress} = this.state;
 
     if(!isActive || !data || progress){
@@ -246,7 +248,9 @@ class ThumbGallery extends React.Component {
       }
 
       await this.getVideo();
-      this.setState({progress:true});
+      if(showProgress){
+        this.setState({progress:true});
+      }
     }catch(e){
       console.error(e);
     }
@@ -261,20 +265,29 @@ class ThumbGallery extends React.Component {
     if(!isShowingControls){
       return;
     }
+    try{
+      const {getQueryParams} = this.context;
 
-    let selected = data[currentViewIndex];
-    console.log("Thumbgallery select " + currentViewIndex);
+      let selected = data[currentViewIndex];
+      console.log("Thumbgallery select " + currentViewIndex);
 
-    let videoUrl = selected.videoUrl;
-    if(!videoUrl && selected.createVideoUrl != undefined){
-      videoUrl = await selected.createVideoUrl();
-      videoUrl += getQueryParams();
-      selected.videoUrl = videoUrl;
-      console.log("videoUrl found: " + videoUrl);
-    }
+      let videoUrl = selected.videoUrl;
+      if(isEmpty(videoUrl) && selected.createVideoUrl != undefined){
+        videoUrl = await selected.createVideoUrl();
+        if(!videoUrl){
+          return;
+        }
+        console.log("videoUrl response: " + videoUrl);
+        videoUrl += getQueryParams();
+        selected.videoUrl = videoUrl;
+        console.log("videoUrl: " + videoUrl);
+      }
 
-    if(videoUrl){
-      this.setState({videoUrl});
+      if(videoUrl){
+        this.setState({videoUrl});
+      }
+    }catch(e){
+      console.error("Thumbgallery getVideo: " +e);
     }
   }
 
@@ -283,41 +296,48 @@ class ThumbGallery extends React.Component {
     this.setState({error});
   }
 
-  onBuffer = () => {
-
+  onBuffer = (buffer) => {
+    console.log("Thumbgallery onBuffer: " + JQ(buffer));
   }
-
 
   RenderItem = ({ item, index }) => {
     let {currentViewIndex,progress} = this.state;
-    console.log("Thumbgallery RenderItem "+ progress);
+    //console.log("Thumbgallery RenderItem "+ progress);
     let hasVideo = item.video != undefined && item.video.sources != undefined;
     let hasImage = !isEmpty(item.image);
 
     let element = null;
+    let image = item.image;
+    
+    
+    if(hasImage){
+      image = URI(item.image).addQuery({width:THUMBWIDTH,height:Math.trunc(THUMBWIDTH * 9/16)}).toString();
+      //console.log("thumb image: " + image);
+    }
+    
 
     if(!hasImage){
       element = (
         <Text 
-              style=
-              {{
-                width:"100%",
-                height:"100%",
-                fontSize:36,
-                textAlign:'center',
-                borderWidth:1, 
-                borderColor:"white",
-                heigth: 100,
-                color: "white"
-              }}>
+            style=
+            {{
+              width:"100%",
+              height:"100%",
+              fontSize:36,
+              textAlign:'center',
+              borderWidth:1, 
+              borderColor:"white",
+              heigth: 100,
+              color: "white"
+            }}>
             {item.title}
-          </Text>
+        </Text>
       );
     }else{
       element = (<Image
         style={{width:"100%",height:"100%"}}
         source={{
-          uri: item.image,
+          uri: image,
         }} />);
     }
 
@@ -426,44 +446,49 @@ class ThumbGallery extends React.Component {
 
   RenderBackground = (props)=>{
     const {item} = props;
-    const {currentViewIndex,showBackground,isShowingControls, videoUrl} = this.state;
+    let {showBackground,videoUrl} = this.state;
     if(!showBackground){
       return null;
     }
-
-    //console.log("RenderBackground: " + JQ(item));
-    if(videoUrl){
-      return (
-        <Video source={{uri: videoUrl}}   // Can be a URL or a local file.
-          ref={(ref) => {
-            this.player = ref
-          }}                                      // Store reference
-          onBuffer={this.onBuffer}                // Callback when remote video is buffering
-          onError={this.videoError}               // Callback when video cannot be loaded
-          style={styles.video} 
-          controls={true}
-          //volume={volume}
-          repeat={true}
-          onEnd={()=>{console.log("Extra video ended. ", item.title);}}
-          />
-      );
-    }else{
-      let imageUrl= null;
-      try{
-        imageUrl = item.image;
-      }catch(e){
-        return null;
+    try{
+      videoUrl = URI(videoUrl).toString();
+      if(videoUrl){
+        //console.log("Thumbgallery Render: " + videoUrl);
+        return (
+          <Video source={{uri: videoUrl}}   // Can be a URL or a local file.
+            ref={(ref) => {
+              this.player = ref
+            }}                                      // Store reference
+            onBuffer={this.onBuffer}                // Callback when remote video is buffering
+            onError={this.videoError}               // Callback when video cannot be loaded
+            style={styles.video} 
+            controls={true}
+            //volume={volume}
+            repeat={true}
+            onEnd={()=>{console.log("Extra video ended. ", item.title);}}
+            />
+        );
       }
-
-      return (
-        <Image
-          style={styles.mainImage}
-          source={{
-            uri: imageUrl
-          }}
-        />
-      );
+    }catch(e){
+      console.error("Error rendering video: " +e);
     }
+
+    let imageUrl= null;
+    try{
+      imageUrl = item.image;
+    }catch(e){
+      return null;
+    }
+
+    return (
+      <Image
+        style={styles.mainImage}
+        source={{
+          uri: URI(imageUrl).toString()
+        }}
+      />
+    );
+    
   }
 
   render() {

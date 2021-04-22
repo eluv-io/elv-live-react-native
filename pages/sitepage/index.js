@@ -40,15 +40,17 @@ class SitePage extends React.Component {
     this.subscribed = false;
 
     this.select = this.select.bind(this);
-    this.updateInterval = setInterval(async ()=>{
-      //console.log("Sitepage timer.");
-      if(this.props.isActive){
-        //console.log("update!");
-        let extras = await this.getExtras();
-        this.setState({extras});
-        }
-      },
+    this.updateInterval = setInterval(this.onUpdate,
       1000);
+  }
+
+  onUpdate = async ()=>{
+    //console.log("Sitepage timer.");
+    if(this.props.isActive){
+      //console.log("update!");
+      let extras = await this.getExtras();
+      this.setState({extras});
+    }
   }
 
   async componentDidMount() {
@@ -77,6 +79,8 @@ class SitePage extends React.Component {
       main.image = site.tv_main_background;
       main.logo = site.tv_main_logo;
       main.objectId = site.objectId;
+
+      //console.log("<<<<<<<<<<<<<<<<<<< SitePage loading site: " + JQ(main));
       
       let date = null;
       let dateString = null;

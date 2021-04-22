@@ -296,6 +296,7 @@ class Gallery extends React.Component {
             let galleryItem = gallery[key];
             let width = imageWidths[index];
             let image = galleryItem.image.url !== undefined ? galleryItem.image.url : galleryItem.image;
+            console.log("Gallery image: " + JQ(image));
             let hasVideo = galleryItem.video != undefined && galleryItem.video.sources != undefined ;
             views.push(
             <View 
@@ -307,6 +308,7 @@ class Gallery extends React.Component {
                 }}
                 key={key}
             >
+            {image?
             <Image
               key={image}
               style={{width:"100%",height:"100%"}}
@@ -314,7 +316,7 @@ class Gallery extends React.Component {
                 uri: image
               }}
               resizeMode="cover"
-            />
+            /> : null }
             {hasVideo ?
             <View style={styles.center} >
               <Icon

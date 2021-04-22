@@ -106,7 +106,7 @@ function initPlatform(network){
       var siteId = Config.networks[network].platform.objectId;
       var fabric = new Fabric();
       console.log("Loading configUrl: " + configUrl);
-      await fabric.initWithLib({configUrl, libraryId});
+      await fabric.init({configUrl});
       var platform = new ElvPlatform({fabric,libraryId,siteId});
       resolve({fabric, platform});
     } catch (e) {
@@ -244,6 +244,7 @@ export default class App extends React.Component {
     let {fabric,platform} = await initPlatform("demo");
     let newSite = null;
     if(site && platform && fabric && ticketCode){
+      console.log("Site before reload: " + site.title);
       let tenantId = site.info.tenant_id;
       let status = await this.redeemCode(fabric,site,redeemItems,tenantId,ticketCode);
       if(!status){
@@ -257,11 +258,11 @@ export default class App extends React.Component {
       let sites = await platform.getSites();
       for(index in sites){
         let test = sites[index];
-        if(test.objectId == site.objectId){
+        if(test.objectId && test.objectId == site.objectId){
           console.log("******** newSite found ***********");
           newSite = test;
           break;
-        }  
+        }
       }
     }else{
       platform.setFabric(fabric);
@@ -269,7 +270,10 @@ export default class App extends React.Component {
     }
 
     await this.handleSetState({fabric,platform, site:newSite, reloadFinished:true});
-    console.time("****** App reload ******");
+    console.timeEnd("****** App reload ******");
+    if(this.state.site){
+      console.log("Current Site: " + this.state.site.title);
+    }
   }
 
   //Use callback to execute after setState finishes.

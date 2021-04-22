@@ -1,16 +1,10 @@
-var {isEmpty, JQ} = require('../utils');
+var {isEmpty, JQ, decodeVersionHash} = require('../utils');
 var URI = require("urijs");
 var UrlJoin = require("url-join");
-var dateFormat = require('dateformat');
-import testSite from "../testdata/testsite";
-import testExtras from "../testdata/extras";
-import {ElvClient} from '../ElvClient-min';
-import extras from "../testdata/extras";
 
 class ElvPlatform {
   constructor({fabric, libraryId, siteId}) {
     this.fabric = fabric;
-    this.client = fabric.client;
     this.siteId = siteId;
     this.siteLibraryId = libraryId;
     this.eventSites={};
@@ -24,7 +18,6 @@ class ElvPlatform {
   setFabric = (fabric)=>{
     console.log("ElvPlatform setFabric");
     this.fabric = fabric;
-    this.client = fabric.client;
   }
 
   load = async () =>{
@@ -33,9 +26,6 @@ class ElvPlatform {
 
     try {
       console.time("* Platform load *");
-      if(!this.siteLibraryId){
-        this.siteLibraryId = await this.client.ContentObjectLibraryId({objectId: this.siteId});
-      }
       console.log("siteLibraryId: " + this.siteLibraryId);
    
       this.siteParams = {
@@ -51,38 +41,38 @@ class ElvPlatform {
         ];
       }
 
-      this.siteInfo = await this.client.ContentObjectMetadata({
-        ...this.siteParams,
-        metadataSubtree: subtree,
-        resolveLinks: true,
-        resolveIncludeSource: true,
-        resolveIgnoreErrors: true,
-        produceLinkUrls: true,
-        linkDepthLimit: 10,
-        select,
-        noCache:true
+      this.siteInfo = await this.fabric.getContent({
+        ...this.siteParams
       });
 
-      this.siteInfo.baseLinkUrl = await this.client.FabricUrl({...this.siteParams});
+      //console.log("Platform info: "+ JQ(this.siteInfo.asset_metadata[eventsKey]));
+
+      this.siteInfo.baseLinkUrl = await this.fabric.baseUrl({...this.siteParams});
       let baseURI = URI(this.siteInfo.baseLinkUrl);
       this.currentHost = baseURI.protocol() + "://" + baseURI.host();
       
       console.log("Platform base current host: " + this.currentHost);
 
-      this.eluvioLogo = this.createLink(
+      this.eluvioLogo = this.fabric.createLink(
         this.siteInfo.baseLinkUrl,
-        "/meta/public/asset_metadata/info/site_images/eluvio_live_logo_white"
+        "/meta/public/asset_metadata/info/site_images/eluvio_live_logo_light"
       );
 
+      console.log("Eluvio Logo: " + this.eluvioLogo);
+
       let sites = this.siteInfo.asset_metadata[eventsKey] || {};
+      //console.log("Site: " + JQ(sites));
       this.availableSites = [];
-      //console.log(JQ(this.availableSites));
       for (const index in sites) {
         try {
           let item = sites[index];
           let key = Object.keys(item)[0]
           let site = sites[index][key];
+          site.metaDataPath = `public/asset_metadata/${eventsKey}/${index}/${key}`;
+          site = await this.resolveSite(site,key);
           site.getLatestChannels = async()=>{
+          console.log("site getLatestChannels " + site.versionHash);
+          /*
             let siteInfo = await this.client.ContentObjectMetadata({
               libraryId:site.libraryId,
               objectId:site.objectId,
@@ -95,12 +85,17 @@ class ElvPlatform {
               select:"channels",
               noCache:true
             });
-            console.log("Site refreshed: "+ JQ(siteInfo));
+            */
+            let siteInfo = await this.fabric.getContent({
+              versionHash:site.versionHash,
+              path:"/meta/public/asset_metadata"
+            });
+
+            //console.log("Site refreshed: "+ JQ(siteInfo));
             return siteInfo["channels"];
           }
           //console.log("Featured site extras: " + JQ(site.info.extras));
-          site.metaDataPath = `public/asset_metadata/${eventsKey}/${index}/${key}`;
-          this.availableSites.push(await this.resolveSite(site,key));
+          this.availableSites.push(site);
         } catch(error){
           console.error("Failed to load site: ");
           console.error(error);
@@ -127,39 +122,44 @@ class ElvPlatform {
   }
 
   resolveSite = async (site,key) =>{
+    
     site.versionHash = site["."].source;
-    site.objectId = await this.client.utils.DecodeVersionHash(site.versionHash ).objectId;
-    site.libraryId = await this.client.ContentObjectLibraryId({objectId:site.objectId});
+    site.objectId = decodeVersionHash(site.versionHash).objectId;
+    //Expensive:
+    //site.libraryId = await this.client.ContentObjectLibraryId({objectId:site.objectId});
     site.slug = key;
-    site.tv_main_background = this.createLink(
+    site.tv_main_background = this.fabric.createLink(
         this.siteInfo.baseLinkUrl,
         "/meta/" + site.metaDataPath+"/info/event_images/tv_main_background"
     );
+    //console.log("resolveSite tv_main_background: " + site.tv_main_background);
     
-    site.tv_main_logo = this.createLink(
+    site.tv_main_logo = this.fabric.createLink(
         this.siteInfo.baseLinkUrl,
         "/meta/" + site.metaDataPath+"/info/event_images/tv_main_logo"
     );
+    //console.log("resolveSite tv_main_logo: " + site.tv_main_logo);
 
     site.getTicketInfo = (otpId)=>{
-      //console.log("site: getTicketDate " + otpId);
-      try{
-        //console.log("site: " + JQ(site.info.tickets));
-        for(index in site.info.tickets){
-          let ticket = site.info.tickets[index];
-          
-          for(index2 in ticket.skus){
-            let sku = ticket.skus[index2];
-            //console.log("sku: " + JQ(sku));
-            if(sku.otp_id === otpId){
-              return sku;
+      console.log("site: getTicketDate " + otpId);
+        //console.log("site tickets: " + JQ(site.info.tickets));
+        for(var index in site.info.tickets){
+          //try{
+            let ticket = site.info.tickets[index];
+            console.log("site ticket: " + JQ(ticket));
+            
+            for(var index2 in ticket.skus){
+              let sku = ticket.skus[index2];
+              console.log("sku: " + JQ(sku));
+              if(sku.otp_id && sku.otp_id != "" && sku.otp_id === otpId){
+                console.log("Found ticket info!");
+                return sku;
+              }
             }
-          }
+          //}catch(e){
+          //  console.error("Could not find ticket date for otpId " + otpId + " " +e);
+          //}
         }
-      }catch(e){
-        console.error("Could not find ticket date for otpId " + otpId + " " +e);
-      }
-
       return null;
     }
 
@@ -167,7 +167,7 @@ class ElvPlatform {
     for(const index in site.info.extras){
         let extra = site.info.extras[index];
         extra.basePath = UrlJoin(site.metaDataPath,`/info/extras/${index}`);
-        //console.log("Extra: ",extra);
+        //console.log("Extra basepath: ",extra.basePath);
         let packageLink = extra["package"];
         if(packageLink["info"] != undefined){
           extra.isAvailable = true;
@@ -179,15 +179,25 @@ class ElvPlatform {
             //console.log("gallery: " + JQ(gallery));
             for(let itemIndex in gallery){
               let item = gallery[itemIndex];
-              item.createVideoUrl=async()=>{
+              if(!isEmpty(item.image)){
+                item.image.url = this.fabric.createLink(
+                UrlJoin(this.siteInfo.baseLinkUrl,"/meta/",site.metaDataPath,`/info/extras/${index}`),
+                  `/package/info/gallery/${itemIndex}/image`
+                );
+              }
+
+              item.createVideoUrl = async()=>{
                 try{
-                  //console.log("item video: " + JQ(item.video));
-                  if(item.video.sources.default){
-                  console.log("item video source default: " + JQ(item.video.sources.default));
-                    let linkPath =  UrlJoin(extra.basePath, `/package/info/gallery/${itemIndex}/video/sources/default`);
+                  console.log("item createVideoUrl: " + JQ(item.video));
+                  let fabricLink = item.video.sources.default;
+                  if(fabricLink){
+                    console.log("videoLink " + JQ(fabricLink));
+                    //let linkPath =  UrlJoin(extra.basePath, `/package/info/gallery/${itemIndex}/video/sources/default`);
                     //console.log("PlayoutOptions linkPath: " + JQ(linkPath));
 
                     //TODO:
+
+                    /*
                     let playoutOptions = await this.client.PlayoutOptions({
                       libraryId: this.siteLibraryId,
                       objectId: this.siteId,
@@ -196,18 +206,21 @@ class ElvPlatform {
                       drms: ["aes-128","sample-aes", "clear"],
                       offering: "default"
                     });
-                    //console.log("PlayoutOptions response: " + JQ(playoutOptions));
+                    */
 
-                    let playoutUrl = (playoutOptions.hls.playoutMethods.clear || 
-                      playoutOptions.hls.playoutMethods["sample-aes"] || 
-                      playoutOptions.hls.playoutMethods["aes-128"]).playoutUrl;
+                    let {playoutOptions,videoUrl} = await this.fabric.getVideoPlayoutInfo({
+                      fabricLink
+                    });
 
-                    item.videoUrl = playoutUrl;
+                    console.log("PlayoutOptions response: " + JQ(playoutOptions));
+                    item.videoUrl = videoUrl;
                     console.log("VideoUrl: " + item.videoUrl);
-                    return playoutUrl;
+                    return videoUrl;
                   }
+                  console.log("No video link found.");
                   return null;
                 }catch(e){
+                  console.log("No video link found.");
                   return null;
                 }
               }
@@ -220,7 +233,7 @@ class ElvPlatform {
         }
 
         if(!isEmpty(extra.image)){
-          extra.image = this.createLink(
+          extra.image = this.fabric.createLink(
           this.siteInfo.baseLinkUrl,
             "/meta/" + site.metaDataPath+`/info/extras/${index}/image`
           );
@@ -229,66 +242,6 @@ class ElvPlatform {
 
     return site;
   }
-
-  async createChannelsback(site,key){
-      const titleLinks = await this.client.ContentObjectMetadata({
-      ...this.siteParams,
-      metadataSubtree: UrlJoin(site.metaDataPath, "streams"),
-      resolveLinks: true,
-      resolveIgnoreErrors: true,
-      resolveIncludeSource: true,
-      select: [
-        "*/*/title",
-        "*/*/display_title",
-        "*/*/sources"
-      ]
-    });
-
-    let newChannels = await Promise.all(
-      Object.keys(titleLinks || {}).map(async index => {
-        let slug = Object.keys(titleLinks[index])[0];
-        const { title, display_title, sources } = titleLinks[index][slug];
-        //console.log("createChannel: " + JQ(titleLinks[index]));
-        let getVideoUrl = async (key)=>{
-            console.log("getVideoUrl: ");
-            if(isEmpty(key)){
-              key = "default";
-            }
-            let playoutOptions = await this.client.PlayoutOptions({
-              libraryId: this.siteLibraryId,
-              objectId: this.siteId,
-              linkPath: UrlJoin(site.metaDataPath, "streams", index, slug, "sources", "default"),
-              protocols: ["hls", "dash"],
-              drms: ["aes-128","sample-aes", "clear"],
-              offering: key
-            });
-            //console.log("PlayoutOptions: " + JQ(playoutOptions));
-
-            let playoutUrl = (playoutOptions.hls.playoutMethods.clear || 
-              playoutOptions.hls.playoutMethods["sample-aes"] || 
-              playoutOptions.hls.playoutMethods["aes-128"]).playoutUrl;
-
-            return playoutUrl;
-          }
-        
-        let thumbnail = `https://picsum.photos/250/150`;
-        return { title, display_title, thumbnail, getVideoUrl }
-      })
-    );
-
-    return newChannels;
-
-  }
-
-  createLink(baseLink, path, query={}) {
-    const basePath = URI(baseLink).path();
-
-    return URI(baseLink)
-      .path(UrlJoin(basePath, path))
-      .addQuery(query)
-      .toString();
-  }
-
 }
 
 module.exports = {

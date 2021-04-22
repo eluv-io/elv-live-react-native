@@ -1,25 +1,16 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {
   Text, 
   StyleSheet, 
-  View, 
-  TouchableOpacity,
-  Button,
-  TVFocusGuideView,
+  View,
   TVEventHandler,
   Image,
 } 
 from 'react-native';
-import Swiper from 'react-native-swiper'
-import reactNativeTvosController from "react-native-tvos-controller"
 import AppContext from '../../AppContext'
 import Gallery from '../../components/gallery'
 import ThumbSelector from '../../components/thumbselector'
 import { isEmpty, JQ, dateCountdown,endsWithList } from '../../utils';
-import { Icon } from 'react-native-elements'
-import LinearGradient from 'react-native-linear-gradient';
-import testdata from '../../testdata/extras.js';
-import { getOverlappingDaysInIntervals } from 'date-fns';
 
 const BLUR_OPACITY = 0.3;
 
@@ -41,8 +32,6 @@ class MainPage extends React.Component {
     this.select = this.select.bind(this);
     this.onExtrasVisible = this.onExtrasVisible.bind(this);
     this.onSelectExtra = this.onSelectExtra.bind(this);
-
-    //setInterval(()=>{if(this.props.isActive)this.forceUpdate()},60000);
   }
 
   async componentDidMount() {
@@ -55,12 +44,11 @@ class MainPage extends React.Component {
     const {platform,redeemItems} = this.context;
 
     let sites = platform.getSites();
-    //console.log("MainPage componentDidMount sites size: " + sites.length);
     siteData = [];
 
     for (const key in sites){
       let site = sites[key];
-      console.log("Mainpage accessing site: " + key + " " + site.title);
+      //console.log("Mainpage accessing site: " + key + " " + site.title);
 
       let eventTitle = null;
       try{
@@ -73,13 +61,10 @@ class MainPage extends React.Component {
           eventHeader = site.info.event_info.event_header;
         }catch(e){}
 
-        //console.log("event_header: " + site.info.event_info.event_header);
-
         let eventSub = null;
         try{
           eventSub = site.info.event_info.event_subheader;
         }catch(e){}
-        //console.log("event_subheader: " + site.info.event_info.event_subheader);
 
         let date = null;
         let countDown = null;
@@ -129,10 +114,7 @@ class MainPage extends React.Component {
       }catch(e){
         console.error("Error parsing site info: " + e);
       }
-
     }
-
-    //console.log("ComponentDidMount sites size: " + siteData.length);
 
     return siteData;
   }
@@ -153,14 +135,10 @@ class MainPage extends React.Component {
         return;
       }
       
-      console.log("cheat showDebug: " + showDebug);
-
       if(evt.eventType == "focus"){
-        //page.forceUpdate();
         return;
       }
 
-      
       if(evt.eventType == "blur" || evt.eventType == "focus"){
         return;
       }
@@ -191,7 +169,7 @@ class MainPage extends React.Component {
         }
       }
       
-      if(isShowingExtras || !isActive || isEmpty(evt)){
+      if(isShowingExtras){
         return;
       }
 
@@ -213,7 +191,6 @@ class MainPage extends React.Component {
         }catch(e){
           console.log("Couldn't get extras from site " + JQ(e));
         }
-
 
         if(!isEmpty(extras)){
           page.setState({isShowingExtras:true});
@@ -322,6 +299,7 @@ class MainPage extends React.Component {
           let title = site.title;
           navigation.transition("presents","site",{logo, title},11000);
           await appReload();
+          console.log("!!!!!!!!App Reloaded.");
         }catch(e){
           console.error("Error loading site info: " + e);
           navigation.setNext("error", {text:"Could not retrieve event info."});

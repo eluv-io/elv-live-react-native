@@ -18,6 +18,7 @@ import FadeInView from '../../components/fadeinview'
 import Slide from '../../components/slide'
 import {AIMS, DIRECTIONS, MOVEMENT_TYPES, STATIC_TYPES, SimpleAnimation } from 'react-native-simple-animations';
 import Timer from '../../utils/timer';
+var URI = require("urijs");
 
 const BLUR_OPACITY = 0.3;
 const THUMBWIDTH = 500;
@@ -221,19 +222,20 @@ class ThumbSelector extends React.Component {
         imageStyle = styles.paginationImageActive
       }
     }
-    
-    //console.log("Thumbselector image: ", item.image);
 
     if(isEmpty(item.image)){
       return null;
     }
+
+    let image = URI(item.image).addQuery({width:THUMBWIDTH,height:Math.trunc(THUMBWIDTH * 9/16)}).toString();
+    //console.log("Thumbselector image: " + image);
 
     return (
       <View style={this.props.showImageLabels ? styles.paginationItemsLabel : styles.paginationItems}>
       <Image
         style={imageStyle}
         source={{
-          uri: item.image,
+          uri: image,
         }} />
         <View style={styles.flexContainer} >
         <Icon

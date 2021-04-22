@@ -252,37 +252,34 @@ class PlayerPage extends React.Component {
       let channelHash = channel["."]["source"];
       console.log("Channel hash:", channelHash);
 
-      //let offerings = await fabric.getOfferings(channelHash);
-      let offeringsUrl = channel["offerings"]["url"];
-      let response = await fetch(offeringsUrl);
-      let offerings = await response.json();
-      console.log("offerings: " + JQ(offerings));
-      let offering = Object.keys(offerings)[0];
-      console.log("offering: " + JQ(offering));
+      let info = await fabric.getPlayoutInfo({channelHash});
+      console.log("PlayerPage getPlayoutInfo response: " + JQ(info));
+      let sid = info.sessionId;
+      let offering = info.offering;
+      let videoUrl = info.playlistUrl + getQueryParams();
 
-      let videoUrl = await fabric.getChannelVideoUrl({channelHash, offerings,offering});
-      videoUrl += getQueryParams();
-      console.log("videoUrl: " + videoUrl);
       if(!videoUrl){
         this.setState({error:"Error occured."});
         return;
       }
-      let sid = fabric.getSessionId({uri:videoUrl});
-      console.log("sid: " + sid);
+      console.log(`player: channelHash ${channelHash}  videoUrl ${videoUrl} offering ${offering} sid ${sid} `);
       this.setState({channelHash,offering,videoUrl,sid});
     }catch(e){
       this.setState({error:"Could not get video uri. " + e});
     }
   }
 
-
   videoError = (error) => {
     console.log("VideoError: " + JQ(error));
     this.setState({error});
   }
 
-  onBuffer = () => {
+  onBuffer = (buffer) => {
+    console.log("Playerpage onBuffer " + JQ(buffer));
+  }
 
+  onProgress = (progress) =>{
+    console.log("Playerpage onProgress " + JQ(progress))
   }
 
   render() {
@@ -327,36 +324,52 @@ class PlayerPage extends React.Component {
       );
     }
 
-    return (
-    <View style={styles.container}>
-        <Video source={{uri: videoUrl}}   // Can be a URL or a local file.
-          ref={(ref) => {
-            this.player = ref
-          }}                                      // Store reference
-          onBuffer={this.onBuffer}                // Callback when remote video is buffering
-          onError={this.videoError}               // Callback when video cannot be loaded
-          style={styles.video} 
-          controls={true}
-          //volume={1} //XXX:
-          onEnd={()=>{navigation.goBack()}}
-          onBandwidthUpdate={(bitrate)=>{console.log("Video onBandwidthUpdate: ", bitrate)}}
-          bufferConfig={{
-            minBufferMs: 1000,
-            maxBufferMs: 3000,
-            bufferForPlaybackMs: 1000,
-            bufferForPlaybackAfterRebufferMs: 1000
-          }}
-          minLoadRetryCount={5} //default 3
-          />
-          <ThumbGallery
-            isActive = {isActive}
-            data={views} 
-            showBackground={false}
-            select={this.select}
-            onShowControls={this.showControls}
-            />
-    </View>
-  );
+    try{
+      videoUrl = URI(videoUrl).toString();
+      if(videoUrl){
+        //console.log("Thumbgallery Render: " + videoUrl);
+
+        return (
+        <View style={styles.container}>
+            <Video source={{uri: videoUrl}}   // Can be a URL or a local file.
+              ref={(ref) => {
+                this.player = ref
+              }}                                      // Store reference
+              onBuffer={this.onBuffer}                // Callback when remote video is buffering
+              onError={this.videoError}               // Callback when video cannot be loaded
+              style={styles.video} 
+              controls={true}
+              //volume={1} //XXX:
+              onEnd={()=>{navigation.goBack()}}
+              onBandwidthUpdate={(bitrate)=>{console.log("Video onBandwidthUpdate: ", bitrate)}}
+              onLoad = {(load)=>{console.log("Video onLoad: ", load)}}
+              /*
+              bufferConfig={{
+                minBufferMs: 500,
+                maxBufferMs: 1000,
+                bufferForPlaybackMs: 1000,
+                bufferForPlaybackAfterRebufferMs: 1000
+              }}*/
+              minLoadRetryCount={5} //default 3
+              preferredForwardBufferDuration={0.5}
+              onProgress={this.onProgress}
+              />
+              <ThumbGallery
+                isActive = {isActive}
+                data={views} 
+                showBackground={false}
+                select={this.select}
+                onShowControls={this.showControls}
+                showProgress={true}
+                />
+        </View>  
+        );
+      }
+    }catch(e){
+      console.error("Error rendering video: " +e);
+      this.setState({error: "Error loading video."});
+    }
+    return null;
   }
 }
 
