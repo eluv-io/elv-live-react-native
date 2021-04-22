@@ -299,7 +299,6 @@ class MainPage extends React.Component {
           let title = site.title;
           navigation.transition("presents","site",{logo, title},11000);
           await appReload();
-          console.log("!!!!!!!!App Reloaded.");
         }catch(e){
           console.error("Error loading site info: " + e);
           navigation.setNext("error", {text:"Could not retrieve event info."});
