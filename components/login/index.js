@@ -173,9 +173,11 @@ class Login extends React.Component {
                   if(!this.props.data){
                     //TODO: go directly to playerpage if site is available to play
                     console.log("Submit: navigation to site");
+                    navigation.removeUnder();
                     navigation.replace("site");
                   }else{
                     console.log("Submit: navigation to site with data.");
+                    navigation.removeUnder();
                     navigation.replace("site",{...this.props.data});
                   }
                 }catch(e){

@@ -207,7 +207,20 @@ export class Navigation extends React.Component {
       return state;
     });
   }
-  
+
+  //Removes the scene under the current one.
+  removeUnder = () => {
+    this.setState(state => {
+      const {stack} = state;
+      if (stack.length > 1) {
+        return {
+          stack: [...stack.slice(0, stack.length - 2),stack[stack.length-1]]
+        };
+      }
+      return state;
+    });
+  }
+
   render() {
     return (
       <View style={styles.container}>
