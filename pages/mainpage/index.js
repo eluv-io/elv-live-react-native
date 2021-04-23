@@ -76,7 +76,7 @@ class MainPage extends React.Component {
         if(isEmpty(countDown)){
           countDown = site.info.event_info.date;
         }
-
+         console.log("Site: " + site.title + " accessible " + site.info.accessible);
         let item = {};
         item.title = eventTitle;
         item.description = eventSub;
@@ -84,6 +84,7 @@ class MainPage extends React.Component {
         item.logo = site.tv_main_logo;
         item.release_date = countDown;
         item.isAvailable = true;
+        item.isAccessible = site.info.accessible && site.info.accessible === true;
         const extras = [];
     
         for (i in site.info.extras){

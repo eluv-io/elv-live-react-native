@@ -6,6 +6,7 @@ import Timer from '../../utils/timer';
 import AppContext from '../../AppContext'
 import ThumbGallery from '../../components/gallery/thumbgallery'
 import ThumbSelector from '../../components/thumbselector';
+import EluvioLiveLogo from '../../static/images/fulllogo.jpg'
 
 var URI = require("urijs");
 
@@ -21,51 +22,69 @@ class PlayerPage extends React.Component {
       isShowingControls: false,
       currentViewIndex: 0,
       views: [],
-      volume: .8,
+      //volume: .8,
+      playPause: false,
       sid: null
     }
 
   constructor(props) {
     super(props);
     this.state = PlayerPage.defaultState;
-
     this.tvEventHandler = null;
     this.showControls = this.showControls.bind(this);
     this.hideControls = this.hideControls.bind(this);
     this.next = this.next.bind(this);
     this.previous = this.previous.bind(this);
     this.select = this.select.bind(this);
+    this.videoRef = React.createRef();
   }
 
   enableTVEventHandler() {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
-      const {currentViewIndex, views, isShowingControls} = page.state;
-      //console.log("Player page event: " + evt.eventType);
+      const {currentViewIndex, views, isShowingControls,playPause,progress} = page.state;
+      console.log("Player page event: " + evt.eventType);
+      try{
+        if (evt && evt.eventType === 'right') {
 
-      if (evt && evt.eventType === 'right') {
-      /*
-        let volume = page.state.volume;
-        console.log("volume " + volume);
-        volume += 0.1;
-        page.setState({volume});
-        */
-      } else if (evt && evt.eventType === 'up') {
+        } else if (evt && evt.eventType === 'left') {
 
-      } else if (evt && evt.eventType === 'left') {
-      /*
-        let volume = page.state.volume;
-        console.log("volume " + volume);
-        volume -= 0.1;
-        page.setState({volume});
-        */
-      } else if (evt && evt.eventType === 'down') {
+        } else if (evt && evt.eventType === 'swipeRight') {
+          if(page.videoRef.current && progress){
+            let seekTime = progress.currentTime + 10;
+            console.log("Seek forward ", seekTime);
+            page.videoRef.current.seek(seekTime);
+          }
+        } else if (evt && evt.eventType === 'swipeLeft') {
+          if(page.videoRef.current && progress){
+            let seekTime = progress.currentTime - 10;
+            console.log("Seek back ", seekTime);
+            page.videoRef.current.seek(seekTime);
+          }
+        }
+        else if (evt && evt.eventType === 'up') {
+          /*
+          let volume = page.state.volume;
+          console.log("volume " + volume);
+          volume += 0.1;
+          page.setState({volume});
+          */
+        } else if (evt && evt.eventType === 'down') {
+          /*
+          let volume = page.state.volume;
+          console.log("volume " + volume);
+          volume -= 0.1;
+          page.setState({volume});
+          */
+        } 
+        else if (evt && evt.eventType === 'playPause') {
 
-      } else if (evt && evt.eventType === 'playPause') {
-
-      } else if (evt && evt.eventType === 'select') {
-        //page.select();
-      }
+        } else if (evt && evt.eventType === 'select') {
+          let newPlaypause = !playPause;
+          console.log("playPause " + newPlaypause);
+          page.setState({playPause:newPlaypause});
+        }
+      }catch(e){console.error("PlayerPage remoteEvent: " + e)}
     });
   }
 
@@ -280,10 +299,11 @@ class PlayerPage extends React.Component {
 
   onProgress = (progress) =>{
     console.log("Playerpage onProgress " + JQ(progress))
+    this.setState({progress});
   }
 
   render() {
-    let {videoUrl, views, error, isShowingControls,volume} = this.state;
+    let {videoUrl, views, error, isShowingControls,volume,playPause} = this.state;
     const {isActive,navigation} = this.props;
     console.log("PlayerPage: videoUrl " + videoUrl + " error: " +  JQ(error) + " isActive " + isActive + " isShowingControls: " + isShowingControls);
 
@@ -300,12 +320,20 @@ class PlayerPage extends React.Component {
       console.log("Error loading video: " + JQ(error));
       return (
       <View style={styles.container}>
-        <Text style={styles.text} >We're sorry. Content is not available right now.</Text>
+        <Image source={EluvioLiveLogo}
+          style={
+          {
+            width:"100%",
+            height:300,
+            marginTop:-50,
+            marginBottom:50,
+          }
+          }
+        />
         <TouchableOpacity
           style={styles.retryButton} 
-          activeOpacity ={0.6}
+          activeOpacity ={1.0}
           hasTVPreferredFocus={true}
-          volume={100}
           onPress = {()=>{
             this.reload();
           }}
@@ -327,22 +355,21 @@ class PlayerPage extends React.Component {
     try{
       videoUrl = URI(videoUrl).toString();
       if(videoUrl){
-        //console.log("Thumbgallery Render: " + videoUrl);
+        console.log("Thumbgallery Render: " + playPause);
 
         return (
         <View style={styles.container}>
             <Video source={{uri: videoUrl}}   // Can be a URL or a local file.
-              ref={(ref) => {
-                this.player = ref
-              }}                                      // Store reference
+              ref={this.videoRef}                                    // Store reference
               onBuffer={this.onBuffer}                // Callback when remote video is buffering
               onError={this.videoError}               // Callback when video cannot be loaded
               style={styles.video} 
               controls={true}
-              //volume={1} //XXX:
+              //volume={volume}
               onEnd={()=>{navigation.goBack()}}
               onBandwidthUpdate={(bitrate)=>{console.log("Video onBandwidthUpdate: ", bitrate)}}
               onLoad = {(load)=>{console.log("Video onLoad: ", load)}}
+              paused = {playPause}
               /*
               bufferConfig={{
                 minBufferMs: 500,
@@ -361,7 +388,7 @@ class PlayerPage extends React.Component {
                 select={this.select}
                 onShowControls={this.showControls}
                 showProgress={true}
-                />
+              />
         </View>  
         );
       }
@@ -415,22 +442,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',    
     paddingVertical: 10,
-    paddingHorizontal: 12,    
-    width: 200,
-    height: 60,
-    borderWidth: 2,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderRadius: 10,
     borderColor: "white",
   },
   buttonText: {
-    fontSize: 18,
+    fontSize: 24,
     color: "white",
-    fontWeight: "bold",
+    fontWeight: "normal",
     alignSelf: "center",
-    textTransform: "uppercase",
-    fontSize: 14,
     textShadowColor: 'gray',
-    letterSpacing: 7,
     fontFamily: "HelveticaNeue",
+    paddingLeft:30,
+    paddingRight:30,
+    paddingTop:10,
+    paddingBottom:10
   },
   text: {
     fontFamily: "Helvetica",

@@ -10,19 +10,11 @@ import {
   TVEventHandler
 } 
 from 'react-native';
-import Swiper from 'react-native-swiper'
-import reactNativeTvosController from "react-native-tvos-controller"
 import AppContext from '../../AppContext'
-import {Site} from '../../fabric/site'
 import { isEmpty, JQ, dateCountdown, dateStarted} from '../../utils';
-import { Icon } from 'react-native-elements'
-import LinearGradient from 'react-native-linear-gradient';
 import Gallery from '../../components/gallery'
-var URI = require("urijs");
-var UrlJoin = require("url-join");
 
 const BLUR_OPACITY = 0.3;
-
 
 class SitePage extends React.Component {
   static contextType = AppContext;
@@ -79,6 +71,7 @@ class SitePage extends React.Component {
       main.image = site.tv_main_background;
       main.logo = site.tv_main_logo;
       main.objectId = site.objectId;
+      main.isAccessible = site.info.accessible;
 
       //console.log("<<<<<<<<<<<<<<<<<<< SitePage loading site: " + JQ(main));
       

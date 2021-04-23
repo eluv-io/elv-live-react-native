@@ -7,15 +7,18 @@ import {
   TouchableOpacity,
   Button,
   TVFocusGuideView,
-  TVEventHandler
+  TVEventHandler,
+  AccessibilityInfo,  
+  findNodeHandle
 } 
 from 'react-native';
+
 import Video from 'react-native-video';
 import BackgroundVideo from '../../static/videos/EluvioLive.mp4'
 import { isEmpty, JQ } from '../../utils';
 import Timer from '../../utils/timer';
 
-class AppButtonPrivate extends React.Component {
+class AppButton extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -23,6 +26,7 @@ class AppButtonPrivate extends React.Component {
     }
     this.tvEventHandler = null;
     this.onPress = this.onPress.bind(this);
+    this.buttonRef = React.createRef();
   }
   
   async componentDidMount() {
@@ -31,6 +35,16 @@ class AppButtonPrivate extends React.Component {
 
   componentWillUnmount(){
     this.disableTVEventHandler();
+  }
+
+  focus =()=>{
+    if(this.buttonRef.current){
+      //console.log("Appbutton focus "+ this.props.title);
+      //this.buttonRef.current.focus();
+      this.buttonRef.current.setNativeProps({
+        hasTVPreferredFocus:true
+      });
+    }
   }
   
   enableTVEventHandler() {
@@ -88,15 +102,17 @@ class AppButtonPrivate extends React.Component {
       buttonStyle = [styles.button,styles.buttonSelected,style];
     }
 
+    console.log("####### AppButton: " + this.props.title + " " + isFocused);
     //We need a real button if onFocus is passed in
     if(onFocus){
       return (
         //Don't use native focusable components, it will mess up the react-native-swiper because of the focus management.
         <TouchableOpacity
+          ref={this.buttonRef}
+          accessible={true}
+          //hasTVPreferredFocus={isFocused}
           style={buttonStyle} 
           activeOpacity ={1}
-          hasTVPreferredFocus={isFocused}
-          ref={this.props.innerRef}
           onFocus={onFocus}
           {...otherProps}
         >
@@ -110,7 +126,6 @@ class AppButtonPrivate extends React.Component {
       <View
         style={buttonStyle} 
         activeOpacity ={1}
-        hasTVPreferredFocus={isFocused}
         ref={this.props.innerRef}
         {...otherProps}
       >
@@ -119,10 +134,6 @@ class AppButtonPrivate extends React.Component {
     );
   }
 }
-
-const AppButton = React.forwardRef((props, ref) => (
-  <AppButtonPrivate {...props} innerRef={ref}/>
-));
 
 const styles = StyleSheet.create({
   buttonText: {

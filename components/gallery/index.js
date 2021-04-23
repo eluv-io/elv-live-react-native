@@ -213,7 +213,7 @@ class Gallery extends React.Component {
 
     try{
       let selected = data[currentViewIndex];
-      if(!selected.isAvailable){
+      if(!selected.isAvailable || !selected.isAccessible){
         return;
       }
 
@@ -532,12 +532,13 @@ class Gallery extends React.Component {
         {description? <Text numberOfLines={3} style={styles.subheaderText}>{description}</Text> : null }
         
         {date? <Text style={styles.dateText} >{date}</Text>: null }
-        {item.isAvailable ?
+        {item.isAvailable && item.isAccessible?
           <AppButton 
           style = {styles.button}
           text={buttonText}
           isActive = {isActive}
           isFocused={currentViewIndex == item.index}
+          hasTVPreferredFocus={true}
           title = {title}
           /> : null }
       </View>

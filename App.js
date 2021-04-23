@@ -12,6 +12,7 @@ import ReactNative, {
   StyleSheet,
   View,
   Text,
+  Image,
 } from 'react-native';
 
 import GalleryPage from './pages/gallerypage'
@@ -28,6 +29,7 @@ import { Navigation, Route } from './components/navigation';
 import {JQ, isEmpty} from './utils'
 import Video from 'react-native-video';
 import BackgroundVideo from './static/videos/EluvioLive.mp4'
+import EluvioLiveLogo from './static/images/fulllogo.jpg'
 import Spinner from 'react-native-loading-spinner-overlay';
 import { LogBox } from 'react-native';
 import DefaultPreference from 'react-native-default-preference';
@@ -36,7 +38,7 @@ import DeviceInfo from 'react-native-device-info';
 import uuid from 'react-native-uuid';
 
 const APP_STORAGE_KEY = "@eluvio_live";
-const APP_VERSION = "1.0.27";
+const APP_VERSION = "1.0.29";
 
 const isHermes = () => !!global.HermesInternal;
 
@@ -56,21 +58,35 @@ function LoginPage(props) {
 }
 
 function ErrorPage(props){
-  let {text,next} = props.data;
-  console.log("ErrorPage: " + JQ(props.data));
+  //let next = props.data;
+  //console.log("ErrorPage: " + JQ(props.data));
  
-  if(isEmpty(text)){
-    text = "An Unexpected error occured. Press to continue.";
+  //if(isEmpty(text)){
+  //  text = "An Unexpected error occured. Press to continue.";
+  //}
+
+  let text = null;
+  if(props.data && props.data.text){
+    text = props.data.text;
   }
 
   return (
     <View style={styles.background}>
-      <Text style={styles.text}>{text}</Text>
+      {text?<Text style={styles.text}>{text}</Text>:
+      <Image source={EluvioLiveLogo}
+        style={
+        {
+          width:"100%",
+          height:300,
+          marginTop:-50,
+          marginBottom:50,
+        }
+        }
+      />}
       <AppButton 
         hasTVPreferredFocus={true}
         onPress = {()=>{
-          if(!isEmpty(next)){
-            console.log("ErrorPage: " + JQ(next));
+          if(props.data && props.data.next){
             props.navigation.replace(next[0],next[1]);
             return;
           }

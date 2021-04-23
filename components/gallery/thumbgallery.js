@@ -394,9 +394,7 @@ class ThumbGallery extends React.Component {
           </View> : null }
         {currentViewIndex == index && progress?
         <View style={styles.center} >
-          <ActivityIndicator
-            size="small" color={"white"}
-          /><Text style={styles.text}>Loading...</Text>
+          <Text style={styles.text}>Switching...</Text>
           </View> :null
         }
       </View>

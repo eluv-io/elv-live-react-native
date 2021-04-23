@@ -14,6 +14,7 @@ import { isEmpty, JQ } from '../../utils';
 import Timer from '../../utils/timer';
 import AppButton from '../appbutton'
 
+
 const BLUR_OPACITY = 0.5;
 
 const LoginInput = (props) => {
@@ -35,7 +36,7 @@ const LoginInput = (props) => {
       onPress={onPress}
       activeOpacity={1.0}
       onFocus={onFocus}
-      hasTVPreferredFocus={true}
+      hasTVPreferredFocus={isFocused}
     >
     <TextInput
       {...props}
@@ -45,14 +46,19 @@ const LoginInput = (props) => {
       placeholderTextColor = "white"
       ref = {inputRef}
       keyboardAppearance='dark'
-      onEndEditing={onKeyboardDidHide}
+      onSubmitEditing={()=>{
+          if(onKeyboardDidHide){
+            onKeyboardDidHide();
+          }
+        }
+      }
       >
      </TextInput>
      </TouchableOpacity>
     );
 };
 
-const LoginButton = ({ onPress, title,onFocus,isFocused,isSelected}) => {
+const LoginButton = React.forwardRef(({ onPress, title,onFocus,isFocused,isSelected},ref) => {
   let buttonStyle = isFocused ? styles.submitButton : styles.submitButtonUnfocused;
   if(isSelected){
     buttonStyle = [styles.submitButtonUnfocused,styles.submitButtonSelected];
@@ -60,6 +66,7 @@ const LoginButton = ({ onPress, title,onFocus,isFocused,isSelected}) => {
   
   return (
     <AppButton
+      ref={ref}
       style={buttonStyle}
       onPress={onPress}
       onFocus={onFocus}
@@ -68,16 +75,17 @@ const LoginButton = ({ onPress, title,onFocus,isFocused,isSelected}) => {
       title="Redeem"
     />
   );
-}
+});
 
 class Login extends React.Component {
   static contextType = AppContext
   constructor(props) {
     super(props);
     this.state = {
-      focused : "",
+      focused : "code",
       code: ""
     }
+    this.buttonRef = React.createRef();
   }
 
   async componentDidMount() {
@@ -98,7 +106,11 @@ class Login extends React.Component {
   onKeyboardDidHide = ()=>{
     console.log("KeyboardDidHide");
     try{
-      console.log("Switching focus:");
+      if(this.buttonRef.current){
+        console.log("Switching focus:");
+        this.buttonRef.current.focus();
+        //this.setState({focused:"enter"});
+      }
     }catch(e){console.error("Error switching focus to login button: "+e)}
     this.setState({showingKeyboard:false});
   }
