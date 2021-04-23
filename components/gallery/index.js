@@ -507,6 +507,9 @@ class Gallery extends React.Component {
     let buttonText = "Redeem Ticket";
     if(item.isRedeemed){
       buttonText = "Enter Event";
+      if(item.isAvailable && item.hasEnded){
+        buttonText = "Watch Again"
+      }
     }
 
     return(

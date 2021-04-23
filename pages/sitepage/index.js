@@ -85,6 +85,7 @@ class SitePage extends React.Component {
       let date = null;
       let dateString = null;
       let isAvailable = false;
+      let hasEnded = false;
 
       try{
         const {redeemItems} = this.context;
@@ -118,11 +119,19 @@ class SitePage extends React.Component {
                 dateString = "Currently in progress";
                 navigation.navigate("player");
                 clearInterval(this.updateInterval);
-                
               }else{
                 //console.log("Endtime has passed.");
-                dateString = "Event has ended";
-                //isAvailable = false;
+                hasEnded = true;
+                let channels = site.channels;
+                let channel = channels["default"];
+                //console.log("SITE Channel: ", JQ(channel));
+
+                isAvailable = !channel["."].resolution_error;
+                if(isAvailable){
+                }else{
+                  dateString = "Event has ended";
+                }
+                //console.log("isAvailable: " + isAvailable);
               }
             }
           }
@@ -130,6 +139,7 @@ class SitePage extends React.Component {
       }catch(e){console.error(e);}
 
       if(isEmpty(dateString)){
+        //console.log("Could not determine ticket date.");
         dateString = site.info.event_info.date;
         isAvailable = true;
       }
@@ -141,6 +151,7 @@ class SitePage extends React.Component {
       //XXX: TODO - find a way to check if the channel is available to play
       main.isAvailable = isAvailable;
       main.isRedeemed = siteIsRedeemed;
+      main.hasEnded = hasEnded;
       extras.push(main);
     }catch(e){
       console.log(e);
