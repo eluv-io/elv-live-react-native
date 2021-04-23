@@ -208,7 +208,7 @@ export default class Fabric {
       let playoutOptions = await res.json();
       console.log("linkReponse response: " + JQ(playoutOptions));
 
-      let videoUrl = URI(UrlJoin(this.baseUrl({versionHash}),"/rep/playout/default/",playoutOptions["hls-clear"]["uri"]));
+      let videoUrl = URI(UrlJoin(this.baseUrl({versionHash}),"/rep/playout/default/",playoutOptions["hls-clear"]["uri"])).toString();
       console.log("video url: " + JQ(videoUrl));
 
       return {playoutOptions,videoUrl};

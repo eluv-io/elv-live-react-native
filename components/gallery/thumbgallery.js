@@ -463,7 +463,6 @@ class ThumbGallery extends React.Component {
             controls={true}
             //volume={volume}
             repeat={true}
-            onEnd={()=>{console.log("Extra video ended. ", item.title);}}
             />
         );
       }

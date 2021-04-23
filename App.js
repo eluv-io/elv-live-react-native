@@ -40,7 +40,7 @@ import DeviceInfo from 'react-native-device-info';
 import uuid from 'react-native-uuid';
 
 const APP_STORAGE_KEY = "@eluvio_live";
-const APP_VERSION = "1.0.30";
+const APP_VERSION = "1.0.31";
 
 const isHermes = () => !!global.HermesInternal;
 

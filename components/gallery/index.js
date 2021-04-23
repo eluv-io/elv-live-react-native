@@ -22,6 +22,7 @@ import EvilIcon from 'react-native-vector-icons/EvilIcons'
 import LinearGradient from 'react-native-linear-gradient';
 import FadeInView from '../../components/fadeinview'
 import Timer from '../../utils/timer';
+import Video from 'react-native-video';
 
 const BLUR_OPACITY = 0.3;
 const IMAGE_OFFSET = '15%';
@@ -296,7 +297,7 @@ class Gallery extends React.Component {
             let galleryItem = gallery[key];
             let width = imageWidths[index];
             let image = galleryItem.image.url !== undefined ? galleryItem.image.url : galleryItem.image;
-            console.log("Gallery image: " + JQ(image));
+            //console.log("Gallery image: " + JQ(image));
             let hasVideo = galleryItem.video != undefined && galleryItem.video.sources != undefined ;
             views.push(
             <View 
@@ -357,6 +358,27 @@ class Gallery extends React.Component {
         );
       }
     }catch(e){}
+
+    try{
+      if(item.videoUrl){
+        console.log("Gallery item.videoUrl " + item.videoUrl);
+        return(
+          <FadeInView duration={500} style={styles.fade}>
+            <Video
+              style={styles.mainImage}
+              source={{
+                uri: item.videoUrl
+              }}
+              onError={(e)=>{console.error("Gallery background video: " + e)}} 
+              muted={true}
+              repeat={true}
+              paused={!this.props.isActive}
+            />
+          </FadeInView>
+        );
+      }
+    }catch(e){console.error("Gallery video error: " + e);}
+
     return (
       <FadeInView duration={500} style={styles.fade}>
       <Image

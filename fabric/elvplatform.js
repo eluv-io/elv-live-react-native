@@ -72,20 +72,6 @@ class ElvPlatform {
           site = await this.resolveSite(site,key);
           site.getLatestChannels = async()=>{
           console.log("site getLatestChannels " + site.versionHash);
-          /*
-            let siteInfo = await this.client.ContentObjectMetadata({
-              libraryId:site.libraryId,
-              objectId:site.objectId,
-              metadataSubtree: "public/asset_metadata",
-              resolveLinks: true,
-              resolveIncludeSource: true,
-              resolveIgnoreErrors: true,
-              produceLinkUrls: true,
-              linkDepthLimit: 5,
-              select:"channels",
-              noCache:true
-            });
-            */
             let siteInfo = await this.fabric.getContent({
               versionHash:site.versionHash,
               path:"/meta/public/asset_metadata"
@@ -160,6 +146,23 @@ class ElvPlatform {
             //console.error("Could not find ticket date for otpId " + otpId + " " +e);
           }
         }
+      return null;
+    }
+
+    site.createPromoUrl = async () =>{
+      try{
+          let slug = Object.keys(site.promos[0])[0];
+          let promo = site.promos[0][slug];
+          console.log("Site createPromoUrl " + JQ(promo));
+          let fabricLink = promo.sources.default;
+          let {playoutOptions,videoUrl} = await this.fabric.getVideoPlayoutInfo({
+            fabricLink
+          });
+
+          console.log("PlayoutOptions response: " + JQ(playoutOptions));
+          console.log("Promo VideoUrl: " + videoUrl);
+          return videoUrl;
+      }catch(e){console.log("Site createPromoUrl " + e)}
       return null;
     }
 
