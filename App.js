@@ -13,6 +13,7 @@ import ReactNative, {
   View,
   Text,
   Image,
+  AppState
 } from 'react-native';
 
 import GalleryPage from './pages/gallerypage'
@@ -27,6 +28,7 @@ import Config from './config.json';
 import AppContext, {initialState} from './AppContext'
 import { Navigation, Route } from './components/navigation';
 import {JQ, isEmpty} from './utils'
+import Timer from './utils/timer';
 import Video from 'react-native-video';
 import BackgroundVideo from './static/videos/EluvioLive.mp4'
 import EluvioLiveLogo from './static/images/fulllogo.jpg'
@@ -38,7 +40,7 @@ import DeviceInfo from 'react-native-device-info';
 import uuid from 'react-native-uuid';
 
 const APP_STORAGE_KEY = "@eluvio_live";
-const APP_VERSION = "1.0.29";
+const APP_VERSION = "1.0.30";
 
 const isHermes = () => !!global.HermesInternal;
 
@@ -164,14 +166,29 @@ export default class App extends React.Component {
 
   componentDidMount = async () => {
     await this.loadState();
-    await this.reload();
-    //There's a delay using this.
-    //AppState.addEventListener("change", this._handleAppStateChange);
+    AppState.addEventListener("change", this._handleAppStateChange);
+    refreshTimer= Timer(async () => {
+      try{
+
+        if(!this.state.platform){
+
+          console.log("refresh");
+          this.reload();
+        }else{
+          let sites = this.state.platform.getSites();
+          if(!sites || sites.length == 0){
+            this.reload();
+          }
+        }
+      }catch(e){console.error("App refresh timer: " + e);}
+    }, 1000);
+    refreshTimer.start();
+
     console.log("Session params: " + this.getQueryParams());
   }
 
   componentWillUnmount = ()=>{
-    //AppState.removeEventListener("change");
+    AppState.removeEventListener("change");
     console.log("App will unmount.");
   }
 
@@ -180,16 +197,20 @@ export default class App extends React.Component {
   }
 
   _handleAppStateChange = async (nextAppState) => {
-    if (!this.appState || (this.appState.match(/inactive|background/) &&
-      nextAppState === "active")
-    ) {
-      console.log("App has come to the foreground!");
-      await this.loadState();
-      await this.reload();
-    }
+    try{
+      console.log("App _handleAppStateChange " +nextAppState)
+      if (!this.appState || (this.appState.match(/inactive|background/) &&
+        nextAppState === "active")
+      ) {
+        console.log("App has come to the foreground!");
+        await this.reload();
+      }
 
-    this.appState = nextAppState;
-    console.log("AppState", this.appState.current);
+      this.appState = nextAppState;
+      console.log("AppState", this.appState);
+    }catch(e){
+      console.error("Error reloading on app open: " + e);
+    }
   };
 
   saveState = async () => {
@@ -271,7 +292,7 @@ export default class App extends React.Component {
       platform.setFabric(fabric);
       await platform.load();
       
-      let sites = await platform.getSites();
+      let sites =  platform.getSites();
       for(index in sites){
         let test = sites[index];
         if(test.objectId && test.objectId == site.objectId){
@@ -335,26 +356,47 @@ export default class App extends React.Component {
   }
 
   RenderDebug =() =>{
-    let {showDebug} = this.state;
+    try{
+    let {showDebug, fabric} = this.state;
     console.log("showDebug: " + showDebug);
     if(!showDebug){
       return null;
     }
 
     return (
-      <Text 
+      <View 
         style={{
-          position:"absolute", 
+          position:"absolute",
+          padding:30,
+          diplay:"flex",
           right:0, 
           top:0,
+          color:"white",
+          fontSize: 20
+        }}
+      >
+      <Text 
+        style={{
+          textAlign:"right",
           color:"white",
           fontSize: 20
         }}
         >
         {"QueryParams: "+this.getQueryParams()}
       </Text>
+      <Text 
+        style={{
+          textAlign:"right",
+          color:"white",
+          fontSize: 20
+        }}
+        >
+        {"QFab: "+fabric.baseUrl({})}
+      </Text>
+      </View>
     );
-
+    }catch(e){console.error("renderDebug: " + e);}
+    return null;
   }
 
   render() {

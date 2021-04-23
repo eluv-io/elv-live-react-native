@@ -44,6 +44,10 @@ class PlayerPage extends React.Component {
     this.tvEventHandler.enable(this, async function (page, evt) {
       const {currentViewIndex, views, isShowingControls,playPause,progress} = page.state;
       console.log("Player page event: " + evt.eventType);
+      if(isShowingControls){
+        return;
+      }
+
       try{
         if (evt && evt.eventType === 'right') {
 
@@ -305,7 +309,7 @@ class PlayerPage extends React.Component {
   render() {
     let {videoUrl, views, error, isShowingControls,volume,playPause} = this.state;
     const {isActive,navigation} = this.props;
-    console.log("PlayerPage: videoUrl " + videoUrl + " error: " +  JQ(error) + " isActive " + isActive + " isShowingControls: " + isShowingControls);
+    //console.log("PlayerPage: videoUrl " + videoUrl + " error: " +  JQ(error) + " isActive " + isActive + " isShowingControls: " + isShowingControls);
 
     //TESTING LIVE: 
     //error = null;
@@ -355,8 +359,6 @@ class PlayerPage extends React.Component {
     try{
       videoUrl = URI(videoUrl).toString();
       if(videoUrl){
-        console.log("Thumbgallery Render: " + playPause);
-
         return (
         <View style={styles.container}>
             <Video source={{uri: videoUrl}}   // Can be a URL or a local file.

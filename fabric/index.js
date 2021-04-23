@@ -122,25 +122,19 @@ export default class Fabric {
   }
 
   getContent = async({versionHash,libraryId,objectId,path="/meta/public"}) =>{
-    console.log("Fabric getContent libraryId: " + libraryId + " objectId: " + objectId + " versionHash " + versionHash);
+    //console.log("Fabric getContent libraryId: " + libraryId + " objectId: " + objectId + " versionHash " + versionHash);
     try{
       let qfab = this.baseUrl({});
 
       let url = "";
-      /*
-      if(versionHash){
-        url = `${qfab}/q/${versionHash}${path}?link_depth=5&authorization=${token}${QUERYPARAMS}`
-      }else{
-        url = `${qfab}/qlibs/${libraryId}/q/${objectId}${path}?link_depth=5&authorization=${token}${QUERYPARAMS}`
-      }
-      */
+
       if(versionHash){
         url = URI(qfab).path(UrlJoin(`/q/${versionHash}`, path)).addQuery(this.queryParams()).toString();
       }else{
         url = URI(qfab).path(UrlJoin(`/qlibs/${libraryId}/q/${objectId}`, path)).addQuery(this.queryParams()).toString();
       }
 
-      console.log("getContent URL: ", url);
+      //console.log("getContent URL: ", url);
       res = await fetch(normalizeUrl(url));
       return await res.json();
     }catch(e){

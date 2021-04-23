@@ -10,7 +10,8 @@ from 'react-native';
 import AppContext from '../../AppContext'
 import Gallery from '../../components/gallery'
 import ThumbSelector from '../../components/thumbselector'
-import { isEmpty, JQ, dateCountdown,endsWithList } from '../../utils';
+import { isEmpty, JQ, endsWithList } from '../../utils';
+import Spinner from 'react-native-loading-spinner-overlay';
 
 const BLUR_OPACITY = 0.3;
 
@@ -66,23 +67,13 @@ class MainPage extends React.Component {
           eventSub = site.info.event_info.event_subheader;
         }catch(e){}
 
-        let date = null;
-        let countDown = null;
-        try{
-          date = site.info.calendar.start_time;
-          countDown = dateCountdown(date);
-        }catch(e){}
-
-        if(isEmpty(countDown)){
-          countDown = site.info.event_info.date;
-        }
-         console.log("Site: " + site.title + " accessible " + site.info.accessible);
+        //console.log("Site: " + site.title + " accessible " + site.info.accessible);
         let item = {};
         item.title = eventTitle;
         item.description = eventSub;
         item.image = site.tv_main_background;
         item.logo = site.tv_main_logo;
-        item.release_date = countDown;
+        item.release_date = site.info.event_info.date;
         item.isAvailable = true;
         item.isAccessible = site.info.accessible && site.info.accessible === true;
         const extras = [];
@@ -391,8 +382,12 @@ class MainPage extends React.Component {
 
     if(isEmpty(siteData)){
       return (
-        <View style={styles.container}>
-          <Text>Loading...</Text>
+        <View style={styles.background}>
+          <Spinner
+            visible={true}
+            textContent={'Loading...'}
+            textStyle={styles.text}
+          />
         </View>
       );
     }
@@ -448,6 +443,15 @@ class MainPage extends React.Component {
 }
 
 const styles = StyleSheet.create({
+  background: {
+    position: "absolute",
+    display: "flex",
+    alignItems: 'center',
+    justifyContent: "center",
+    backgroundColor: 'black',
+    width: "100%",
+    height: "100%"
+  },
   container: {
     flex: 1,
     alignItems: 'center',
