@@ -116,20 +116,25 @@ class Login extends React.Component {
   }
 
   render() {
-    const {navigation, isActive} = this.props;
-    let {code, focused,showingKeyboard} = this.state;
+    let {navigation, isActive} = this.props;
+    if(!isActive){
+      return <View style={styles.black}/>;
+    }
+    console.log("Login render.");
+    let {code, focused} = this.state;
+
 
     //XXX:
     //code = "RLnkQi9";
 
     const {fabric, platform, site, setAppState,appReload} = this.context;
     try{
-    let tenantId = site.info.tenant_id;
-    let siteId = site.objectId;
+    //let tenantId = site.info.tenant_id;
+    //let siteId = site.objectId;
     //console.log("RedeemPage site display title: " + site.title);  
     //console.log("RedeemPage site Id: " + siteId);  
     //console.log("RedeemPage site tenant Id: " + tenantId);
-    console.log("Login focused: " + focused);
+    //console.log("Login focused: " + focused);
 
     return (
       <View style={styles.container}>
@@ -163,9 +168,10 @@ class Login extends React.Component {
               title="Enter Event"
               ref = {this.buttonRef}
               onPress={async()=>{
-                console.log("Submit:  button onPress" + isActive);
+                isActive = this.props.isActive;
+                console.log("Submit:  button onPress " + isActive);
                 if(!isActive || isEmpty(code)) return;
-                console.log("Submit: Pressing");
+                console.log("Submit: code " + code);
 
                 this.setState({selected:"enter"});
                 let that = this;
@@ -194,9 +200,16 @@ class Login extends React.Component {
                     navigation.removeUnder();
                   }
                 }catch(e){
-                  console.error("Error redeeming ticket: " + e);
-                  navigation.replace("error", {text:"Could not redeem ticket."});
-                  navigation.removeUnder();
+                  //TODO: real Error objects
+                  if(typeof e === 'string' && e.includes("redeeming")){
+                    console.error("Error redeeming ticket: " + e);
+                    navigation.replace("error", {text:"Could not redeem ticket."});
+                  }else{
+                    console.error("Error loading site: " + e);
+                    navigation.replace("error", {text:"Could not retrieve event info. Please try again.",reload:true});
+                    navigation.removeUnder();
+                  }
+                  
                 }
               }}
               onFocus={()=>{this.setState({focused:"enter"})}}
@@ -216,7 +229,6 @@ class Login extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    //backgroundColor: 'rgba(200,0,0,1)',
     alignItems: 'center',
     justifyContent: 'flex-start',
     width:'100%',

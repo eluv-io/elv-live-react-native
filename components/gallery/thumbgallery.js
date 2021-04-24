@@ -159,12 +159,12 @@ class ThumbGallery extends React.Component {
 
     let {currentViewIndex,isShowingControls} = this.state;
     if(!isShowingControls){
-      console.log("Not showing controls");
+      //console.log("Not showing controls");
       return;
     }
 
     if(!data){
-      console.log("No data for next()");
+      //console.log("No data for next()");
       return;
     }
 

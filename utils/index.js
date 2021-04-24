@@ -56,18 +56,18 @@ export const dateStarted = (str) => {
 export const endsWithList = (list1,list2) =>{
   var j= list2.length - 1;
   for (var i = list1.length-1; i >= 0;i--){
-    console.log("j: " + j + " list2 " + list2[j] + " : i " + i +" :" + list1[i] + "?");
+    //console.log("j: " + j + " list2 " + list2[j] + " : i " + i +" :" + list1[i] + "?");
     if(list2[j].toLowerCase() !== list1[i].toLowerCase()){
-      console.log("return false");
+      //console.log("return false");
       return false;
     }
     j--;
     if(j<0){
-      console.log("return true");
+      //console.log("return true");
       return true;
     }
   }
-  console.log("return false end.");
+  //console.log("return false end.");
   return false;
 }
 

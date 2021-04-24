@@ -83,7 +83,8 @@ export default class Fabric {
         method: 'POST',
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'cache-control': 'no-store' //Important or else you might get a cached response from a previous bad ticket
         },
         body: JSON.stringify({
           "_PASSWORD":code
@@ -120,7 +121,7 @@ export default class Fabric {
   }
 
   getContent = async({versionHash,libraryId,objectId,path="/meta/public"}) =>{
-    //console.log("Fabric getContent libraryId: " + libraryId + " objectId: " + objectId + " versionHash " + versionHash);
+    console.log("Fabric getContent libraryId: " + libraryId + " objectId: " + objectId + " versionHash " + versionHash);
     try{
       let qfab = this.baseUrl({});
 
@@ -132,11 +133,12 @@ export default class Fabric {
         url = URI(qfab).path(UrlJoin(`/qlibs/${libraryId}/q/${objectId}`, path)).addQuery(this.queryParams()).toString();
       }
 
-      //console.log("getContent URL: ", url);
+      console.log("getContent URL: ", url);
       res = await fetch(normalizeUrl(url));
       return await res.json();
     }catch(e){
       console.error("Fabric getContent error: " + e);
+      return null;
     }
   }
 
@@ -170,7 +172,7 @@ export default class Fabric {
         queryParams:this.queryParams(),
       });
       
-      console.log("Channel offerings: " + JQ(offerings));
+      //console.log("Channel offerings: " + JQ(offerings));
       return offerings;
     } catch (error) {
       console.error(error);

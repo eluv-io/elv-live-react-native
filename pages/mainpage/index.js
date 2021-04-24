@@ -43,7 +43,8 @@ class MainPage extends React.Component {
   loadSiteData = ()=>{
     console.log("MainPage loadSiteData");
     const {platform,redeemItems} = this.context;
-    if(!platform){
+    const {isActive} = this.props;
+    if(!platform || !isActive){
       return [];
     }
 
@@ -51,11 +52,15 @@ class MainPage extends React.Component {
     siteData = [];
 
     for (const key in sites){
-      let site = sites[key];
-      //console.log("Mainpage accessing site: " + key + " " + site.title);
-
-      let eventTitle = null;
       try{
+        let site = sites[key];
+        if(!site){
+          console.error("Mainpage, site is null");
+          continue;
+        }
+        //console.log("Mainpage accessing site: " + key + " " + site.title + " id: " + site.objectId);
+
+        let eventTitle = null;
         try{
           eventTitle = site.info.event_info.event_title;
         }catch(e){}
@@ -104,7 +109,11 @@ class MainPage extends React.Component {
 
         item.extras = extras;
         //console.log("Item: "+ item.title + " extras: " + extras.length);
-        item.isRedeemed = site.objectId in redeemItems;
+        if(site.objectId && !isEmpty(redeemItems)){
+          item.isRedeemed = site.objectId in redeemItems;
+        }else{
+          item.isRedeemed = false;
+        }
         siteData.push(item);
       }catch(e){
         console.error("Error parsing site info: " + e);
@@ -271,7 +280,7 @@ class MainPage extends React.Component {
           await appReload();
         }catch(e){
           console.error("Error loading site info: " + e);
-          navigation.setNext("error", {text:"Could not retrieve event info."});
+          navigation.setNext("error", {text:"Could not retrieve event info. Please try again.",reload:true});
         }
       }else{
         await setAppState({site});
@@ -355,6 +364,10 @@ class MainPage extends React.Component {
     const {platform,setAppState} = this.context;
     const {navigation, isActive} = this.props;
     const {currentViewIndex,isShowingExtras} = this.state;
+    if(!platform || !isActive){
+      return <View style={styles.background}/>;
+    }
+
     //console.log("Mainpage>>>render");
     let siteData = this.loadSiteData();
     if(isEmpty(siteData))

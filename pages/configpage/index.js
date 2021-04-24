@@ -112,6 +112,8 @@ class ConfigPage extends React.Component {
             console.log("focused: cancel");
             this.setState({focused:"cancel"});
           }}
+
+          isFocused={focused == "cancel"}
         />
 
       </View>
@@ -138,6 +140,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 10,
+    marginTop:50,
     color: "white",
     fontFamily: "Helvetica",
     textAlign: 'center',

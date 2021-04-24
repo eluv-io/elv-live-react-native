@@ -56,13 +56,13 @@ function LoginPage(props) {
       resizeMode ="cover"
       //repeat = {true}
     />
-        <Login {...props}/>
+      <Login {...props}/>
   </View>
   );
 }
 
 function ErrorPage(props){
-  const {switchNetwork} = useContext(AppContext);
+  const {appReload} = useContext(AppContext);
 
   let text = null;
   if(props.data && props.data.text){
@@ -73,6 +73,11 @@ function ErrorPage(props){
   if(props.data && props.data.reload){
     buttonText = "Reload";
   }
+
+  if(!props.isActive){
+    return null;
+  }
+  console.log("ErrorPage render: isActive? ", props.isActive);
 
   return (
     <View style={styles.background}>
@@ -89,23 +94,28 @@ function ErrorPage(props){
       {text?<Text style={styles.text}>{text}</Text>: null}
       <AppButton 
         hasTVPreferredFocus={true}
-        onPress = {()=>{
+        onPress = {async ()=>{
+          console.log("Errorpage button pressed.");
+          try{
+            if(props.data){
+              let data = props.data;
 
-          if(props.data){
-            let data = props.data;
+              if(data.reload){
+                await appReload();
+              }
 
-            if(data.reload){
-              switchNetwork();
+              if(props.data && props.data.next){
+                props.navigation.replace(next[0],next[1]);
+                return;
+              }
             }
-
-            if(props.data && props.data.next){
-              props.navigation.replace(next[0],next[1]);
-              return;
-            }
+            props.navigation.goBack();
+          }catch(e){
+            console.error("Errorpage: ",e);
           }
-          props.navigation.goBack();
         }}
-        isFocused = {props.isActive}
+        isFocused = {true}
+        isActive = {true}
         text={buttonText}
       />
     </View>
@@ -182,11 +192,12 @@ export default class App extends React.Component {
       try{
         if(!this.state.platform){
           console.log("refresh");
-          this.switchNetwork(this.state.network);
+          await this.reload();
         }else{
           let sites = this.state.platform.getSites();
           if(!sites || sites.length == 0){
-            this.switchNetwork(this.state.network);
+            console.log("refresh");
+            await this.reload();
           }
         }
       }catch(e){console.error("App refresh timer: " + e);}
@@ -210,10 +221,6 @@ export default class App extends React.Component {
         return;
       }
       
-      if(evt.eventType == "focus"){
-        return;
-      }
-
       if(evt.eventType == "blur" || evt.eventType == "focus"){
         return;
       }
@@ -344,13 +351,14 @@ export default class App extends React.Component {
 
   reload =  async ()=>{
     console.time("****** App reload ******");
-    await this.handleSetState({reloadFinished:false});
-
-    let {site,ticketCode,redeemItems,network} = this.state;
     let newSite = null;
     let fabric = null;
     let platform = null;
-    //try{
+    try{
+      await this.handleSetState({reloadFinished:false});
+
+      let {site,ticketCode,redeemItems,network} = this.state;
+
       console.log("Loading network: ",network);
       if(!network){
         throw "No network specified.";
@@ -388,11 +396,14 @@ export default class App extends React.Component {
       if(this.state.site){
         console.log("Current Site: " + this.state.site.title);
       }
-    //}finally{
+      await this.handleSetState({fabric,platform, site:newSite});
+    }catch(e){
+      throw e;
+    }finally{
       console.log("Finished reload");
-      await this.handleSetState({fabric,platform, site:newSite, reloadFinished:true});
+      await this.handleSetState({reloadFinished:true});
       console.timeEnd("****** App reload ******");
-    //}
+    }
   }
 
   //Use callback to execute after setState finishes.
@@ -411,10 +422,11 @@ export default class App extends React.Component {
 
   switchNetwork = async (network)=>{
     if(!network){
-        network = "production";
+      network = "production";
     }
     console.log("App switchNetwork: " + network);
     try{
+      await this.handleSetState(defaultState);
       if(Object.keys(Config.networks).includes(network)){
         console.log("Network key is valid. Proceeding...");
         await this.handleSetState({network});
@@ -439,6 +451,7 @@ export default class App extends React.Component {
   //Internal
   redeemCode = async (fabric,site, redeemItems, tenantId,ticketCode) =>{
     console.time("* App redeemCode *");
+    console.log("RedeemCode ticketCode: " + ticketCode);
     let otpId = await fabric.redeemCode(tenantId,ticketCode);
     console.log("App redeemCode response: " + otpId);
     if(otpId != null){
@@ -446,12 +459,8 @@ export default class App extends React.Component {
       let objectId = site.objectId;
       items[objectId] = {ticketCode,tenantId,otpId};
       console.log("Redeem success. ");
-      this.setState(
-        {redeemItems:items},
-        async ()=>{
-          await this.saveState();
-        }
-      );
+      await this.handleSetState({redeemItems:items});
+      await this.saveState();
       console.timeEnd("* App redeemCode *");
       return otpId;
     }
@@ -462,7 +471,7 @@ export default class App extends React.Component {
   RenderDebug =() =>{
     try{
     let {showDebug, fabric, network} = this.state;
-    console.log("showDebug: " + showDebug);
+    //console.log("showDebug: " + showDebug);
     if(!showDebug){
       return null;
     }

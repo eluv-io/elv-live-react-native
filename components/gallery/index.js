@@ -664,9 +664,10 @@ const stylesCommon = StyleSheet.create({
     alignItems: 'center',
     justifyContent: "center",
     backgroundColor: 'rgba(0,0,0,0)',
-    top:0,
     width: "100%",
-    height: "100%"
+    height: "100%",
+    left:IMAGE_OFFSET,
+    top:0
   },
   lockIcon: {
     position: "relative",
@@ -871,8 +872,8 @@ const stylesLayout1 = StyleSheet.create({
     marginLeft:"5%",
     alignItems: 'center',
     justifyContent: 'center',
-    width: 615,
-    height: "80%",
+    width: 700,
+    height: "100%",
     resizeMode: "contain",
   },
   headerText: {

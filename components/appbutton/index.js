@@ -41,9 +41,9 @@ class AppButton extends React.Component {
     if(this.buttonRef.current){
       //console.log("Appbutton focus "+ this.props.title);
       //this.buttonRef.current.focus();
-      this.buttonRef.current.setNativeProps({
+      /*this.buttonRef.current.setNativeProps({
         hasTVPreferredFocus:true
-      });
+      });*/
     }
   }
   
@@ -51,14 +51,14 @@ class AppButton extends React.Component {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
       const {isActive, isFocused} = page.props;
-      if(!isActive && !isFocused){
+      if(!isActive || !isFocused){
         return null;
       }
       if(evt.eventType == "blur" || evt.eventType == "focus"){
         return;
       }
 
-      console.log("Appbutton event: " + evt.eventType);
+      //console.log("Appbutton event: " + evt.eventType);
 
       if (evt && evt.eventType === 'select') {
         page.onPress();
@@ -68,8 +68,9 @@ class AppButton extends React.Component {
 
   onPress = ()=>{
     const {isActive, isFocused, onPress} = this.props;
-    if(!isActive && !isFocused){
-      return null;
+    console.log("Appbutton onPress: " + isActive + " " + isFocused);
+    if(!isActive || !isFocused){
+      return;
     }
 
     this.setState({isPressed:true});
@@ -101,14 +102,14 @@ class AppButton extends React.Component {
     if(isPressed){
       buttonStyle = [styles.button,styles.buttonSelected,style];
     }
-    
+
     //We need a real button if onFocus is passed in
     if(onFocus){
       return (
         //Don't use native focusable components, it will mess up the react-native-swiper because of the focus management.
         <TouchableOpacity
           ref={this.buttonRef}
-          accessible={true}
+          //accessible={true}
           //hasTVPreferredFocus={isFocused}
           style={buttonStyle} 
           activeOpacity ={1}

@@ -117,13 +117,13 @@ class GalleryPage extends React.Component {
 
     let {currentViewIndex,data,isShowingControls} = this.state;
     if(!isShowingControls){
-      console.log("Not showing controls");
+      //console.log("Not showing controls");
       return;
     }
 
     //console.log("next() data: " + data);
     if(!data){
-      console.log("No sites for next()");
+      //console.log("No sites for next()");
       return;
     }
 

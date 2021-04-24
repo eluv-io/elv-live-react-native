@@ -219,8 +219,9 @@ class SitePage extends React.Component {
     const {platform,setAppState} = this.context;
     const {navigation, isActive} = this.props;
     const {currentViewIndex,extras} = this.state;
-
-    const views = [];
+    if(!isActive){
+      return null;
+    }
 
     let data = extras;
     //console.log("SitePage render() ");

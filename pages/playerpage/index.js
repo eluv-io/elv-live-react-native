@@ -5,7 +5,7 @@ import { isEmpty, JQ } from '../../utils';
 import Timer from '../../utils/timer';
 import AppContext from '../../AppContext'
 import ThumbGallery from '../../components/gallery/thumbgallery'
-import ThumbSelector from '../../components/thumbselector';
+import FadeInView from '../../components/fadeinview'
 import EluvioLiveLogo from '../../static/images/fulllogo.jpg'
 
 var URI = require("urijs");
@@ -43,10 +43,15 @@ class PlayerPage extends React.Component {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
       const {currentViewIndex, views, isShowingControls,playPause,progress} = page.state;
-      console.log("Player page event: " + evt.eventType);
+            
+      if(evt.eventType == "blur" || evt.eventType == "focus"){
+        return;
+      }
+
       if(isShowingControls){
         return;
       }
+      console.log("Player page event: " + evt.eventType);
 
       try{
         if (evt && evt.eventType === 'right') {
@@ -55,13 +60,13 @@ class PlayerPage extends React.Component {
 
         } else if (evt && evt.eventType === 'swipeRight') {
           if(page.videoRef.current && progress){
-            let seekTime = progress.currentTime + 10;
+            let seekTime = progress.currentTime + 30;
             console.log("Seek forward ", seekTime);
             page.videoRef.current.seek(seekTime);
           }
         } else if (evt && evt.eventType === 'swipeLeft') {
           if(page.videoRef.current && progress){
-            let seekTime = progress.currentTime - 10;
+            let seekTime = progress.currentTime - 30;
             console.log("Seek back ", seekTime);
             page.videoRef.current.seek(seekTime);
           }
@@ -151,37 +156,37 @@ class PlayerPage extends React.Component {
   }
 
   hideControls=()=>{
-    console.log("playerpage hide controls");
+    //console.log("playerpage hide controls");
     this.setState({isShowingControls:false});
   }
 
   next(){
     const {isActive} = this.props;
-    console.log("next()");
+    //console.log("next()");
     if(!isActive){
       return;
     }
 
     let {currentViewIndex,views,isShowingControls} = this.state;
-    console.log("Views: " + views.length);
+    //console.log("Views: " + views.length);
 
     if(!isShowingControls){
-      console.log("Not showing controls");
+      //console.log("Not showing controls");
       return;
     }
     
     if(!views || views.length == 0){
-      console.log("No views for next()");
+      //console.log("No views for next()");
       return;
     }
 
     if(currentViewIndex >= views.length - 1){
-      console.log("Not showing controls");
+      //console.log("Not showing controls");
       return;
     }
     
     currentViewIndex++;
-    console.log("next " + currentViewIndex + " views: " + views.length);
+    //console.log("next " + currentViewIndex + " views: " + views.length);
     this.setState({currentViewIndex});
     if(this.controlsTimer){
       this.controlsTimer.start();
@@ -202,7 +207,7 @@ class PlayerPage extends React.Component {
 
     
     if(!views || views.length == 0){
-      console.log("No views for previous()");
+      //console.log("No views for previous()");
       return;
     }
 
@@ -213,7 +218,7 @@ class PlayerPage extends React.Component {
 
   async select({item,index}){
     const {isActive} = this.props;
-    console.log("Player select " + index);
+    //console.log("Player select " + index);
     if(!isActive){
       return;
     }
@@ -226,11 +231,11 @@ class PlayerPage extends React.Component {
     let {views, channelHash, offering, sid} = this.state;
 
     if(!views || views.length == 0){
-      console.log("No views for select()");
+      //console.log("No views for select()");
       return;
     }
 
-    console.log("player channel select " + index);
+    //console.log("player channel select " + index);
     try{
       await fabric.switchChannelView({channelHash, offering, sid, view:index});
     }catch(e){
@@ -242,15 +247,16 @@ class PlayerPage extends React.Component {
     const {appReload} = this.context;
     const {navigation} = this.props;
     try{
-      this.setState(PlayerPage.defaultState);    
+      //console.log("Player reload");
       this.disableTVEventHandler();
       await appReload();
       this.enableTVEventHandler();
+      this.setState(PlayerPage.defaultState);
       await this.init();
     }catch(e){
-      console.log("Player Error reloading: "+JQ(e));
+      console.error("Player Error reloading: "+JQ(e));
       //this.setState({error:"Error reloading content."});
-      navigation.goBack(true);
+      //navigation.goBack(true);
     }
   }
 
@@ -264,19 +270,19 @@ class PlayerPage extends React.Component {
 
  async init() {
     const {site,fabric,getQueryParams,appReload,setState} = this.context;
-    console.log("SitePage init()");
+   // console.log("SitePage init()");
     try{
       let channels = await site.getLatestChannels();
 
       //let channel = site["channels"]["default"];
       let channel = channels["default"];
-      console.log("Channel: ", JQ(channel));
+      //console.log("Channel: ", JQ(channel));
 
       let channelHash = channel["."]["source"];
-      console.log("Channel hash:", channelHash);
+      //console.log("Channel hash:", channelHash);
 
       let info = await fabric.getPlayoutInfo({channelHash});
-      console.log("PlayerPage getPlayoutInfo response: " + JQ(info));
+      //console.log("PlayerPage getPlayoutInfo response: " + JQ(info));
       let sid = info.sessionId;
       let offering = info.offering;
       let videoUrl = info.playlistUrl + getQueryParams();
@@ -285,7 +291,7 @@ class PlayerPage extends React.Component {
         this.setState({error:"Error occured."});
         return;
       }
-      console.log(`player: channelHash ${channelHash}  videoUrl ${videoUrl} offering ${offering} sid ${sid} `);
+      //console.log(`player: channelHash ${channelHash}  videoUrl ${videoUrl} offering ${offering} sid ${sid} `);
       this.setState({channelHash,offering,videoUrl,sid});
     }catch(e){
       this.setState({error:"Could not get video uri. " + e});
@@ -302,7 +308,7 @@ class PlayerPage extends React.Component {
   }
 
   onProgress = (progress) =>{
-    console.log("Playerpage onProgress " + JQ(progress))
+    //console.log("Playerpage onProgress " + JQ(progress))
     this.setState({progress});
   }
 
@@ -323,7 +329,7 @@ class PlayerPage extends React.Component {
     if(error != null){
       console.log("Error loading video: " + JQ(error));
       return (
-      <View style={styles.container}>
+      <FadeInView style={styles.container}>
         <Image source={EluvioLiveLogo}
           style={
           {
@@ -344,12 +350,12 @@ class PlayerPage extends React.Component {
         >
           <Text style={styles.buttonText}>Reload</Text>
       </TouchableOpacity>
-      </View>
+      </FadeInView>
       );
     }
     
     if(!videoUrl){
-      return null;
+      return <View style={styles.container}/>;
     }
 
     try{
@@ -378,6 +384,7 @@ class PlayerPage extends React.Component {
               minLoadRetryCount={5} //default 3
               preferredForwardBufferDuration={0.5}
               onProgress={this.onProgress}
+              progressUpdateInterval={1000}
               />
               <ThumbGallery
                 isActive = {isActive}

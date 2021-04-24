@@ -179,10 +179,18 @@ export class Navigation extends React.Component {
     this.setState(state => {
       const {stack} = state;
       let newStack = stack;
+
+      console.log("Current stack: ", newStack);
+
       if (stack.length > 1) { 
         newStack = stack.slice(0, stack.length - 1)
+        console.log("New stack sliced: ", newStack);
       }
-      return {...state, stack:[...newStack,{scene:state.sceneConfig[sceneName],data}]};
+
+      newStack = [...newStack,{scene:state.sceneConfig[sceneName],data}];
+      console.log("New stack final: ", newStack);
+      
+      return {...state, stack:newStack};
     },this.animate);
   }
 
@@ -227,6 +235,9 @@ export class Navigation extends React.Component {
   }
 
   render() {
+    let activeIndex = this.state.stack.length-1;
+    console.log("active index: " + activeIndex);
+
     return (
       <View style={styles.container}>
         {this.state.stack.map(({scene,data}, index) => {
@@ -243,11 +254,12 @@ export class Navigation extends React.Component {
           }
           */
 
+
           return (
             <FadeInView key={index} style={styles.scene}>
               <CurrentScene
                 navigation={this}
-                isActive={index == this.state.stack.length-1}
+                isActive={index == activeIndex}
                 data={data}
               />
             </FadeInView>
@@ -266,5 +278,6 @@ const styles = StyleSheet.create({
   scene: {
     ...StyleSheet.absoluteFillObject,
     flex: 1,
+    backgroundColor:"black"
   },
 });

@@ -45,7 +45,7 @@ class ElvPlatform {
         ...this.siteParams
       });
 
-      //console.log("Platform info: "+ JQ(this.siteInfo.asset_metadata[eventsKey]));
+      //console.log("Platform info: "+ JQ(this.siteInfo));
 
       this.siteInfo.baseLinkUrl = await this.fabric.baseUrl({...this.siteParams});
       let baseURI = URI(this.siteInfo.baseLinkUrl);
@@ -68,10 +68,11 @@ class ElvPlatform {
           let item = sites[index];
           let key = Object.keys(item)[0]
           let site = sites[index][key];
+          console.log("Parsing site: " + site.title);
           site.metaDataPath = `public/asset_metadata/${eventsKey}/${index}/${key}`;
           site = await this.resolveSite(site,key);
           site.getLatestChannels = async()=>{
-          console.log("site getLatestChannels " + site.versionHash);
+            console.log("site getLatestChannels " + site.versionHash);
             let siteInfo = await this.fabric.getContent({
               versionHash:site.versionHash,
               path:"/meta/public/asset_metadata"
@@ -90,9 +91,9 @@ class ElvPlatform {
 
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error("Failed to load platform:");
-      // eslint-disable-next-line no-console
-      console.error(error);
+      console.error("Failed to load platform: " + error);
+      console.error(this.siteInfo);
+      throw error;
     }finally{
       console.timeEnd("* Platform load *");
     }
@@ -110,7 +111,10 @@ class ElvPlatform {
   resolveSite = async (site,key) =>{
     
     site.versionHash = site["."].source;
+    console.log("resolveSite: " + site.versionHash);
+
     site.objectId = decodeVersionHash(site.versionHash).objectId;
+    console.log("objectId: " + site.objectId);
     //Expensive:
     //site.libraryId = await this.client.ContentObjectLibraryId({objectId:site.objectId});
     site.slug = key;
