@@ -42,7 +42,7 @@ import DeviceInfo from 'react-native-device-info';
 import uuid from 'react-native-uuid';
 
 const APP_STORAGE_KEY = "@eluvio_live";
-const APP_VERSION = "1.0.34";
+const APP_VERSION = "1.0.35";
 
 const isHermes = () => !!global.HermesInternal;
 
@@ -516,7 +516,7 @@ export default class App extends React.Component {
   }
 
   render() {
-    const {fabric, site, platform, redeemItems,showDebug,reloadFinished} = this.state;
+    const {fabric, site, platform, redeemItems,showDebug,reloadFinished,network} = this.state;
 
     //FIXME: Find working spinner
 /*
@@ -541,6 +541,7 @@ export default class App extends React.Component {
           platform,
           redeemItems,
           showDebug,
+          network,
           getQueryParams:this.getQueryParams,
           setAppState:this.handleSetState,
           appReload:this.reload,

@@ -44,9 +44,10 @@ class ConfigPage extends React.Component {
   }
 
   renderItem=(props)=>{
-    let {item, index, separator, onFocus, onPress, isFocused,otherProps} = props;
+    let {item, index, separator, onFocus, onPress, isFocused,network,otherProps} = props;
     let buttonStyle = isFocused? [styles.item,styles.itemFocus]:styles.item;
-    console.log("Config render item: " + item.key);
+    console.log("Config render item: " + item.key + " network: " + network);
+    let isSelected = network == item.key;
     return(
       <TouchableOpacity
           style={buttonStyle} 
@@ -54,8 +55,9 @@ class ConfigPage extends React.Component {
           onFocus={onFocus}
           onPress={onPress}
           {...otherProps}
+          hasTVPreferredFocus={isSelected}
         >
-        <Text style={styles.itemText}>{item.key}</Text>
+        <Text style={isSelected ? [styles.itemText,styles.selected]: styles.itemText}>{item.key}</Text>
       </TouchableOpacity>
     );
   }
@@ -66,7 +68,7 @@ class ConfigPage extends React.Component {
     }
     try{
       let {focused,list} = this.state;
-      let {switchNetwork} = this.context;
+      let {switchNetwork,network} = this.context;
       const {navigation} = this.props;
     
       console.log("SwitchConfiguration render");
@@ -78,6 +80,7 @@ class ConfigPage extends React.Component {
           data={list}
           renderItem={({item}) => this.renderItem({
           item,
+          network,
           isFocused:focused == item.key,
           onFocus:()=>{
             console.log("focused: " + item.key);
@@ -155,9 +158,13 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica",
     textAlign: 'center',
     margin:10,
-    color: '#fff',
     fontSize: 36,
     fontWeight: "300"
+  },
+  selected: {
+    color: '#ca00a7',
+    fontSize: 36,
+    fontWeight: "500"
   },
   item: {
     padding: 10,

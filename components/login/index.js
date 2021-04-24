@@ -148,7 +148,7 @@ class Login extends React.Component {
                 }}
               />
               <LoginInput
-                secureTextEntry={true}
+                secureTextEntry={false}
                 placeholder="Ticket Code"
                 placeholderTextColor="white"
                 value = {code}
