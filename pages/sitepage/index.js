@@ -32,8 +32,6 @@ class SitePage extends React.Component {
     this.subscribed = false;
 
     this.select = this.select.bind(this);
-    this.updateInterval = setInterval(this.onUpdate,
-      1000);
   }
 
   onUpdate = async ()=>{
@@ -47,8 +45,8 @@ class SitePage extends React.Component {
 
   async componentDidMount() {
     console.log("Sitepage componentDidMount");
-    let extras = await this.getExtras();
-    this.setState({extras});
+    this.updateInterval = setInterval(this.onUpdate,
+      1000);
   }
 
   getExtras = async () => {
