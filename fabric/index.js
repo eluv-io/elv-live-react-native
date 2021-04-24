@@ -34,8 +34,6 @@ export default class Fabric {
       this.anonymousToken = base64.encode(JSON.stringify(token));
       console.log("Static Token: " + this.anonymousToken);
       this.configUrl = configUrl;
-    }catch(e){
-      console.error("Could not create static token: " + e);
     }finally{
       console.timeEnd("Fabric Init");
     }

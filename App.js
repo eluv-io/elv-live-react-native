@@ -6,14 +6,15 @@
  * @flow strict-local
  */
 // import 'react-native-gesture-handler';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useContext} from 'react';
 
 import ReactNative, {
   StyleSheet,
   View,
   Text,
   Image,
-  AppState
+  AppState,
+  TVEventHandler
 } from 'react-native';
 
 import GalleryPage from './pages/gallerypage'
@@ -23,11 +24,12 @@ import SitePage from './pages/sitepage'
 import PlayerPage from './pages/playerpage'
 import MainPage from './pages/mainpage'
 import PresentsPage from './pages/presentspage'
+import ConfigPage from './pages/configpage'
 import Fabric from './fabric';
 import Config from './config.json';
 import AppContext, {initialState} from './AppContext'
 import { Navigation, Route } from './components/navigation';
-import {JQ, isEmpty} from './utils'
+import {JQ, isEmpty,endsWithList} from './utils'
 import Timer from './utils/timer';
 import Video from 'react-native-video';
 import BackgroundVideo from './static/videos/EluvioLive.mp4'
@@ -60,50 +62,57 @@ function LoginPage(props) {
 }
 
 function ErrorPage(props){
-  //let next = props.data;
-  //console.log("ErrorPage: " + JQ(props.data));
- 
-  //if(isEmpty(text)){
-  //  text = "An Unexpected error occured. Press to continue.";
-  //}
+  const {switchNetwork} = useContext(AppContext);
 
   let text = null;
   if(props.data && props.data.text){
     text = props.data.text;
   }
 
+  let buttonText = "Continue";
+  if(props.data && props.data.reload){
+    buttonText = "Reload";
+  }
+
   return (
     <View style={styles.background}>
-      {text?<Text style={styles.text}>{text}</Text>:
       <Image source={EluvioLiveLogo}
         style={
-        {
-          width:"100%",
-          height:300,
-          marginTop:-50,
-          marginBottom:50,
+          {
+            width:"100%",
+            height:300,
+            marginTop:-50,
+            marginBottom:20,
+          }
         }
-        }
-      />}
+      />
+      {text?<Text style={styles.text}>{text}</Text>: null}
       <AppButton 
         hasTVPreferredFocus={true}
         onPress = {()=>{
-          if(props.data && props.data.next){
-            props.navigation.replace(next[0],next[1]);
-            return;
+
+          if(props.data){
+            let data = props.data;
+
+            if(data.reload){
+              switchNetwork();
+            }
+
+            if(props.data && props.data.next){
+              props.navigation.replace(next[0],next[1]);
+              return;
+            }
           }
           props.navigation.goBack();
         }}
         isFocused = {props.isActive}
-        text="Continue"
+        text={buttonText}
       />
     </View>
   );
 }
 
 function ProgressPage(props){
-  console.log("ProgressPage.");
- 
   return (
     <View style={styles.background}>
     <Spinner
@@ -142,7 +151,8 @@ let defaultState = {
   platform:null,
   fabric: null,
   reloadFinished: false,
-  showDebug:false
+  showDebug:false,
+  network: "production"
 };
 
 export default class App extends React.Component {
@@ -150,10 +160,11 @@ export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = defaultState;
-
+    this.navigationRef = React.createRef();
     this.reload = this.reload.bind(this);
     LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
     LogBox.ignoreAllLogs();
+    this.tvEventHandler = null;
     this.appState = null;
     this.sessionTag = uuid.v4();
     console.log("Using Hermes engine? " + isHermes());
@@ -169,28 +180,88 @@ export default class App extends React.Component {
     AppState.addEventListener("change", this._handleAppStateChange);
     refreshTimer= Timer(async () => {
       try{
-
         if(!this.state.platform){
-
           console.log("refresh");
-          this.reload();
+          this.switchNetwork(this.state.network);
         }else{
           let sites = this.state.platform.getSites();
           if(!sites || sites.length == 0){
-            this.reload();
+            this.switchNetwork(this.state.network);
           }
         }
       }catch(e){console.error("App refresh timer: " + e);}
     }, 1000);
     refreshTimer.start();
-
+    this.enableTVEventHandler();
     console.log("Session params: " + this.getQueryParams());
+
   }
 
   componentWillUnmount = ()=>{
     AppState.removeEventListener("change");
     console.log("App will unmount.");
+    this.disableTVEventHandler();
   }
+
+  enableTVEventHandler = () => {
+    this.tvEventHandler = new TVEventHandler();
+    this.tvEventHandler.enable(this, async function (page, evt) {
+      if(isEmpty(evt)){
+        return;
+      }
+      
+      if(evt.eventType == "focus"){
+        return;
+      }
+
+      if(evt.eventType == "blur" || evt.eventType == "focus"){
+        return;
+      }
+
+      if(typeof evt.eventType  === 'string' || evt.eventType instanceof String){
+        if(!page.remoteEvents){
+          page.remoteEvents = [];
+        }
+        page.remoteEvents.push(evt.eventType.toLowerCase());
+        //console.log("Current events: " + JQ(this.remoteEvents));
+        if(page.remoteEvents.length > 10){
+          page.remoteEvents.shift();
+        }
+
+        let cheatcodeClear = ["longSelect","left","right","left","right","longSelect"];
+        if(endsWithList(page.remoteEvents,cheatcodeClear)){
+          console.log("!!!!!! Cheatcode cleardata activated! " + JQ(page.remoteEvents));
+          await page.clearData();
+          page.forceUpdate();
+          return;
+        }
+
+        let cheatcodeDebug = ["longSelect","up","up","up","up","longSelect"];
+        if(endsWithList(page.remoteEvents,cheatcodeDebug)){
+          console.log("!!!!!! Cheatcode debug activated! " + JQ(page.remoteEvents));
+          let showDebug = page.state.showDebug;
+          await page.handleSetState({showDebug:!showDebug});
+          return;
+        }
+
+        let cheatcodeConfig = ["longSelect","down","down","down","down","longSelect"];
+        if(endsWithList(page.remoteEvents,cheatcodeConfig)){
+          console.log("!!!!!! Cheatcode config activated! " + JQ(page.remoteEvents));
+          page.navigationRef.current.navigate("config");
+          return;
+        }
+      }
+      
+    });
+  }
+
+  disableTVEventHandler = () => {
+    if (this.tvEventHandler) {
+      this.tvEventHandler.disable();
+      delete this.tvEventHandler;
+    }
+  }
+
 
   getQueryParams = ()=>{
     return `&session_id=${encodeURIComponent(this.sessionTag)}&app_id=${encodeURIComponent(DeviceInfo.getBundleId())}&app_version=${encodeURIComponent(APP_VERSION)}&system_version=${encodeURIComponent(DeviceInfo.getSystemVersion())}`;
@@ -234,12 +305,11 @@ export default class App extends React.Component {
     console.time("****** App clearData ******");
     try {
       //TODO: Confirmation dialog?
-
       await DefaultPreference.set(APP_STORAGE_KEY, "");
       await this.loadState();
-      await this.reload();
+      await this.switchNetwork();
     } catch (e) {
-      console.error("Could not clear app data.");
+      console.error("Could not clear app data." + e);
     } finally {
       console.timeEnd("****** App clearData ******");
     }
@@ -276,41 +346,53 @@ export default class App extends React.Component {
     console.time("****** App reload ******");
     await this.handleSetState({reloadFinished:false});
 
-    let {site,ticketCode,redeemItems} = this.state;
-    console.log("Redeem items: ",redeemItems);
-    let {fabric,platform} = await initPlatform("demo");
+    let {site,ticketCode,redeemItems,network} = this.state;
     let newSite = null;
-    if(site && platform && fabric && ticketCode){
-      console.log("Site before reload: " + site.title);
-      let tenantId = site.info.tenant_id;
-      let status = await this.redeemCode(fabric,site,redeemItems,tenantId,ticketCode);
-      if(!status){
-        console.error("Error redeeming site. Invalid code.");
-        throw "Error redeeming site";
+    let fabric = null;
+    let platform = null;
+    //try{
+      console.log("Loading network: ",network);
+      if(!network){
+        throw "No network specified.";
       }
-      
-      platform.setFabric(fabric);
-      await platform.load();
-      
-      let sites =  platform.getSites();
-      for(index in sites){
-        let test = sites[index];
-        if(test.objectId && test.objectId == site.objectId){
-          console.log("******** newSite found ***********");
-          newSite = test;
-          break;
-        }
-      }
-    }else{
-      platform.setFabric(fabric);
-      await platform.load();
-    }
 
-    await this.handleSetState({fabric,platform, site:newSite, reloadFinished:true});
-    console.timeEnd("****** App reload ******");
-    if(this.state.site){
-      console.log("Current Site: " + this.state.site.title);
-    }
+      let res = await initPlatform(network);
+      fabric = res.fabric;
+      platform = res.platform;
+      if(site && platform && fabric && ticketCode){
+        console.log("Site before reload: " + site.title);
+        let tenantId = site.info.tenant_id;
+        let status = await this.redeemCode(fabric,site,redeemItems,tenantId,ticketCode);
+        if(!status){
+          console.error("Error redeeming site. Invalid code.");
+          throw "Error redeeming site";
+        }
+        
+        platform.setFabric(fabric);
+        await platform.load();
+        
+        let sites =  platform.getSites();
+        for(index in sites){
+          let test = sites[index];
+          if(test.objectId && test.objectId == site.objectId){
+            console.log("******** newSite found ***********");
+            newSite = test;
+            break;
+          }
+        }
+      }else{
+        platform.setFabric(fabric);
+        await platform.load();
+      }
+
+      if(this.state.site){
+        console.log("Current Site: " + this.state.site.title);
+      }
+    //}finally{
+      console.log("Finished reload");
+      await this.handleSetState({fabric,platform, site:newSite, reloadFinished:true});
+      console.timeEnd("****** App reload ******");
+    //}
   }
 
   //Use callback to execute after setState finishes.
@@ -322,11 +404,33 @@ export default class App extends React.Component {
   //You can use async/await now
   handleSetState = (state)=>{
     return new Promise((resolve) => {
-      console.log("handleSetState: " + JQ(state.showDebug));
+      //console.log("handleSetState: " + JQ(state.showDebug));
       this.setState(state, resolve);
     });
   }
 
+  switchNetwork = async (network)=>{
+    if(!network){
+        network = "production";
+    }
+    console.log("App switchNetwork: " + network);
+    try{
+      if(Object.keys(Config.networks).includes(network)){
+        console.log("Network key is valid. Proceeding...");
+        await this.handleSetState({network});
+        await this.reload();
+        this.navigationRef.current.loadDefault();
+        return true;
+      }
+    }catch(e){
+      console.error("SwitchNetwork: " + e)
+      if(this.navigationRef.current){
+        //console.error("Navigating to error:");
+        this.navigationRef.current.replace("error",{text:"Could not reach Eluvio Live. Check your connection and try again.",reload:true});
+        return false;;
+      }
+    }
+  }
 
   getRedeemedCodes = () =>{
     return this.state.redeemItems;
@@ -357,11 +461,17 @@ export default class App extends React.Component {
 
   RenderDebug =() =>{
     try{
-    let {showDebug, fabric} = this.state;
+    let {showDebug, fabric, network} = this.state;
     console.log("showDebug: " + showDebug);
     if(!showDebug){
       return null;
     }
+
+    let debugText = {
+      textAlign:"right",
+      color:"white",
+      fontSize: 20
+    };
 
     return (
       <View 
@@ -376,22 +486,19 @@ export default class App extends React.Component {
         }}
       >
       <Text 
-        style={{
-          textAlign:"right",
-          color:"white",
-          fontSize: 20
-        }}
+        style={debugText}
         >
         {"QueryParams: "+this.getQueryParams()}
       </Text>
       <Text 
-        style={{
-          textAlign:"right",
-          color:"white",
-          fontSize: 20
-        }}
+        style={debugText}
         >
         {"QFab: "+fabric.baseUrl({})}
+      </Text>
+      <Text 
+        style={debugText}
+        >
+        {"Network: "+network}
       </Text>
       </View>
     );
@@ -403,7 +510,7 @@ export default class App extends React.Component {
     const {fabric, site, platform, redeemItems,showDebug,reloadFinished} = this.state;
 
     //FIXME: Find working spinner
-
+/*
     if(isEmpty(platform)){
       return (
       <View style={styles.container}>
@@ -415,7 +522,8 @@ export default class App extends React.Component {
         </View>
       );
     }
-    
+    */
+
     return (
       <AppContext.Provider value={
         {
@@ -428,19 +536,21 @@ export default class App extends React.Component {
           setAppState:this.handleSetState,
           appReload:this.reload,
           appClearData: this.clearData,
+          switchNetwork: this.switchNetwork,
           reloadFinished: reloadFinished
           }
         }
         >
-        <Navigation default="main">
+        <Navigation ref={this.navigationRef} default="main">
             <Route name="main" component={MainPage} />
             <Route name="redeem" component={LoginPage} />
             <Route name="site" component={SitePage} />
             <Route name="player" component={PlayerPage} />
             <Route name="gallery" component={GalleryPage} />
             <Route name="presents" component={PresentsPage} />
+            <Route name="config" component={ConfigPage} />
+            <Route name="progress" component={ProgressPage} />            
             <Route name="error" component={ErrorPage} />
-            <Route name="progress" component={ProgressPage} />
         </Navigation>
         <this.RenderDebug />
       </AppContext.Provider>

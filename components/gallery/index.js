@@ -361,11 +361,11 @@ class Gallery extends React.Component {
 
     try{
       if(item.videoUrl){
-        console.log("Gallery item.videoUrl " + item.videoUrl);
+        //console.log("Gallery item.videoUrl " + item.videoUrl);
         return(
           <FadeInView duration={500} style={styles.fade}>
             <Video
-              style={styles.mainImage}
+              style={styles.mainVideo}
               source={{
                 uri: item.videoUrl
               }}
@@ -658,6 +658,15 @@ const stylesCommon = StyleSheet.create({
     width: "100%",
     justifyContent: "center",
     marginLeft: 20
+  },
+  mainVideo: {
+    position: "absolute",
+    alignItems: 'center',
+    justifyContent: "center",
+    backgroundColor: 'rgba(0,0,0,0)',
+    top:0,
+    width: "100%",
+    height: "100%"
   },
   lockIcon: {
     position: "relative",

@@ -182,19 +182,21 @@ class Login extends React.Component {
                   navigation.navigate("progress");
                   console.log("Submit: reloadingApp");
                   await appReload();
+                  //navigation.loadDefault();
                   if(!this.props.data){
                     //TODO: go directly to playerpage if site is available to play
                     console.log("Submit: navigation to site");
+                    navigation.navigate("site");
                     navigation.removeUnder();
-                    navigation.replace("site");
                   }else{
                     console.log("Submit: navigation to site with data.");
+                    navigation.navigate("site",{...this.props.data});
                     navigation.removeUnder();
-                    navigation.replace("site",{...this.props.data});
                   }
                 }catch(e){
                   console.error("Error redeeming ticket: " + e);
                   navigation.replace("error", {text:"Could not redeem ticket."});
+                  navigation.removeUnder();
                 }
               }}
               onFocus={()=>{this.setState({focused:"enter"})}}
@@ -205,7 +207,7 @@ class Login extends React.Component {
         </View>
       );
     }catch(e){
-      navigation.navigate("main");
+      navigation.loadDefault();
       return(null);
     }
   }

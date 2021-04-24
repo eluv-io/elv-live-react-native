@@ -3,18 +3,25 @@
     "production": {
       "configUrl": "https://main.net955305.contentfabric.io/config",
       "platform":{
-        "libraryId": "",
+        "libraryId": "ilib2GdaYEFxB7HyLPhSDPKMyPLhV8x9",
         "objectId": "iq__suqRJUt2vmXsyiWS5ZaSGwtFU9R"
       }
     },
     "staging": {
-      "configUrl": "https://demov3.net955210.contentfabric.io/config",
+      "configUrl": "https://main.net955305.contentfabric.io/config",
       "platform":{
-        "libraryId": "ilib36Wi5fJDLXix8ckL7ZfaAJwJXWGD",
+        "libraryId": "ilib2GdaYEFxB7HyLPhSDPKMyPLhV8x9",
         "objectId": "iq__inauxD1KLyKWPHargCWjdCh2ayr"
       }
     },
     "demo": {
+      "configUrl": "https://demov3.net955210.contentfabric.io/config",
+      "platform":{
+        "libraryId": "ilib36Wi5fJDLXix8ckL7ZfaAJwJXWGD",
+        "objectId": "iq__3CXH4CDJxX76wCV6YkfEqVmSxmHp"
+      }
+    },
+    "dev": {
       "configUrl": "https://demov3.net955210.contentfabric.io/config",
       "platform":{
         "libraryId": "ilib36Wi5fJDLXix8ckL7ZfaAJwJXWGD",

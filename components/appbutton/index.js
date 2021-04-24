@@ -101,8 +101,7 @@ class AppButton extends React.Component {
     if(isPressed){
       buttonStyle = [styles.button,styles.buttonSelected,style];
     }
-
-    console.log("####### AppButton: " + this.props.title + " " + isFocused);
+    
     //We need a real button if onFocus is passed in
     if(onFocus){
       return (
@@ -114,6 +113,7 @@ class AppButton extends React.Component {
           style={buttonStyle} 
           activeOpacity ={1}
           onFocus={onFocus}
+          onPress={onPress}
           {...otherProps}
         >
           <Text style={styles.buttonText}>{text}</Text>

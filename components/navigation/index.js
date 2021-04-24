@@ -32,12 +32,12 @@ export class Navigation extends React.Component {
   constructor(props) {
     super(props);
 
-    const sceneConfig = buildSceneConfig(props.children);
-    const initialSceneName = props.default || props.children[0].props.name;
+    sceneConfig = buildSceneConfig(props.children);
+    this.initialSceneName = props.default || props.children[0].props.name;
 
     this.state = {
       sceneConfig,
-      stack: [{scene:sceneConfig[initialSceneName],data:null}],
+      stack: [{scene:sceneConfig[this.initialSceneName],data:null}],
     };
 
     // Holds {sceneName, data} to be shown after a timeout or keypress
@@ -145,6 +145,7 @@ export class Navigation extends React.Component {
   }
 
   navigate = (sceneName, data=null) => {
+    console.log("navigation navigate " + sceneName);
     if(sceneName != "main"){
       //Needed or else the app with exit with the menu key during other screens than main.
       TVMenuControl.enableTVMenuKey();
@@ -163,6 +164,7 @@ export class Navigation extends React.Component {
   }
 
   replace = (sceneName, data=null) => {
+    console.log("navigation replace " + sceneName);
     if(sceneName != "main"){
       //Needed or else the app with exit with the menu key during other screens than main.
       TVMenuControl.enableTVMenuKey();
@@ -180,7 +182,6 @@ export class Navigation extends React.Component {
       if (stack.length > 1) { 
         newStack = stack.slice(0, stack.length - 1)
       }
-
       return {...state, stack:[...newStack,{scene:state.sceneConfig[sceneName],data}]};
     },this.animate);
   }
@@ -208,24 +209,28 @@ export class Navigation extends React.Component {
     });
   }
 
-  //Removes the scene under the current one.
+  //Removes the all scenes up to the first one, under the current one.
   removeUnder = () => {
     this.setState(state => {
       const {stack} = state;
       if (stack.length > 1) {
         return {
-          stack: [...stack.slice(0, stack.length - 2),stack[stack.length-1]]
+          stack: [stack[0],stack[stack.length-1]]
         };
       }
       return state;
     });
   }
 
+  loadDefault = () => {
+    this.setState({stack: [{scene:this.state.sceneConfig[this.initialSceneName],data:null}]});
+  }
+
   render() {
     return (
       <View style={styles.container}>
         {this.state.stack.map(({scene,data}, index) => {
-          console.log(`Navigation render: ${index} ${scene}`);
+          console.log(`Navigation render: ${index} ${scene.key}`);
           if(!scene){
             return null;
           }

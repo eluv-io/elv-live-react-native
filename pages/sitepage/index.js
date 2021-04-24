@@ -72,9 +72,14 @@ class SitePage extends React.Component {
       main.logo = site.tv_main_logo;
       main.objectId = site.objectId;
       main.isAccessible = site.info.accessible;
-      main.videoUrl = await site.createPromoUrl();
+      if(!site.promoVideoUrl){
+        main.videoUrl = await site.createPromoUrl();
+        site.promoVideoUrl = main.videoUrl;
+      }else{
+        main.videoUrl=site.promoVideoUrl;
+      }
 
-      console.log("<<<<<<<<<<<<<<<<<<< SitePage loading site: " + JQ(main));
+      //console.log("<<<<<<<<<<<<<<<<<<< SitePage loading site: " + JQ(main));
       
       let date = null;
       let dateString = null;

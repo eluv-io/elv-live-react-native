@@ -281,6 +281,8 @@ PODS:
     - React-Core (= 0.63.4-0)
     - React-cxxreact (= 0.63.4-0)
     - React-jsi (= 0.63.4-0)
+  - RNCPicker (1.15.0):
+    - React-Core
   - RNDefaultPreference (1.4.3):
     - React
   - RNDeviceInfo (8.1.2):
@@ -331,6 +333,7 @@ DEPENDENCIES:
   - React-RCTSettings (from `../node_modules/react-native/Libraries/Settings`)
   - React-RCTText (from `../node_modules/react-native/Libraries/Text`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNDefaultPreference (from `../node_modules/react-native-default-preference`)
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNTVOSController (from `../node_modules/react-native-tvos-controller`)
@@ -408,6 +411,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/Text"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNCPicker:
+    :path: "../node_modules/@react-native-picker/picker"
   RNDefaultPreference:
     :path: "../node_modules/react-native-default-preference"
   RNDeviceInfo:
@@ -458,6 +463,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: 5cd325d709b78968dcb6123c0d84ebbe16ff2b98
   React-RCTText: c14fecaa52f682ffc920d21dc06accee58ac0475
   ReactCommon: d8af14f3e586d78c8e8443e32fedb4c2eb745402
+  RNCPicker: 5256da29a92406cac439ac6605719e233714a86a
   RNDefaultPreference: 2f8d6d54230edbd78708ada8d63bb275e5a8415b
   RNDeviceInfo: 3266783bcb6aa4b0c785d6080a407f8a5fc68326
   RNTVOSController: 50806e5e5140685c9b74560f65adca10904d0dd7

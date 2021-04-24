@@ -43,6 +43,9 @@ class MainPage extends React.Component {
   loadSiteData = ()=>{
     console.log("MainPage loadSiteData");
     const {platform,redeemItems} = this.context;
+    if(!platform){
+      return [];
+    }
 
     let sites = platform.getSites();
     siteData = [];
@@ -120,6 +123,7 @@ class MainPage extends React.Component {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
       const {currentViewIndex, views, isShowingExtras} = page.state;
+      const {navigation} = page.props;
       const {appClearData,showDebug,setAppState} = page.context;
 
       const {isActive} = page.props;
@@ -133,32 +137,6 @@ class MainPage extends React.Component {
 
       if(evt.eventType == "blur" || evt.eventType == "focus"){
         return;
-      }
-
-      if(typeof evt.eventType  === 'string' || evt.eventType instanceof String){
-        if(!this.remoteEvents){
-          this.remoteEvents = [];
-        }
-        this.remoteEvents.push(evt.eventType.toLowerCase());
-        //console.log("Current events: " + JQ(this.remoteEvents));
-        if(this.remoteEvents.length > 10){
-          this.remoteEvents.shift();
-        }
-
-        let cheatcodeClear = ["playpause","playpause","playpause","left","right","left","right"];
-        if(endsWithList(this.remoteEvents,cheatcodeClear)){
-          console.log("!!!!!! Cheatcode cleardata activated! " + JQ(this.remoteEvents));
-          await appClearData();
-          page.forceUpdate();
-          return;
-        }
-
-        let cheatcodeDebug = ["playpause","playpause","playpause","up","up","up","up"];
-        if(endsWithList(this.remoteEvents,cheatcodeDebug)){
-          console.log("!!!!!! Cheatcode debug activated! " + JQ(this.remoteEvents));
-          setAppState({showDebug:!showDebug});
-          return;
-        }
       }
       
       if(isShowingExtras){
@@ -379,7 +357,11 @@ class MainPage extends React.Component {
     const {currentViewIndex,isShowingExtras} = this.state;
     //console.log("Mainpage>>>render");
     let siteData = this.loadSiteData();
-
+    if(isEmpty(siteData))
+    {
+      return null;
+    }
+/*
     if(isEmpty(siteData)){
       return (
         <View style={styles.background}>
@@ -391,7 +373,7 @@ class MainPage extends React.Component {
         </View>
       );
     }
-
+*/
     let data = siteData;
     let extras = null;
     try{

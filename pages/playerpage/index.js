@@ -349,11 +349,7 @@ class PlayerPage extends React.Component {
     }
     
     if(!videoUrl){
-      return (
-      <View style={styles.container}>
-        <Text style={styles.text}>Loading...</Text>
-      </View>
-      );
+      return null;
     }
 
     try{

@@ -159,8 +159,8 @@ class ElvPlatform {
             fabricLink
           });
 
-          console.log("PlayoutOptions response: " + JQ(playoutOptions));
-          console.log("Promo VideoUrl: " + videoUrl);
+          //console.log("PlayoutOptions response: " + JQ(playoutOptions));
+          //console.log("Promo VideoUrl: " + videoUrl);
           return videoUrl;
       }catch(e){console.log("Site createPromoUrl " + e)}
       return null;

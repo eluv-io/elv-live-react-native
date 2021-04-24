@@ -56,7 +56,8 @@ console.log('crypto: ' + crypto);
 
 ## Cheatcodes
 
-Here are sequences of remote actions to activate some advanced/development functionality. Make sure you're at the first screen when performing these sequences.
+Here are sequences of remote actions to activate some advanced/development functionality.
 
-1. Clearing database - "playpause","playpause","playpause","left","right","left","right"
-2. Toggle debug - "playpause","playpause","playpause","up","up","up","up"
+1. Clearing database - "longSelect","left","right","left","right","longSelect"
+2. Toggle debug - "longSelect","up","up","up","up","longSelect"
+3. Switch networks - "longSelect","down","down","down","down","longSelect"
