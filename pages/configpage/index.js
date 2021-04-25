@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     borderRadius: 5
   },
   itemFocus: {
-    backgroundColor: "grey",
+    backgroundColor: "rgba(100,100,100,.3)",
     opacity:1.0
   },
   buttonStyle: {

@@ -76,10 +76,14 @@ class AppButton extends React.Component {
     this.setState({isPressed:true});
     let pressedTimer = Timer(() => {
       this.setState({isPressed:false});
+      if(!isActive || !isFocused){
+        return;
+      }
+
       if(onPress){
         onPress();
       }
-    }, 200);
+    }, 100);
     pressedTimer.start();
   }
 
@@ -98,6 +102,8 @@ class AppButton extends React.Component {
       return null;
     }
 
+    //console.log("Button " + otherProps.title + " " + isFocused );
+
     let buttonStyle = isFocused? [styles.button,styles.buttonFocused,style]: [styles.button, style];
     if(isPressed){
       buttonStyle = [styles.button,styles.buttonSelected,style];
@@ -110,7 +116,7 @@ class AppButton extends React.Component {
         <TouchableOpacity
           ref={this.buttonRef}
           //accessible={true}
-          //hasTVPreferredFocus={isFocused}
+          hasTVPreferredFocus={isFocused}
           style={buttonStyle} 
           activeOpacity ={1}
           onFocus={onFocus}

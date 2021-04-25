@@ -7,6 +7,7 @@ import AppContext from '../../AppContext'
 import ThumbGallery from '../../components/gallery/thumbgallery'
 import FadeInView from '../../components/fadeinview'
 import EluvioLiveLogo from '../../static/images/fulllogo.jpg'
+import { isThisHour } from 'date-fns';
 
 var URI = require("urijs");
 
@@ -43,8 +44,9 @@ class PlayerPage extends React.Component {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
       const {currentViewIndex, views, isShowingControls,playPause,progress} = page.state;
+      const {isActive} = page.props;
             
-      if(evt.eventType == "blur" || evt.eventType == "focus"){
+      if(!isActive || evt.eventType == "blur" || evt.eventType == "focus"){
         return;
       }
 
@@ -269,7 +271,7 @@ class PlayerPage extends React.Component {
   }
 
  async init() {
-    const {site,fabric,getQueryParams,appReload,setState} = this.context;
+    const {site,fabric,getQueryParams} = this.context;
    // console.log("SitePage init()");
     try{
       let channels = await site.getLatestChannels();
@@ -282,17 +284,19 @@ class PlayerPage extends React.Component {
       //console.log("Channel hash:", channelHash);
 
       let info = await fabric.getPlayoutInfo({channelHash});
-      //console.log("PlayerPage getPlayoutInfo response: " + JQ(info));
+      console.log("PlayerPage getPlayoutInfo response: " + JQ(info));
       let sid = info.sessionId;
       let offering = info.offering;
       let videoUrl = info.playlistUrl + getQueryParams();
+      let multiview = info.multiview;
+      let showMultiview = multiview != null && multiview != undefined;
 
       if(!videoUrl){
         this.setState({error:"Error occured."});
         return;
       }
       //console.log(`player: channelHash ${channelHash}  videoUrl ${videoUrl} offering ${offering} sid ${sid} `);
-      this.setState({channelHash,offering,videoUrl,sid});
+      this.setState({channelHash,offering,videoUrl,sid, showMultiview});
     }catch(e){
       this.setState({error:"Could not get video uri. " + e});
     }
@@ -312,8 +316,25 @@ class PlayerPage extends React.Component {
     this.setState({progress});
   }
 
+  RenderHints =(props)=>{
+    let isVisible = props.visible;
+    if(!isVisible){
+      return null;
+    }
+
+    return null; ///XXX: Not implemented yet until later release.
+/*
+    return(
+      <FadeInView style={styles.hints} fadeOut={true}>
+        <Text style={styles.hintsText}>Swipe up for views</Text>
+      </FadeInView>
+    );
+*/
+
+  }
+
   render() {
-    let {videoUrl, views, error, isShowingControls,volume,playPause} = this.state;
+    let {videoUrl, views, error, isShowingControls,showMultiview,playPause} = this.state;
     const {isActive,navigation} = this.props;
     //console.log("PlayerPage: videoUrl " + videoUrl + " error: " +  JQ(error) + " isActive " + isActive + " isShowingControls: " + isShowingControls);
 
@@ -323,8 +344,6 @@ class PlayerPage extends React.Component {
     //VOD
     //videoUrl = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8";
     //videoUrl = "https://storage.googleapis.com/gaetan/hls.js/master-fmp4-bug.m3u8";
-    //videoUrl = "https://host-66-220-3-86.contentfabric.io/q/hq__KcdB8hztcqY5PNn9D978PyHR8AxyiHkeiKmLNxMof4b4skhy9NSaVJaQ8XWus6Dx19SWPGzCbn/rep/playout/default/hls-clear/playlist.m3u8?authorization=eyJ0b2siOiJhc2Nzal9hZ2UzMkFlMVJ6WXJEWnNOWDFaTUgxd2FnbUI2Z1Boc2hzdlM3Zkx0WG9rcnJ0WWNEVlY2d1hzN2dnTmlhemp1RFdBRVZRcER6VjEyVmlTeXN0VGZSSjJUcXFMNTd0eTl2dzFUREZwdXRRZm1kZVFqZ0gyNHdOazdLaWlWeXU0M0hnVm5kekNuM3c3UnZtbWVORmthREo5M0ZYZFJ0dlNnMkhOV21LVWUzRUE5VkZhZWlVaTJ3cllhbVB1RXZoWUdoM0x0Z0FqTUt4bXZ2cm5hYzRpR2piVWtDY1FQQkFuMkhuTXB2akF4eTJrRlJDdHlERlRhWVJjYW5mdU1BM1JwVm42aFFCaVlLZzlIdnRtcWZ4TjVFbWFrcHZQQUd3MjhxY1RGS0NXWEV0clFxR1VrYXlKRG5aYmtzUVpWQzNGQjUxdHhxd3ZOVTJFcEtlZHJLQ0NWd1lQRDdwb005enExZjkyelVpelp1VXBDemR0Q2U3YWdzUVNQNXBTVXk1SGZ6c2trN3ZpelV0Wkg1R1JwS0xvY0JWTFliRFBKdWh0YUN5TEROUWlNd0V3R3ZKNnFzUDFReUtWVURnMjNndU5iWUhvQWd5Qm5TcVNaYkVlVnNEVVcxOEJwV21GUnRjSHBDdEE0Ym16bm5zRm9jNjdGTUU0ZHlTWEtObm9ueEhicjRMUnlQcmgyRGsyOXh1aEd2NFRoRDZtOHVnV3V1eGhlNVZNWVQ5OGlISzgzeENyZEc4Z3QiLCJxaWQiOiJpcV9fMlVtbkN6bnZXZHJlRGtlVjEzYWlIWGlld2VKcSIsIm9pZCI6ImQ6UU9UUFgySlJhdTQyUWRVIn0%3D";
-    //videoUrl = "https://host-38-102-0-227.contentfabric.io/qlibs/ilib4UgUTory7GwH1k1syc77Uxnq7bMq/q/hq__ALJ26skJzkNPwyTbV5dvi72UqRAvTmdxYUx3j5EfXtc4vH5cUdi1Kksh23uQAphLxSCsyHdL1W/rep/channel/ga/hls-clear/live.m3u8?sid=1102904DF5&authorization=eyJxc3BhY2VfaWQiOiJpc3BjM0FOb1ZTek5BM1A2dDdhYkxSNjlobzVZUFBaVSIsImFkZHIiOiIweGJhOGJmYTY2MTQ4OWUxNWFiZmE5NWYxMDcxODk0MjRlMDc1NjhkNGQiLCJ0eF9pZCI6IjB4YmQxOGFjNzE1NzBiM2Q1YjVjMjAyOWE0NDFkYzVhODNkOGViNjBiNjA1ODBkODFmNGZjYjY4M2ViMzhhMzBiYSIsInFsaWJfaWQiOiJpbGliNFVnVVRvcnk3R3dIMWsxc3ljNzdVeG5xN2JNcSJ9.RVMyNTZLXzVSaW5VOXRBcnV0QlE5SkFoMlp2NWExeTU5Tlh6djJRaTFqakxxMnNNRmN1VEdwRmFodUhWa2FSb1R3M0pid1ZIZDZ6dGpIMldrYWpmaXEyRFJpRW5RSjla";
 
     if(error != null){
       console.log("Error loading video: " + JQ(error));
@@ -394,6 +413,7 @@ class PlayerPage extends React.Component {
                 onShowControls={this.showControls}
                 showProgress={true}
               />
+              <this.RenderHints visible={showMultiview && !isShowingControls}/>
         </View>  
         );
       }
@@ -422,26 +442,27 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%"
   },
-  paginationStyle: {
+  hints: {
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
     bottom: 200,
     flexDirection: 'row'
   },
-  paginationImage: {
+  hintsIcon: {
     marginRight:5,
     marginLeft:5,
     resizeMode: 'cover',
     width:THUMBWIDTH * .8,
     height:THUMBWIDTH * 9/16 * .8
   },
-  paginationImageActive: {
-    marginRight:1,
-    marginLeft:1,
-    resizeMode: 'cover',
-    width:THUMBWIDTH,
-    height:THUMBWIDTH * 9/16
+  hintsText:{
+    fontFamily: "Helvetica",
+    textAlign: 'center',
+    margin:60,
+    color: '#fff',
+    fontSize: 36,
+    fontWeight: "500"
   },
   retryButton: {
     alignItems: 'center',

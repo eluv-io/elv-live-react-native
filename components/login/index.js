@@ -283,8 +283,7 @@ const styles = StyleSheet.create({
     alignContent:"center",
     textAlign:"center",
     backgroundColor: 'rgba(255,255,255,.8)',
-    fontSize: 18,
-    fontWeight: "300",
+    fontWeight: "400",
     color: "black",
     //textShadowColor: 'gray',
     letterSpacing: 3,
@@ -353,7 +352,8 @@ const styles = StyleSheet.create({
   },
   unfocused: {
     opacity: BLUR_OPACITY,
-    backgroundColor: 'rgba(200,200,200,.5)'
+    backgroundColor: 'rgba(200,200,200,.5)',
+    color: "white",
   }
 });
 

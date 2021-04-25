@@ -517,8 +517,6 @@ export default class App extends React.Component {
 
   render() {
     const {fabric, site, platform, redeemItems,showDebug,reloadFinished,network} = this.state;
-
-    //FIXME: Find working spinner
 /*
     if(isEmpty(platform)){
       return (

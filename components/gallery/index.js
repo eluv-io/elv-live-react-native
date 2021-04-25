@@ -23,6 +23,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import FadeInView from '../../components/fadeinview'
 import Timer from '../../utils/timer';
 import Video from 'react-native-video';
+import { isThisHour } from 'date-fns';
 
 const BLUR_OPACITY = 0.3;
 const IMAGE_OFFSET = '15%';
@@ -213,8 +214,10 @@ class Gallery extends React.Component {
     const {currentViewIndex} = this.state;
 
     try{
+      console.log("Gallery select index: " + currentViewIndex);
       let selected = data[currentViewIndex];
       if(!selected.isAvailable || !selected.isAccessible){
+        console.log("Selected is not available or accessible ",selected);
         return;
       }
 
@@ -224,10 +227,9 @@ class Gallery extends React.Component {
         that.setState({
           selected: false
         });
+        select({index:currentViewIndex, item:selected});
       }, 100);
       this.pressedTimer.start();
-
-      select(selected);
     }catch(e){
       console.error(e);
     }
@@ -258,10 +260,8 @@ class Gallery extends React.Component {
   }
 
   render() {
-      const {layout} = this.state;
-      for(var index in this.props.data){
-        let item = this.props.data[index];
-      }
+      const {layout,currentViewIndex} = this.state;
+      console.log("Gallery render currentIndex: " + currentViewIndex);
 
       if(layout == 0){
         return this.renderLayout0({...stylesCommon, ...stylesLayout0});
@@ -429,6 +429,45 @@ class Gallery extends React.Component {
     );
   }
 
+  renderArrows=(props)=>{
+    try{
+      let {currentViewIndex,total,styles} = props;
+
+      return (
+        <View 
+          style={this.isActive() ? styles.controlsContainer : styles.noOpacity} 
+        >
+        {currentViewIndex < total-1?
+          <View 
+            style={styles.nextContainer} 
+          >
+            <EvilIcon
+              iconStyle={styles.buttonFocused}
+              name='chevron-right'
+              color='#ffffff'
+              size={70}
+            />
+          </View> :null }
+
+          {currentViewIndex != 0?
+          <View 
+            style={styles.previousContainer} 
+          >
+            <EvilIcon
+              iconStyle={styles.buttonFocused}
+              name='chevron-left'
+              color='#ffffff'
+              size={70}
+            />
+          </View> : null}
+        </View>
+      );
+    }catch(e){
+      console.error("Gallery RenderArrows: "+e);
+      return null;
+    }
+  }
+
   renderLayout0 = (styles) => {
     const {currentViewIndex} = this.state;
     const {data,firstLayout} = this.props;
@@ -451,6 +490,8 @@ class Gallery extends React.Component {
       console.error("Gallery render error: " +e);
     }
 
+    let total = views.length;
+
     return (
       <View style={styles.container}>
           <Swiper
@@ -462,31 +503,7 @@ class Gallery extends React.Component {
             >
           {views}
           </Swiper>
-          <View 
-            style={this.isActive() && views.length > 1 ? styles.controlsContainer : styles.noOpacity} 
-          >
-            <View 
-              style={styles.nextContainer} 
-            >
-              <EvilIcon
-                iconStyle={this.state.focused != "next" ? styles.nextButton: styles.buttonFocused}
-                name='chevron-right'
-                color='#ffffff'
-                size={70}
-              />
-            </View>
-
-            <View 
-              style={styles.previousContainer} 
-            >
-              <EvilIcon
-                iconStyle={this.state.focused != "previous" ? styles.previousButton: styles.buttonFocused}
-                name='chevron-left'
-                color='#ffffff'
-                size={70}
-              />
-            </View>
-          </View>
+          {this.renderArrows({currentViewIndex,total,styles})}
       </View>
     );
   }
@@ -534,6 +551,8 @@ class Gallery extends React.Component {
       }
     }
 
+    //console.log("Gallery renderItem1: key " + key + " currentViewIndex " + currentViewIndex + " item.index " + item.index);
+
     return(
     <View key = {key} style={styles.container}>
       {this.RenderBackground({item,styles})}
@@ -559,7 +578,7 @@ class Gallery extends React.Component {
           style = {styles.button}
           text={buttonText}
           isActive = {isActive}
-          isFocused={currentViewIndex == item.index}
+          isFocused={currentViewIndex == key}
           hasTVPreferredFocus={true}
           title = {title}
           /> : null }
@@ -585,6 +604,8 @@ class Gallery extends React.Component {
       );
     }
 
+    let total = views.length;
+
     return (
       <View style={styles.container}>
           <Swiper
@@ -594,36 +615,17 @@ class Gallery extends React.Component {
             ref={this.swiperRef}
             renderPagination={this.renderPagination}
             scrollEnabled={this.isActive()}
+            onIndexChanged={(index)=>{
+              try{
+                if(this.props.onIndexChanged){
+                  this.props.onIndexChanged(index);
+                }
+              }catch(e){console.error("Gallery onIndexChanged:"+e)}
+            }}
             >
           {views}
           </Swiper>
-          <View 
-            style={this.isActive() ? styles.controlsContainer : styles.noOpacity} 
-          >
-            <View 
-              style={styles.nextContainer} 
-            >
-              <Icon
-                iconStyle={this.state.focused != "next" ? styles.nextButton: styles.buttonFocused}
-                name='chevron-right'
-                type='fontawesome'
-                color='#ffffff'
-                size={70}
-              />
-            </View>
-
-            <View 
-              style={styles.previousContainer} 
-            >
-              <Icon
-                iconStyle={this.state.focused != "previous" ? styles.previousButton: styles.buttonFocused}
-                name='chevron-left'
-                type='fontawesome'
-                color='#ffffff'
-                size={70}
-              />
-            </View>
-          </View>
+        {this.renderArrows({currentViewIndex,total,styles})}
       </View>
     );
   }

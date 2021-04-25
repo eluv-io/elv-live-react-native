@@ -156,11 +156,12 @@ class SitePage extends React.Component {
     try{
       for(index in site.info.extras){
         let extra = site.info.extras[index];
+        extra.isAccessible = true; //XXX: Show for now since extras don't have this key to be able to select it in gallery.
         extras.push(extra);
       }
 
       if(data && this.galleryRef.current && !isNaN(data.extra)){
-        //Add one to account for the main event inserted at the beginning.
+        //Add 1 to account for the main event inserted at the beginning when selected from main page.
         let currentViewIndex = parseInt(data.extra) + 1;
         console.log("SitePage select: " + currentViewIndex);
         this.galleryRef.current.setIndex(currentViewIndex);
@@ -176,7 +177,7 @@ class SitePage extends React.Component {
     clearInterval(this.updateInterval);
   }
 
-  select(item){
+  select({index,item}){
     const {isActive} = this.props;
     if(!isActive){
       return;
@@ -186,10 +187,15 @@ class SitePage extends React.Component {
     const {setAppState} = this.context;
     const {navigation} = this.props;
 
-    let {extras,currentViewIndex, isPackagesVisible} = this.state;
+    let {currentViewIndex} = this.state;
+    if(index !=  currentViewIndex){
+      this.setState({currentViewIndex:index});
+    }
+
     try{
       if(item.channels != undefined){
         navigation.navigate('player');
+        return;
       }
     }catch(e){
       console.error(e);
@@ -198,8 +204,8 @@ class SitePage extends React.Component {
     try{
       if(item.package != undefined){
         let data = [];
-        for(const index in item.package.info.gallery){
-          let galleryItem = {...item.package.info.gallery[index]};
+        for(const i in item.package.info.gallery){
+          let galleryItem = {...item.package.info.gallery[i]};
           if(galleryItem.image.url != undefined){
             galleryItem.image = galleryItem.image.url;
           }

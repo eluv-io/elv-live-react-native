@@ -260,7 +260,7 @@ export default class Fabric {
       if (multiview != null) {
         viewsUrl = baseUrl + "/views.json";
       }
-      return {playlistUrl, offering, viewsUrl, baseUrl, sessionId};
+      return {playlistUrl, offering, viewsUrl, baseUrl, sessionId,multiview};
     }catch(e){
       console.error("Fabric getPlayoutInfo error: "+e);
     }

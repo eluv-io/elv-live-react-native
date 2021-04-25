@@ -45,6 +45,7 @@ class MainPage extends React.Component {
     const {platform,redeemItems} = this.context;
     const {isActive} = this.props;
     if(!platform || !isActive){
+      console.log("exiting, not active.");
       return [];
     }
 
@@ -58,8 +59,6 @@ class MainPage extends React.Component {
           console.error("Mainpage, site is null");
           continue;
         }
-        //console.log("Mainpage accessing site: " + key + " " + site.title + " id: " + site.objectId);
-
         let eventTitle = null;
         try{
           eventTitle = site.info.event_info.event_title;
@@ -75,7 +74,7 @@ class MainPage extends React.Component {
           eventSub = site.info.event_info.event_subheader;
         }catch(e){}
 
-        //console.log("Site: " + site.title + " accessible " + site.info.accessible);
+        console.log("MainPage loadSiteData Site: " + site.title + " accessible " + site.info.accessible);
         let item = {};
         item.title = eventTitle;
         item.description = eventSub;
@@ -84,9 +83,11 @@ class MainPage extends React.Component {
         item.release_date = site.info.event_info.date;
         item.isAvailable = true;
         item.isAccessible = site.info.accessible && site.info.accessible === true;
-        const extras = [];
+
     
-        for (i in site.info.extras){
+        /*
+        const extras = [];
+        for (var i in site.info.extras){
           let extra = site.info.extras[i];
           extra.index = i;
           extra.id = `${i}`;
@@ -101,14 +102,15 @@ class MainPage extends React.Component {
             console.error("Error parsing extras for thumbselector: " + e);
             continue;
           }
-          //console.log("Extra image " + extra.image);
+          console.log("Extra image " + extra.image);
           extras.push(
             extra
           );
         }
+        
 
         item.extras = extras;
-        //console.log("Item: "+ item.title + " extras: " + extras.length);
+        */
         if(site.objectId && !isEmpty(redeemItems)){
           item.isRedeemed = site.objectId in redeemItems;
         }else{
@@ -121,6 +123,46 @@ class MainPage extends React.Component {
     }
 
     return siteData;
+  }
+  
+  loadSiteExtras = (index)=>{
+    console.log("MainPage loadSiteExtras " + index);
+    let extras = [];
+    try{
+      const {platform} = this.context;
+      const {isActive} = this.props;
+      if(!platform || !isActive){
+        console.log("exiting, not active.");
+        return [];
+      }
+      
+      let sites = platform.getSites();
+      let site = sites[index];
+      console.log("MainPage finding extras for site " + site.title + " extras length: " + site.info.extras.length);
+      for (var i in site.info.extras){
+        let extra = site.info.extras[i];
+        extra.index = i;
+        extra.id = `${i}`;
+        if(!extra.image){
+          continue;
+        }
+        try{
+          if(extra.image.url){
+            extra.image = item.image.url;
+          }
+        }catch(e){
+          console.error("Error parsing extras for thumbselector: " + e);
+          continue;
+        }
+        console.log("Extra image " + extra.image);
+        extras.push(
+          extra
+        );
+      }
+    }catch(e){
+      console.error("MainPage loadSiteExtras: "+e);
+    }
+    return extras;
   }
 
   async componentWillUnmount(){
@@ -158,17 +200,16 @@ class MainPage extends React.Component {
         let siteData = page.loadSiteData();
 
         if(isEmpty(siteData)){
+          console.log("No siteData for up event.");
           return;
         }
 
         let extras = null;
         try{
-          let site = siteData[currentViewIndex];
-          //console.log("Mainpage render current site: " + site.title);
-          extras = site.extras;
-          //console.log("Mainpage render current site extras: " + site.extras.length);
+          extras = page.loadSiteExtras(currentViewIndex);
+          console.log("Mainpage event handler current site extras: " + site.extras.length);
         }catch(e){
-          console.log("Couldn't get extras from site " + JQ(e));
+          console.log("Couldn't get extras from site ", e);
         }
 
         if(!isEmpty(extras)){
@@ -246,8 +287,8 @@ class MainPage extends React.Component {
     return sites;
   }
 
-  select = async () => {
-    console.log("mainpage select()");
+  select = async ({index,item}) => {
+    console.log("mainpage select() " + index);
     const {isActive} = this.props;
     const {isShowingExtras} = this.state;
     if(!isActive || isShowingExtras){
@@ -264,10 +305,14 @@ class MainPage extends React.Component {
     const {navigation} = this.props;
     const {currentViewIndex} = this.state;
 
-    console.log("select site index " + currentViewIndex);
+    if(index != currentViewIndex){
+      this.setState({currentViewIndex:index});
+    }
+
+    console.log("select site index " + index);
     try{
-      let site = sites[currentViewIndex];
-      console.log("select site " + JQ(site.tv_main_logo));
+      let site = sites[index];
+      //console.log("select site " + JQ(site.tv_main_logo));
 
       let redeemInfo = redeemItems[site.objectId];
       if(!isEmpty(redeemInfo) && !isEmpty(redeemInfo.ticketCode)){
@@ -361,41 +406,24 @@ class MainPage extends React.Component {
   }
 
   render() {
-    const {platform,setAppState} = this.context;
-    const {navigation, isActive} = this.props;
+    const {platform,network} = this.context;
+    const {isActive} = this.props;
     const {currentViewIndex,isShowingExtras} = this.state;
-    if(!platform || !isActive){
+    //console.log("Mainpage>>>render currentViewIndex " + currentViewIndex);
+    if(!platform){
       return <View style={styles.background}/>;
     }
 
-    //console.log("Mainpage>>>render");
     let siteData = this.loadSiteData();
     if(isEmpty(siteData))
     {
+      //console.log("Mainpage>>>render no siteData ");
       return null;
     }
-/*
-    if(isEmpty(siteData)){
-      return (
-        <View style={styles.background}>
-          <Spinner
-            visible={true}
-            textContent={'Loading...'}
-            textStyle={styles.text}
-          />
-        </View>
-      );
-    }
-*/
+
     let data = siteData;
     let extras = null;
-    try{
-      let site = siteData[currentViewIndex];
-      //console.log("<<<<< site.extras " + JQ(site.extras));
-      extras = site.extras;
-    }catch(e){
-      console.log("Couldn't get extras from site " + JQ(e));
-    }
+    extras = this.loadSiteExtras(currentViewIndex);
 
     //console.log("<<<<< extras " + JQ(extras));
     let eluvioLogo = platform.eluvioLogo || "";
@@ -408,6 +436,8 @@ class MainPage extends React.Component {
           next={this.next}
           previous={this.previous}
           select={this.select}
+          onIndexChanged={(index)=>{this.setState({currentViewIndex:index});}}
+          index={currentViewIndex}
         />
         {!isEmpty(extras) ?
           <ThumbSelector 
@@ -431,6 +461,7 @@ class MainPage extends React.Component {
             }}
             resizeMode="contain"
           />
+        {network && network != "production" ? <Text style={styles.networkText}>{network.toUpperCase()}</Text> : null}
       </View>
       </View>
     );
@@ -461,6 +492,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     width: "100%",
     alignItems: "flex-start",
+    justifyContent: "flex-start",
     backgroundColor:"transparent",
     margin: 20
   },
@@ -488,6 +520,14 @@ const styles = StyleSheet.create({
     width: "70%",
     height: "100%"
   },
+  networkText: {
+    color: '#ca00a7',
+    fontSize: 20,
+    justifyContent: "center",
+    fontWeight: 'bold',
+    marginLeft:5,
+    marginTop: 2
+  },
   text: {
     color: '#fff',
     fontSize: 30,
@@ -502,7 +542,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     width: 615,
     height: 718,
-    //backgroundColor: "red",
   },
   noborder: {
     borderWidth: 0,

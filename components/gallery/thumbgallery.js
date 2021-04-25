@@ -449,8 +449,8 @@ class ThumbGallery extends React.Component {
       return null;
     }
     try{
-      videoUrl = URI(videoUrl).toString();
       if(videoUrl){
+        videoUrl = URI(videoUrl).toString();
         //console.log("Thumbgallery Render: " + videoUrl);
         return (
           <Video source={{uri: videoUrl}}   // Can be a URL or a local file.
