@@ -218,7 +218,7 @@ export default class Fabric {
     return null;
   }
 
-  getPlayoutInfo = async({
+  getChannelPlayoutInfo = async({
       channelHash
     })=>{
 
@@ -265,38 +265,6 @@ export default class Fabric {
       console.error("Fabric getPlayoutInfo error: "+e);
     }
     return null;
-  }
-/*
-  async getChannelVideoUrl({channelHash, offerings,offering}) {
-    console.log("getChannelVideoUrl");
-    let endpoint = await this.baseUrl({versionHash:channelHash});
-    console.log("endpoint: " + endpoint);
-
-    let uri = offerings[offering]["uri"];
-    let formatsUrl;
-    if (uri[0] == '/') {
-      // Absolute URL
-      formatsUrl = endpoint + uri;
-    } else {
-      formatsUrl = endpoint + "/q/" + channelHash + "/rep/channel/" + uri;
-    }
-    console.log("formatsUrl: " + formatsUrl);
-    let res = await fetch(formatsUrl);
-    let formats = await res.json();
-    console.log("formats response: " + JQ(formats));
-    
-    //TODO: DRM
-    let format = "hls-clear";
-    let baseUrl = formatsUrl.substring(0, formatsUrl.lastIndexOf("/"));
-    let playlistUrl = baseUrl + "/" + formats[format].uri;
-    return playlistUrl;
-  }
-*/
-  getSessionId({uri}) {
-    // ATTENTION: this session ID will be returned as an individual field in the playout options
-    // So this code is temporary - I am just parsing it out of the playlist URL
-    let q = require('url').parse(uri, {parseQueryString: true}).query;
-    return q.sid
   }
 
   async getChannelViews({channelHash, offering, sid}){

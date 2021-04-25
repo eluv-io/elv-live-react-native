@@ -272,7 +272,7 @@ class PlayerPage extends React.Component {
 
  async init() {
     const {site,fabric,getQueryParams} = this.context;
-   // console.log("SitePage init()");
+   // console.log("Playerpage init()");
     try{
       let channels = await site.getLatestChannels();
 
@@ -283,7 +283,7 @@ class PlayerPage extends React.Component {
       let channelHash = channel["."]["source"];
       //console.log("Channel hash:", channelHash);
 
-      let info = await fabric.getPlayoutInfo({channelHash});
+      let info = await fabric.getChannelPlayoutInfo({channelHash});
       console.log("PlayerPage getPlayoutInfo response: " + JQ(info));
       let sid = info.sessionId;
       let offering = info.offering;
