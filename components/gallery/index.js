@@ -259,6 +259,15 @@ class Gallery extends React.Component {
     )
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    try{
+      if (this.state.currentViewIndex > this.state.data.length) {
+        console.log("Gallery currentViewIndex is out of sync.");
+        this.setIndex(0);
+      }
+    }catch(e){}
+  }
+
   render() {
       const {layout,currentViewIndex} = this.state;
       console.log("Gallery render currentIndex: " + currentViewIndex);
@@ -496,10 +505,19 @@ class Gallery extends React.Component {
       <View style={styles.container}>
           <Swiper
             showsButtons={false}
+            onIndexChanged={index => this.indexChanged(index)} 
             loop={false}
             index={currentViewIndex}
             ref={this.swiperRef}
             renderPagination={this.renderPagination}
+            onIndexChanged={(index)=>{
+              console.log("Gallery onIndexChanged: " + index);
+              try{
+                if(this.props.onIndexChanged){
+                  this.props.onIndexChanged(index);
+                }
+              }catch(e){console.error("Gallery onIndexChanged:"+e)}
+            }}
             >
           {views}
           </Swiper>
@@ -616,6 +634,7 @@ class Gallery extends React.Component {
             renderPagination={this.renderPagination}
             scrollEnabled={this.isActive()}
             onIndexChanged={(index)=>{
+              console.log("Gallery onIndexChanged: " + index);
               try{
                 if(this.props.onIndexChanged){
                   this.props.onIndexChanged(index);

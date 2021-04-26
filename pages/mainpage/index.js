@@ -84,33 +84,6 @@ class MainPage extends React.Component {
         item.isAvailable = true;
         item.isAccessible = site.info.accessible && site.info.accessible === true;
 
-    
-        /*
-        const extras = [];
-        for (var i in site.info.extras){
-          let extra = site.info.extras[i];
-          extra.index = i;
-          extra.id = `${i}`;
-          if(!extra.image){
-            continue;
-          }
-          try{
-            if(extra.image.url){
-              extra.image = item.image.url;
-            }
-          }catch(e){
-            console.error("Error parsing extras for thumbselector: " + e);
-            continue;
-          }
-          console.log("Extra image " + extra.image);
-          extras.push(
-            extra
-          );
-        }
-        
-
-        item.extras = extras;
-        */
         if(site.objectId && !isEmpty(redeemItems)){
           item.isRedeemed = site.objectId in redeemItems;
         }else{
@@ -137,6 +110,11 @@ class MainPage extends React.Component {
       }
       
       let sites = platform.getSites();
+      if(index > sites.length-1){
+        console.error("Mainpage loadSiteExtras - index out of range. ",index);
+        return [];
+      }
+
       let site = sites[index];
       console.log("MainPage finding extras for site " + site.title + " extras length: " + site.info.extras.length);
       for (var i in site.info.extras){
@@ -421,6 +399,11 @@ class MainPage extends React.Component {
       return null;
     }
 
+    if(currentViewIndex > siteData.length - 1){
+      this.setState({currentViewIndex:0});
+      return null;
+    }
+
     let data = siteData;
     let extras = null;
     extras = this.loadSiteExtras(currentViewIndex);
@@ -436,7 +419,13 @@ class MainPage extends React.Component {
           next={this.next}
           previous={this.previous}
           select={this.select}
-          onIndexChanged={(index)=>{this.setState({currentViewIndex:index});}}
+          onIndexChanged={(index)=>{
+            
+            console.log("MainPage onIndexChanged: "+index);
+            this.setState({currentViewIndex:index});
+            
+            }
+          }
           index={currentViewIndex}
         />
         {!isEmpty(extras) ?

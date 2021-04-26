@@ -7,7 +7,7 @@ import AppContext from '../../AppContext'
 import ThumbGallery from '../../components/gallery/thumbgallery'
 import FadeInView from '../../components/fadeinview'
 import EluvioLiveLogo from '../../static/images/fulllogo.jpg'
-import { isThisHour } from 'date-fns';
+import AppButton from '../../components/appbutton'
 
 var URI = require("urijs");
 
@@ -24,6 +24,7 @@ class PlayerPage extends React.Component {
       currentViewIndex: 0,
       views: [],
       //volume: .8,
+      message: "",
       playPause: false,
       sid: null
     }
@@ -250,15 +251,27 @@ class PlayerPage extends React.Component {
     const {navigation} = this.props;
     try{
       //console.log("Player reload");
+      if(this.refreshTimer){
+        this.refreshTimer.stop();
+        this.refreshTimer = null;
+      }
+
+      if(this.reloadTimer){
+        this.reloadTimer.stop();
+        this.reloadTimer = null;
+      }
+      this.setState(PlayerPage.defaultState);
       this.disableTVEventHandler();
+      navigation.navigate("progress");
       await appReload();
       this.enableTVEventHandler();
-      this.setState(PlayerPage.defaultState);
       await this.init();
     }catch(e){
       console.error("Player Error reloading: "+JQ(e));
       //this.setState({error:"Error reloading content."});
       //navigation.goBack(true);
+    }finally{
+      navigation.goBack();
     }
   }
 
@@ -275,13 +288,22 @@ class PlayerPage extends React.Component {
    // console.log("Playerpage init()");
     try{
       let channels = await site.getLatestChannels();
+      console.log("Channels response: ", JQ(channels));
 
-      //let channel = site["channels"]["default"];
+      if(isEmpty(channels)){
+        console.warn("Could not get latest channels, attempting existing one.", site.channels);
+        channels = site.channels;
+      }
+
       let channel = channels["default"];
-      //console.log("Channel: ", JQ(channel));
+      if(!channel){
+        channel = channels[Object.keys(channels)[0]];
+      }
+
+      console.log("Channel: ", JQ(channel));
 
       let channelHash = channel["."]["source"];
-      //console.log("Channel hash:", channelHash);
+      console.log("Channel hash:", channelHash);
 
       let info = await fabric.getChannelPlayoutInfo({channelHash});
       console.log("PlayerPage getPlayoutInfo response: " + JQ(info));
@@ -334,12 +356,12 @@ class PlayerPage extends React.Component {
   }
 
   render() {
-    let {videoUrl, views, error, isShowingControls,showMultiview,playPause} = this.state;
+    let {videoUrl, views, error, isShowingControls,showMultiview,playPause,message} = this.state;
     const {isActive,navigation} = this.props;
     //console.log("PlayerPage: videoUrl " + videoUrl + " error: " +  JQ(error) + " isActive " + isActive + " isShowingControls: " + isShowingControls);
 
     //TESTING LIVE: 
-    //error = null;
+    //error = "e";
     //videoUrl = "https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8"
     //VOD
     //videoUrl = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8";
@@ -347,6 +369,25 @@ class PlayerPage extends React.Component {
 
     if(error != null){
       console.log("Error loading video: " + JQ(error));
+      
+      if(!this.reloadTimer){
+        this.reloadTimer = Timer(() => {
+          this.reload();
+        }, 20000);
+        this.reloadTimer.start();
+      }
+
+      if(!this.refreshTimer){
+        this.refreshTimer = Timer(() => {
+          let message = this.reloadTimer && this.reloadTimer.timeLeft();
+          if(!isEmpty(message)){
+            message = "Reloading in " + message;
+          }
+          this.setState({message});
+        }, 1000,true);
+        this.refreshTimer.start();
+      }
+
       return (
       <FadeInView style={styles.container}>
         <Image source={EluvioLiveLogo}
@@ -355,22 +396,36 @@ class PlayerPage extends React.Component {
             width:"100%",
             height:300,
             marginTop:-50,
-            marginBottom:50,
+            marginBottom:10,
           }
           }
         />
-        <TouchableOpacity
-          style={styles.retryButton} 
-          activeOpacity ={1.0}
+        <Text style={styles.text}>{" " +message + " "}</Text>
+        <AppButton 
           hasTVPreferredFocus={true}
-          onPress = {()=>{
-            this.reload();
+          onPress = {async ()=>{
+            try{
+              this.reload();
+            }catch(e){
+              console.error("Errorpage: ",e);
+            }
           }}
-        >
-          <Text style={styles.buttonText}>Reload</Text>
-      </TouchableOpacity>
+          isFocused = {true}
+          isActive = {true}
+          text={"Reload"}
+        />
       </FadeInView>
       );
+    }
+
+    if(this.refreshTimer){
+      this.refreshTimer.stop();
+      this.refreshTimer = null;
+    }
+
+    if(this.reloadTimer){
+      this.reloadTimer.stop();
+      this.reloadTimer = null;
     }
     
     if(!videoUrl){
@@ -401,7 +456,6 @@ class PlayerPage extends React.Component {
                 bufferForPlaybackAfterRebufferMs: 1000
               }}*/
               minLoadRetryCount={5} //default 3
-              preferredForwardBufferDuration={0.5}
               onProgress={this.onProgress}
               progressUpdateInterval={1000}
               />

@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import React, {useState,useEffect} from 'react';
+import { Animated } from 'react-native';
 import {
   Text, 
   StyleSheet, 
@@ -22,15 +23,93 @@ class AppButton extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isPressed:false
+      isPressed:false,
+      alpha: new Animated.Value(1.0),
+      scale: new Animated.Value(1.0)
     }
     this.tvEventHandler = null;
     this.onPress = this.onPress.bind(this);
     this.buttonRef = React.createRef();
+    
+    let duration = 500;
+    this.onAnim = Animated.timing(
+        this.state.alpha,
+        {
+          toValue: 1.0,
+          duration:duration,
+          useNativeDriver: true,
+        }
+    );
+    this.offAnim =  Animated.timing(
+        this.state.alpha,
+        {
+          toValue: 0.5,
+          duration:duration/2,
+          useNativeDriver: true,
+        }
+    );
+    
+    this.scaleOnAnim = Animated.timing(
+        this.state.alpha,
+        {
+          toValue: 1.05,
+          duration:duration/2,
+          useNativeDriver: true,
+        }
+    );
+    this.scaleOffAnim =  Animated.timing(
+        this.state.alpha,
+        {
+          toValue: 1.0,
+          duration:duration,
+          useNativeDriver: true,
+        }
+    );
+    this.scaleOnAnim = Animated.timing(
+        this.state.alpha,
+        {
+          toValue: 1.05,
+          duration:duration/2,
+          useNativeDriver: true,
+        }
+    );
+    this.scaleOffAnim =  Animated.timing(
+        this.state.alpha,
+        {
+          toValue: 1.0,
+          duration:duration,
+          useNativeDriver: true,
+        }
+    );
+
+    this.alphaLoop = Animated.loop(Animated.sequence([this.onAnim,this.offAnim]));
+    this.scaleLoop = Animated.loop(Animated.sequence([this.scaleOnAnim,this.scaleOffAnim]));
+
   }
   
   async componentDidMount() {
     this.enableTVEventHandler();
+    this.startAnim();
+  }
+
+  startAnim = ()=>{
+    this.alphaLoop.start();
+    this.scaleLoop.start();
+  }
+
+  stopAnim = ()=>{
+    this.offAnim.start();
+    this.scaleOffAnim.start();
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    //console.log('AppButton componentDidUpdate '+this.props.title + " prev " + prevProps.isFocused + " props: "+ this.props.isFocused);
+    if (this.props.isFocused) {
+      //console.log('AppButton Focus Changed!');
+      this.startAnim();
+    }else{
+      this.stopAnim();
+    }
   }
 
   componentWillUnmount(){
@@ -79,7 +158,6 @@ class AppButton extends React.Component {
       if(!isActive || !isFocused){
         return;
       }
-
       if(onPress){
         onPress();
       }
@@ -102,42 +180,53 @@ class AppButton extends React.Component {
       return null;
     }
 
-    //console.log("Button " + otherProps.title + " " + isFocused );
+    console.log("Button " + otherProps.title + " " + isFocused );
 
     let buttonStyle = isFocused? [styles.button,styles.buttonFocused,style]: [styles.button, style];
     if(isPressed){
       buttonStyle = [styles.button,styles.buttonSelected,style];
     }
 
+    let buttonTextStyle = isFocused? [styles.buttonText,styles.buttonTextFocused]: [styles.buttonText];
+
     //We need a real button if onFocus is passed in
     if(onFocus){
       return (
         //Don't use native focusable components, it will mess up the react-native-swiper because of the focus management.
+        
         <TouchableOpacity
           ref={this.buttonRef}
           //accessible={true}
-          hasTVPreferredFocus={isFocused}
-          style={buttonStyle} 
+          //hasTVPreferredFocus={isFocused}
           activeOpacity ={1}
           onFocus={onFocus}
           onPress={onPress}
           {...otherProps}
         >
-          <Text style={styles.buttonText}>{text}</Text>
+        <Animated.View
+        style={[buttonStyle,
+        {opacity:this.state.alpha},
+        {transform: [{ scale: this.state.alpha}]}
+        ]}
+        >
+          <Text style={buttonTextStyle}>{text}</Text>
+          </Animated.View>
         </TouchableOpacity>
       );
     }
 
     return (
       //Don't use native focusable components, it will mess up the react-native-swiper because of the focus management.
-      <View
-        style={buttonStyle} 
-        activeOpacity ={1}
+      <Animated.View
+        style={[buttonStyle,
+        {opacity:this.state.alpha},
+        {transform: [{ scale: this.state.alpha}]}
+        ]}
         ref={this.props.innerRef}
         {...otherProps}
       >
-        <Text style={styles.buttonText}>{text}</Text>
-      </View>
+        <Text style={buttonTextStyle}>{text}</Text>
+      </Animated.View>
     );
   }
 }
@@ -155,6 +244,9 @@ const styles = StyleSheet.create({
     paddingTop:10,
     paddingBottom:10
   },
+  buttonTextFocused: {
+    color: "black",
+  },
   button: {
     alignItems: 'center',
     justifyContent: 'center', 
@@ -166,7 +258,16 @@ const styles = StyleSheet.create({
     opacity: 0.6
   },
   buttonFocused: {
-    opacity: 1.0
+    opacity: 1.0,
+    backgroundColor: 'rgba(200,200,200,1.0)',
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 1,
+    shadowRadius: 3.84,
+    elevation:20
   },
   buttonSelected: {
     shadowOpacity: .5,

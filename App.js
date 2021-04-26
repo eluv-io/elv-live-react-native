@@ -42,7 +42,7 @@ import DeviceInfo from 'react-native-device-info';
 import uuid from 'react-native-uuid';
 
 const APP_STORAGE_KEY = "@eluvio_live";
-const APP_VERSION = "1.0.35";
+const APP_VERSION = "1.0.37";
 
 const isHermes = () => !!global.HermesInternal;
 
@@ -471,7 +471,7 @@ export default class App extends React.Component {
   RenderDebug =() =>{
     try{
     let {showDebug, fabric, network} = this.state;
-    //console.log("showDebug: " + showDebug);
+
     if(!showDebug){
       return null;
     }
@@ -517,7 +517,7 @@ export default class App extends React.Component {
 
   render() {
     const {fabric, site, platform, redeemItems,showDebug,reloadFinished,network} = this.state;
-/*
+
     if(isEmpty(platform)){
       return (
       <View style={styles.container}>
@@ -529,8 +529,7 @@ export default class App extends React.Component {
         </View>
       );
     }
-    */
-
+    
     return (
       <AppContext.Provider value={
         {

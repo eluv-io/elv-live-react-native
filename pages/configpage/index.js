@@ -102,7 +102,7 @@ class ConfigPage extends React.Component {
           })}
         />
         <AppButton
-          style={focused == "cancel" ? [styles.buttonStyle,styles.itemFocus]:styles.buttonStyle}
+          style={styles.buttonStyle}
           
           onPress={()=>{
             console.log("Cancel!");
