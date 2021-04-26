@@ -78,7 +78,7 @@ class ElvPlatform {
               path:"/meta/public/asset_metadata"
             });
 
-            console.log("Channel Info: "+ JQ(siteInfo));
+            //console.log("Channel Info: "+ JQ(siteInfo));
             return siteInfo["channels"];
           }
           //console.log("Featured site extras: " + JQ(site.info.extras));

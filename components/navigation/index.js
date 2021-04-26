@@ -95,6 +95,7 @@ export class Navigation extends React.Component {
       }
 
       console.log("Navigation event: " + evt.eventType);
+      console.log("Navigation stack: ",page.state.stack);
       page.switchToQueued();
     });
   }

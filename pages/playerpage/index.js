@@ -26,7 +26,8 @@ class PlayerPage extends React.Component {
       //volume: .8,
       message: "",
       playPause: false,
-      sid: null
+      sid: null,
+      title: ""
     }
 
   constructor(props) {
@@ -54,7 +55,7 @@ class PlayerPage extends React.Component {
       if(isShowingControls){
         return;
       }
-      console.log("Player page event: " + evt.eventType);
+      console.log("Player page : "+ page.state.title+" " + evt.eventType);
 
       try{
         if (evt && evt.eventType === 'right') {
@@ -248,43 +249,48 @@ class PlayerPage extends React.Component {
 
   async reload(){
     const {appReload} = this.context;
-    const {navigation} = this.props;
+    const {isActive} = this.props;
+    if(!isActive){
+      return;
+    }
+
     try{
       //console.log("Player reload");
-      if(this.refreshTimer){
-        this.refreshTimer.stop();
-        this.refreshTimer = null;
-      }
 
       if(this.reloadTimer){
         this.reloadTimer.stop();
         this.reloadTimer = null;
       }
-      this.setState(PlayerPage.defaultState);
       this.disableTVEventHandler();
-      navigation.navigate("progress");
       await appReload();
       this.enableTVEventHandler();
       await this.init();
     }catch(e){
       console.error("Player Error reloading: "+JQ(e));
-      //this.setState({error:"Error reloading content."});
-      //navigation.goBack(true);
-    }finally{
-      navigation.goBack();
     }
   }
 
   async componentDidMount() {
+    console.log("<<<<<<<<< Player componentDidMount");
     await this.init();
     this.enableTVEventHandler();
   }
+
   componentWillUnmount() {
+    console.log("Player " + this.state.title + " componentWillUnmount");
     this.disableTVEventHandler();
+    if(this.reloadTimer){
+      this.reloadTimer.stop();
+      this.reloadTimer = null;
+    }
   }
 
  async init() {
     const {site,fabric,getQueryParams} = this.context;
+    if(!this.props.isActive){
+      return;
+    }
+
    // console.log("Playerpage init()");
     try{
       let channels = await site.getLatestChannels();
@@ -318,7 +324,8 @@ class PlayerPage extends React.Component {
         return;
       }
       //console.log(`player: channelHash ${channelHash}  videoUrl ${videoUrl} offering ${offering} sid ${sid} `);
-      this.setState({channelHash,offering,videoUrl,sid, showMultiview});
+      this.setState(this.defaultState);
+      this.setState({title:site.title,channelHash,offering,videoUrl,sid, showMultiview});
     }catch(e){
       this.setState({error:"Could not get video uri. " + e});
     }
@@ -373,19 +380,8 @@ class PlayerPage extends React.Component {
       if(!this.reloadTimer){
         this.reloadTimer = Timer(() => {
           this.reload();
-        }, 20000);
+        }, 5000);
         this.reloadTimer.start();
-      }
-
-      if(!this.refreshTimer){
-        this.refreshTimer = Timer(() => {
-          let message = this.reloadTimer && this.reloadTimer.timeLeft();
-          if(!isEmpty(message)){
-            message = "Reloading in " + message;
-          }
-          this.setState({message});
-        }, 1000,true);
-        this.refreshTimer.start();
       }
 
       return (
@@ -396,31 +392,12 @@ class PlayerPage extends React.Component {
             width:"100%",
             height:300,
             marginTop:-50,
-            marginBottom:10,
+            marginBottom:50,
           }
           }
-        />
-        <Text style={styles.text}>{" " +message + " "}</Text>
-        <AppButton 
-          hasTVPreferredFocus={true}
-          onPress = {async ()=>{
-            try{
-              this.reload();
-            }catch(e){
-              console.error("Errorpage: ",e);
-            }
-          }}
-          isFocused = {true}
-          isActive = {true}
-          text={"Reload"}
         />
       </FadeInView>
       );
-    }
-
-    if(this.refreshTimer){
-      this.refreshTimer.stop();
-      this.refreshTimer = null;
     }
 
     if(this.reloadTimer){

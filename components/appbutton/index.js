@@ -82,8 +82,9 @@ class AppButton extends React.Component {
         }
     );
 
-    this.alphaLoop = Animated.loop(Animated.sequence([this.onAnim,this.offAnim]));
-    this.scaleLoop = Animated.loop(Animated.sequence([this.scaleOnAnim,this.scaleOffAnim]));
+    //Slight pulsating animation:
+    //this.alphaLoop = Animated.loop(Animated.sequence([this.onAnim,this.offAnim]));
+    //this.scaleLoop = Animated.loop(Animated.sequence([this.scaleOnAnim,this.scaleOffAnim]));
 
   }
   
@@ -93,8 +94,8 @@ class AppButton extends React.Component {
   }
 
   startAnim = ()=>{
-    this.alphaLoop.start();
-    this.scaleLoop.start();
+    this.onAnim.start();
+    this.scaleOnAnim.start();
   }
 
   stopAnim = ()=>{
@@ -106,9 +107,9 @@ class AppButton extends React.Component {
     //console.log('AppButton componentDidUpdate '+this.props.title + " prev " + prevProps.isFocused + " props: "+ this.props.isFocused);
     if (this.props.isFocused) {
       //console.log('AppButton Focus Changed!');
-      this.startAnim();
+      //this.startAnim();
     }else{
-      this.stopAnim();
+      //this.stopAnim();
     }
   }
 
@@ -205,8 +206,8 @@ class AppButton extends React.Component {
         >
         <Animated.View
         style={[buttonStyle,
-        {opacity:this.state.alpha},
-        {transform: [{ scale: this.state.alpha}]}
+        //{opacity:this.state.alpha},
+        //{transform: [{ scale: this.state.alpha}]}
         ]}
         >
           <Text style={buttonTextStyle}>{text}</Text>
@@ -219,8 +220,8 @@ class AppButton extends React.Component {
       //Don't use native focusable components, it will mess up the react-native-swiper because of the focus management.
       <Animated.View
         style={[buttonStyle,
-        {opacity:this.state.alpha},
-        {transform: [{ scale: this.state.alpha}]}
+        //{opacity:this.state.alpha},
+        //{transform: [{ scale: this.state.alpha}]}
         ]}
         ref={this.props.innerRef}
         {...otherProps}
