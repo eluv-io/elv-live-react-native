@@ -255,7 +255,6 @@ class PlayerPage extends React.Component {
     }
 
     try{
-      //console.log("Player reload");
 
       if(this.reloadTimer){
         this.reloadTimer.stop();
@@ -263,8 +262,10 @@ class PlayerPage extends React.Component {
       }
       this.disableTVEventHandler();
       await appReload();
+      await this.handleSetState(this.defaultState);
       this.enableTVEventHandler();
       await this.init();
+      this.forceUpdate();
     }catch(e){
       console.error("Player Error reloading: "+JQ(e));
     }
@@ -293,6 +294,7 @@ class PlayerPage extends React.Component {
 
    // console.log("Playerpage init()");
     try{
+      console.log("Player site: " + site.versionHash);
       let channels = await site.getLatestChannels();
       console.log("Channels response: ", JQ(channels));
 
@@ -312,24 +314,48 @@ class PlayerPage extends React.Component {
       console.log("Channel hash:", channelHash);
 
       let info = await fabric.getChannelPlayoutInfo({channelHash});
-      console.log("PlayerPage getPlayoutInfo response: " + JQ(info));
-      let sid = info.sessionId;
-      let offering = info.offering;
-      let videoUrl = info.playlistUrl + getQueryParams();
-      let multiview = info.multiview;
+      console.log("PlayerPage getPlayoutInfo response: " + JQ(info))
+      let sid = null;
+      try{
+        sid = info.sessionId;
+      }catch(e){}
+
+      let offering = "default";
+      try{
+        if(info["offering"]){
+          offering = info["offering"];
+        }
+      }catch(e){}
+
+      let videoUrl = null;
+      if(info["playlistUrl"]){
+        videoUrl = info["playlistUrl"] + getQueryParams();
+      }
+      let multiview = null;
+      if(info["multiview"]){
+        multiview = info["multiview"];
+      }
+      
       let showMultiview = multiview != null && multiview != undefined;
 
       if(!videoUrl){
-        this.setState({error:"Error occured."});
+        await this.handleSetState({error:"Error occured."});
         return;
       }
       //console.log(`player: channelHash ${channelHash}  videoUrl ${videoUrl} offering ${offering} sid ${sid} `);
-      this.setState(this.defaultState);
-      this.setState({title:site.title,channelHash,offering,videoUrl,sid, showMultiview});
+      await this.handleSetState({title:site.title,channelHash,offering,videoUrl,sid, showMultiview,error:null});
     }catch(e){
-      this.setState({error:"Could not get video uri. " + e});
+      await this.handleSetState({error:"Could not get video uri. " + e});
     }
   }
+
+  handleSetState = (state)=>{
+    return new Promise((resolve) => {
+      //console.log("handleSetState: " + JQ(state.showDebug));
+      this.setState(state, resolve);
+    });
+  }
+
 
   videoError = (error) => {
     console.log("VideoError: " + JQ(error));
@@ -365,7 +391,7 @@ class PlayerPage extends React.Component {
   render() {
     let {videoUrl, views, error, isShowingControls,showMultiview,playPause,message} = this.state;
     const {isActive,navigation} = this.props;
-    //console.log("PlayerPage: videoUrl " + videoUrl + " error: " +  JQ(error) + " isActive " + isActive + " isShowingControls: " + isShowingControls);
+    //console.log("PlayerPage render: videoUrl " + videoUrl + " error: " +  JQ(error) + " isActive " + isActive + " isShowingControls: " + isShowingControls);
 
     //TESTING LIVE: 
     //error = "e";
@@ -378,8 +404,8 @@ class PlayerPage extends React.Component {
       console.log("Error loading video: " + JQ(error));
       
       if(!this.reloadTimer){
-        this.reloadTimer = Timer(() => {
-          this.reload();
+        this.reloadTimer = Timer(async () => {
+          await this.reload();
         }, 5000);
         this.reloadTimer.start();
       }
@@ -421,7 +447,10 @@ class PlayerPage extends React.Component {
               style={styles.video} 
               controls={true}
               //volume={volume}
-              onEnd={()=>{navigation.goBack()}}
+              onEnd={()=>{
+                console.log("player onEnd received...exiting...");
+                navigation.goBack();
+              }}
               onBandwidthUpdate={(bitrate)=>{console.log("Video onBandwidthUpdate: ", bitrate)}}
               onLoad = {(load)=>{console.log("Video onLoad: ", load)}}
               paused = {playPause}

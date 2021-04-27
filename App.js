@@ -42,7 +42,7 @@ import DeviceInfo from 'react-native-device-info';
 import uuid from 'react-native-uuid';
 
 const APP_STORAGE_KEY = "@eluvio_live";
-const APP_VERSION = "1.0.40";
+const APP_VERSION = "1.0.41";
 
 const isHermes = () => !!global.HermesInternal;
 
@@ -385,6 +385,7 @@ export default class App extends React.Component {
           if(test.objectId && test.objectId == site.objectId){
             console.log("******** newSite found ***********");
             newSite = test;
+            console.log("newSite versionHash: " + newSite.versionHash);
             break;
           }
         }
@@ -415,7 +416,9 @@ export default class App extends React.Component {
   //You can use async/await now
   handleSetState = (state)=>{
     return new Promise((resolve) => {
-      //console.log("handleSetState: " + JQ(state.showDebug));
+      if(state.site){
+        console.log("handleSetState: " + JQ(state.site.versionHash));
+      }
       this.setState(state, resolve);
     });
   }
@@ -529,7 +532,7 @@ export default class App extends React.Component {
         </View>
       );
     }
-    
+
     return (
       <AppContext.Provider value={
         {

@@ -72,6 +72,8 @@ class ElvPlatform {
           site.metaDataPath = `public/asset_metadata/${eventsKey}/${index}/${key}`;
           site = await this.resolveSite(site,key);
           site.getLatestChannels = async()=>{
+            //Find a way to update the site to the latest versionHash without library.
+            /*
             console.log("site getLatestChannels " + site.versionHash);
             let siteInfo = await this.fabric.getContent({
               versionHash:site.versionHash,
@@ -80,6 +82,8 @@ class ElvPlatform {
 
             //console.log("Channel Info: "+ JQ(siteInfo));
             return siteInfo["channels"];
+            */
+            return site.channels;
           }
           //console.log("Featured site extras: " + JQ(site.info.extras));
           this.availableSites.push(site);

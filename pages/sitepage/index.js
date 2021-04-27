@@ -50,7 +50,7 @@ class SitePage extends React.Component {
   }
 
   getExtras = async () => {
-    const {site} = this.context;
+    const {site,fabric} = this.context;
     const {data,navigation,isActive} = this.props;
     const {redeemItems} = this.context;
     if(!isActive){
@@ -121,10 +121,26 @@ class SitePage extends React.Component {
                 hasEnded = true;
                 let channels = site.channels;
                 let channel = channels["default"];
+                if(!channel){
+                  channel = channels[Object.keys(channels)[0]];
+                }
                 //console.log("SITE Channel: ", JQ(channel));
 
                 isAvailable = !channel["."].resolution_error;
                 if(isAvailable){
+                  //Check options.json
+                  try{
+                    let channelHash = channel["."]["source"];
+                    let info = await fabric.getChannelPlayoutInfo(channelHash);
+                    if(!info){
+                      throw 'Playout ended';
+                    }
+                  }catch(e){
+                    isAvailable = false;
+                    dateString = "Event has ended";
+                    clearInterval(this.updateInterval);
+                  }
+                  //console.log("Offerings: ", offerings);
                 }else{
                   dateString = "Event has ended";
                 }

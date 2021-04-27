@@ -228,7 +228,10 @@ export default class Fabric {
       let offering = Object.keys(offerings)[0];
       console.log("Offering: ", offering);
 
-      let multiview = offerings[offering]["properties"]["multiview"];
+      let multiview = null;
+      try{
+        multiview=offerings[offering]["properties"]["multiview"];
+      }catch(e){}
       console.log("Multiview: ", multiview);
 
       // Retrieve available formats
@@ -250,7 +253,10 @@ export default class Fabric {
 
       // Pick HLS - prefer clear if multiple
       let format = "hls-clear";
-      let sessionId = formats[format]["sid"];
+      let sessionId = "";
+      try{
+        sessionId = formats[format]["sid"];
+      }catch(e){}
       let baseUrl = formatsUrl.substring(0, formatsUrl.lastIndexOf("/"));
       let playlistUrl = baseUrl + "/" + formats[format].uri;
 
