@@ -149,7 +149,7 @@ class Login extends React.Component {
               />
               <LoginInput
                 secureTextEntry={false}
-                placeholder="Ticket Code"
+                placeholder="Access Code"
                 placeholderTextColor="white"
                 value = {code}
                 isActive = {isActive}
@@ -203,7 +203,7 @@ class Login extends React.Component {
                   //TODO: real Error objects
                   if(typeof e === 'string' && e.includes("redeeming")){
                     console.error("Error redeeming ticket: " + e);
-                    navigation.replace("error", {text:"Could not redeem ticket."});
+                    navigation.replace("error", {text:"Invalid code."});
                   }else{
                     console.error("Error loading site: " + e);
                     navigation.replace("error", {text:"Could not retrieve event info. Please try again.",reload:true});

@@ -19,7 +19,7 @@ import FadeInView from '../../components/fadeinview'
 function PresentsPage(props) {
   const {logo,title} = props.data;
   const {reloadFinished} = useContext(AppContext);
-  //console.log("Presents page props: " + JQ(props.data));
+  console.log("Presents page props: " + JQ(props.data));
   //console.log("reloadFinished: " + reloadFinished);
   return (
     <View style={styles.container}>

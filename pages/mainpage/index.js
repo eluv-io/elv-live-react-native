@@ -290,10 +290,27 @@ class MainPage extends React.Component {
     console.log("select site index " + index);
     try{
       let site = sites[index];
-      //console.log("select site " + JQ(site.tv_main_logo));
+      console.log("select site selected " + JQ(site.title));
+      console.log("select site is free? " + JQ(site.info.free));
+      console.log("select site tv_main_logo " + JQ(site.tv_main_logo));
+
+      if(site.info.free){
+        try{
+          await setAppState({site,ticketCode: null});
+          console.log("Site set");
+          let logo = site.tv_main_logo;
+          let title = site.title;
+          console.log("Transitioning to site page.");
+          navigation.transition("presents","site",{logo, title},11000);
+        }catch(e){
+          console.error("Error site: " + e);
+          navigation.setNext("error", {text:"Could not retrieve event info."});
+        }
+        return;
+      }
 
       let redeemInfo = redeemItems[site.objectId];
-      if(!isEmpty(redeemInfo) && !isEmpty(redeemInfo.ticketCode)){
+      if(site.info.free || !isEmpty(redeemInfo) && !isEmpty(redeemInfo.ticketCode)){
         await setAppState({site,ticketCode: redeemInfo.ticketCode});
         try{
           let {site} = this.context;
@@ -349,7 +366,26 @@ class MainPage extends React.Component {
         console.log("Package not available: ");
         const sites = await this.getSites();
         let site = sites[currentViewIndex];
-        console.log("select site extras 1 " + site.title);
+        console.log("select site is free? " + site.info.free);
+
+        if(site.info.free){
+          try{
+            await setAppState({site,ticketCode: null});
+            let {site} = this.context;
+            let extra = site.info.extras[extraIndex];
+            let data = getData(extra);
+            if(!isEmpty(data)){
+              navigation.replace("gallery",data);
+            }else{
+              navigation.re
+              place("error", {text:"Could not retrieve event info.", next:["redeem",{extra:index}]});
+            }
+          }catch(e){
+            console.error("Error loading extra info: " + e);
+            navigation.replace("error", {text:"Could not retrieve event info.", next:["redeem",{extra:index}]});
+          }
+          return;
+        }
 
         let redeemInfo = redeemItems[site.objectId];
         if(!isEmpty(redeemInfo) && !isEmpty(redeemInfo.ticketCode)){

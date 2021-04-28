@@ -42,7 +42,7 @@ import DeviceInfo from 'react-native-device-info';
 import uuid from 'react-native-uuid';
 
 const APP_STORAGE_KEY = "@eluvio_live";
-const APP_VERSION = "1.0.41";
+const APP_VERSION = "1.0.42";
 
 const isHermes = () => !!global.HermesInternal;
 
@@ -358,6 +358,7 @@ export default class App extends React.Component {
       await this.handleSetState({reloadFinished:false});
 
       let {site,ticketCode,redeemItems,network} = this.state;
+      newSite = site;
 
       console.log("Loading network: ",network);
       if(!network){

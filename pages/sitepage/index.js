@@ -56,12 +56,20 @@ class SitePage extends React.Component {
     if(!isActive){
       return[];
     }
-
-    let siteIsRedeemed = site.objectId in redeemItems;
-    //console.log("getExtras isRedeemed: " + siteIsRedeemed);
     let extras = [];
 
     try{
+      console.log("Site Page getExtras");
+      console.log("Site Page getExtras site: ",site.title);
+      let siteIsRedeemed = false;
+      
+
+      if(!site.info.free && site.objectId && !isEmpty(redeemItems)){
+        siteIsRedeemed = site.objectId in redeemItems;
+      }
+
+      console.log("getExtras isRedeemed: " + siteIsRedeemed);
+
       //Push the main event site as the first extra
       let main = {};
       main.title = site.info.event_info.event_title;
@@ -85,6 +93,7 @@ class SitePage extends React.Component {
       let hasEnded = false;
 
       try{
+      if(siteIsRedeemed){
         const {redeemItems} = this.context;
         let {otpId} = redeemItems[site.objectId];
         let ticketInfo = site.getTicketInfo(otpId);
@@ -149,8 +158,9 @@ class SitePage extends React.Component {
             }
           }
         }
+      }
       }catch(e){console.error(e);}
-
+      
       if(isEmpty(dateString)){
         //console.log("Could not determine ticket date.");
         dateString = site.info.event_info.date;
@@ -164,6 +174,7 @@ class SitePage extends React.Component {
       //XXX: TODO - find a way to check if the channel is available to play
       main.isAvailable = isAvailable;
       main.isRedeemed = siteIsRedeemed;
+      main.free = site.info.free;
       main.hasEnded = hasEnded;
       extras.push(main);
     }catch(e){
