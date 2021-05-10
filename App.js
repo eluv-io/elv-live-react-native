@@ -157,6 +157,7 @@ function initPlatform(network){
 let defaultState = {
   redeemItems:{},
   ticketCode:"",
+  error:null,
   site:null,
   platform:null,
   fabric: null,
@@ -188,7 +189,8 @@ export default class App extends React.Component {
   componentDidMount = async () => {
     await this.loadState();
     AppState.addEventListener("change", this._handleAppStateChange);
-    refreshTimer= Timer(async () => {
+
+    timerFunc = async () => {
       try{
         if(!this.state.platform){
           console.log("refresh");
@@ -200,9 +202,15 @@ export default class App extends React.Component {
             await this.reload();
           }
         }
-      }catch(e){console.error("App refresh timer: " + e);}
-    }, 1000);
+      }catch(e){
+        console.error("App refresh timer: " + e);
+        await this.handleSetState({error:e});
+      }
+    };
+
+    refreshTimer= Timer(timerFunc, 60000);
     refreshTimer.start();
+    await timerFunc();
     this.enableTVEventHandler();
     console.log("Session params: " + this.getQueryParams());
 
@@ -288,6 +296,9 @@ export default class App extends React.Component {
       console.log("AppState", this.appState);
     }catch(e){
       console.error("Error reloading on app open: " + e);
+      if(this.navigationRef.current){
+        this.navigationRef.current.navigate("error",{reload:true});
+      }
     }
   };
 
@@ -355,7 +366,7 @@ export default class App extends React.Component {
     let fabric = null;
     let platform = null;
     try{
-      await this.handleSetState({reloadFinished:false});
+      await this.handleSetState({error:null,reloadFinished:false});
 
       let {site,ticketCode,redeemItems,network} = this.state;
       newSite = site;
@@ -400,6 +411,8 @@ export default class App extends React.Component {
       }
       await this.handleSetState({fabric,platform, site:newSite});
     }catch(e){
+      console.error("Error in App reload: ",e);
+      this.handleSetState({error: e});
       throw e;
     }finally{
       console.log("Finished reload");
@@ -520,9 +533,9 @@ export default class App extends React.Component {
   }
 
   render() {
-    const {fabric, site, platform, redeemItems,showDebug,reloadFinished,network} = this.state;
+    const {error,fabric, site, platform, redeemItems,showDebug,reloadFinished,network} = this.state;
 
-    if(isEmpty(platform)){
+    if(!reloadFinished){
       return (
       <View style={styles.container}>
         <Spinner
@@ -532,6 +545,11 @@ export default class App extends React.Component {
         />
         </View>
       );
+    }
+
+    if(!isEmpty(error)){
+      console.log("App render error: ",error);
+      return <ErrorPage isActive={true} navigation={this.navigationRef.current}/>
     }
 
     return (

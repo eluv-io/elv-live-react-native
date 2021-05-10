@@ -26,6 +26,7 @@ export default class Fabric {
       console.log("Fabric API: ", this.qfabs[0]);
 
       this.asEndpoints = config.network.services.authority_service;
+      
       this.asIndex = 0;
 
       console.log("AS API: ", this.asEndpoints[0]);
@@ -34,6 +35,8 @@ export default class Fabric {
       this.anonymousToken = base64.encode(JSON.stringify(token));
       console.log("Static Token: " + this.anonymousToken);
       this.configUrl = configUrl;
+    }catch(e){
+      throw e;
     }finally{
       console.timeEnd("Fabric Init");
     }
