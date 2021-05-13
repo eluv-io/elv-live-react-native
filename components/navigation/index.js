@@ -178,6 +178,7 @@ export class Navigation extends React.Component {
     }
     
     this.setState(state => {
+      console.log("set state.");
       const {stack} = state;
       let newStack = stack;
 
@@ -232,6 +233,7 @@ export class Navigation extends React.Component {
   }
 
   loadDefault = () => {
+    console.log("navigation loadDefault ");
     this.setState({stack: [{scene:this.state.sceneConfig[this.initialSceneName],data:null}]});
   }
 

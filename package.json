@@ -31,6 +31,7 @@
     "react-native-fade-in-out": "^1.0.5",
     "react-native-fb-collage": "^1.0.7",
     "react-native-get-random-values": "^1.5.0",
+    "react-native-iap": "^6.0.0-rc.23",
     "react-native-images-collage": "^3.3.0",
     "react-native-input-style": "^1.0.2",
     "react-native-linear-gradient": "^2.5.6",

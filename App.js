@@ -40,6 +40,7 @@ import DefaultPreference from 'react-native-default-preference';
 import { ElvPlatform } from './fabric/elvplatform';
 import DeviceInfo from 'react-native-device-info';
 import uuid from 'react-native-uuid';
+import * as RNIap from 'react-native-iap';
 
 const APP_STORAGE_KEY = "@eluvio_live";
 const APP_VERSION = "1.0.43";
@@ -77,7 +78,6 @@ function ErrorPage(props){
   if(!props.isActive){
     return null;
   }
-  console.log("ErrorPage render: isActive? ", props.isActive);
 
   return (
     <View style={styles.background}>
@@ -154,6 +154,7 @@ function initPlatform(network){
   })
 }
 
+
 let defaultState = {
   redeemItems:{},
   ticketCode:"",
@@ -163,7 +164,8 @@ let defaultState = {
   fabric: null,
   reloadFinished: false,
   showDebug:false,
-  network: "production"
+  network: "production",
+  availablePurchases: []
 };
 
 export default class App extends React.Component {
@@ -188,6 +190,8 @@ export default class App extends React.Component {
 
   componentDidMount = async () => {
     await this.loadState();
+    await this.loadInAppPurchases();
+
     AppState.addEventListener("change", this._handleAppStateChange);
 
     timerFunc = async () => {
@@ -204,7 +208,11 @@ export default class App extends React.Component {
         }
       }catch(e){
         console.error("App refresh timer: " + e);
-        await this.handleSetState({error:e});
+        //await this.handleSetState({error:e});
+        if(this.navigationRef.current){
+          console.error("App refresh timer showing error page: ");
+          this.navigationRef.current.navigate("error",{reload:true});
+        }
       }
     };
 
@@ -221,6 +229,29 @@ export default class App extends React.Component {
     console.log("App will unmount.");
     this.disableTVEventHandler();
   }
+
+  loadInAppPurchases = async () => {
+    try{
+      console.log("Loading InApp Purchases");
+      /*
+      These product IDs must match the item entries you created in the App Store Connect and Google Play Console.
+      If you want to add more or edit their attributes you can do so there.
+      */
+      const productIds = [
+      'iq__45jnGrzNET2wi3ExCcgrknU6k6Yv',
+      ];
+      
+
+      // Retrieve product details
+      let products = await RNIap.getProducts(productIds);
+      console.log("InApp Products: ",products);
+      await this.handleSetState({availablePurchases:products});
+      
+    }catch(e){
+      console.error("Error loading InApp Purchases",e);
+    }
+  }
+
 
   enableTVEventHandler = () => {
     this.tvEventHandler = new TVEventHandler();
@@ -375,12 +406,10 @@ export default class App extends React.Component {
       if(!network){
         throw "No network specified.";
       }
-
       let res = await initPlatform(network);
       fabric = res.fabric;
       platform = res.platform;
       if(site && platform && fabric && ticketCode){
-        console.log("Site before reload: " + site.title);
         let tenantId = site.info.tenant_id;
         let status = await this.redeemCode(fabric,site,redeemItems,tenantId,ticketCode);
         if(!status){
@@ -395,9 +424,7 @@ export default class App extends React.Component {
         for(index in sites){
           let test = sites[index];
           if(test.objectId && test.objectId == site.objectId){
-            console.log("******** newSite found ***********");
             newSite = test;
-            console.log("newSite versionHash: " + newSite.versionHash);
             break;
           }
         }
@@ -412,7 +439,7 @@ export default class App extends React.Component {
       await this.handleSetState({fabric,platform, site:newSite});
     }catch(e){
       console.error("Error in App reload: ",e);
-      this.handleSetState({error: e});
+      //this.handleSetState({error: e});
       throw e;
     }finally{
       console.log("Finished reload");
@@ -533,24 +560,7 @@ export default class App extends React.Component {
   }
 
   render() {
-    const {error,fabric, site, platform, redeemItems,showDebug,reloadFinished,network} = this.state;
-
-    if(!reloadFinished){
-      return (
-      <View style={styles.container}>
-        <Spinner
-          visible={true}
-          textContent={'Loading...'}
-          textStyle={styles.text}
-        />
-        </View>
-      );
-    }
-
-    if(!isEmpty(error)){
-      console.log("App render error: ",error);
-      return <ErrorPage isActive={true} navigation={this.navigationRef.current}/>
-    }
+    const {fabric, site, platform, redeemItems,showDebug,reloadFinished,network} = this.state;
 
     return (
       <AppContext.Provider value={

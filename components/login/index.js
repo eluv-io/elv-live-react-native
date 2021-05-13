@@ -94,6 +94,7 @@ class Login extends React.Component {
   }
 
   componentWillUnmount=()=>{
+    console.log("RedeemPage componentWillUnmount.");  
     Keyboard.removeListener("keyboardDidShow", this.onKeyboardDidShow);
     Keyboard.removeListener("keyboardDidHide", this.onKeyboardDidHide);
   }
@@ -131,7 +132,7 @@ class Login extends React.Component {
     try{
     //let tenantId = site.info.tenant_id;
     //let siteId = site.objectId;
-    //console.log("RedeemPage site display title: " + site.title);  
+    console.log("RedeemPage site display title: " + site.title);  
     //console.log("RedeemPage site Id: " + siteId);  
     //console.log("RedeemPage site tenant Id: " + tenantId);
     //console.log("Login focused: " + focused);
@@ -188,7 +189,7 @@ class Login extends React.Component {
                   navigation.navigate("progress");
                   console.log("Submit: reloadingApp");
                   await appReload();
-                  //navigation.loadDefault();
+
                   if(!this.props.data){
                     //TODO: go directly to playerpage if site is available to play
                     console.log("Submit: navigation to site");
@@ -209,7 +210,6 @@ class Login extends React.Component {
                     navigation.replace("error", {text:"Could not retrieve event info. Please try again.",reload:true});
                     navigation.removeUnder();
                   }
-                  
                 }
               }}
               onFocus={()=>{this.setState({focused:"enter"})}}
@@ -220,6 +220,7 @@ class Login extends React.Component {
         </View>
       );
     }catch(e){
+      console.error("Error Login: ",e);
       navigation.loadDefault();
       return(null);
     }
