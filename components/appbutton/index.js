@@ -1,140 +1,120 @@
-import React, {useState,useEffect} from 'react';
-import { Animated } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {Animated} from 'react-native';
 import {
-  Text, 
-  StyleSheet, 
-  View, 
+  Text,
+  StyleSheet,
+  View,
   Image,
   TouchableOpacity,
   Button,
   TVFocusGuideView,
   TVEventHandler,
-  AccessibilityInfo,  
-  findNodeHandle
-} 
-from 'react-native';
+  AccessibilityInfo,
+  findNodeHandle,
+} from 'react-native';
 
 import Video from 'react-native-video';
-import BackgroundVideo from '../../static/videos/EluvioLive.mp4'
-import { isEmpty, JQ } from '../../utils';
+import BackgroundVideo from '../../static/videos/EluvioLive.mp4';
+import {isEmpty, JQ} from '../../utils';
 import Timer from '../../utils/timer';
 
 class AppButton extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isPressed:false,
+      isPressed: false,
       alpha: new Animated.Value(1.0),
-      scale: new Animated.Value(1.0)
-    }
+      scale: new Animated.Value(1.0),
+    };
     this.tvEventHandler = null;
     this.onPress = this.onPress.bind(this);
     this.buttonRef = React.createRef();
-    
+
     let duration = 500;
-    this.onAnim = Animated.timing(
-        this.state.alpha,
-        {
-          toValue: 1.0,
-          duration:duration,
-          useNativeDriver: true,
-        }
-    );
-    this.offAnim =  Animated.timing(
-        this.state.alpha,
-        {
-          toValue: 0.5,
-          duration:duration/2,
-          useNativeDriver: true,
-        }
-    );
-    
-    this.scaleOnAnim = Animated.timing(
-        this.state.alpha,
-        {
-          toValue: 1.05,
-          duration:duration/2,
-          useNativeDriver: true,
-        }
-    );
-    this.scaleOffAnim =  Animated.timing(
-        this.state.alpha,
-        {
-          toValue: 1.0,
-          duration:duration,
-          useNativeDriver: true,
-        }
-    );
-    this.scaleOnAnim = Animated.timing(
-        this.state.alpha,
-        {
-          toValue: 1.05,
-          duration:duration/2,
-          useNativeDriver: true,
-        }
-    );
-    this.scaleOffAnim =  Animated.timing(
-        this.state.alpha,
-        {
-          toValue: 1.0,
-          duration:duration,
-          useNativeDriver: true,
-        }
-    );
+    this.onAnim = Animated.timing(this.state.alpha, {
+      toValue: 1.0,
+      duration: duration,
+      useNativeDriver: true,
+    });
+    this.offAnim = Animated.timing(this.state.alpha, {
+      toValue: 0.5,
+      duration: duration / 2,
+      useNativeDriver: true,
+    });
+
+    this.scaleOnAnim = Animated.timing(this.state.alpha, {
+      toValue: 1.05,
+      duration: duration / 2,
+      useNativeDriver: true,
+    });
+    this.scaleOffAnim = Animated.timing(this.state.alpha, {
+      toValue: 1.0,
+      duration: duration,
+      useNativeDriver: true,
+    });
+    this.scaleOnAnim = Animated.timing(this.state.alpha, {
+      toValue: 1.05,
+      duration: duration / 2,
+      useNativeDriver: true,
+    });
+    this.scaleOffAnim = Animated.timing(this.state.alpha, {
+      toValue: 1.0,
+      duration: duration,
+      useNativeDriver: true,
+    });
 
     //Slight pulsating animation:
     //this.alphaLoop = Animated.loop(Animated.sequence([this.onAnim,this.offAnim]));
     //this.scaleLoop = Animated.loop(Animated.sequence([this.scaleOnAnim,this.scaleOffAnim]));
-
   }
-  
+
   async componentDidMount() {
     this.enableTVEventHandler();
     this.startAnim();
   }
 
-  startAnim = ()=>{
+  startAnim = () => {
     this.onAnim.start();
     this.scaleOnAnim.start();
-  }
+  };
 
-  stopAnim = ()=>{
+  stopAnim = () => {
     this.offAnim.start();
     this.scaleOffAnim.start();
-  }
+  };
 
   componentDidUpdate(prevProps, prevState) {
     //console.log('AppButton componentDidUpdate '+this.props.title + " prev " + prevProps.isFocused + " props: "+ this.props.isFocused);
     if (this.props.isFocused) {
       //console.log('AppButton Focus Changed!');
       //this.startAnim();
-    }else{
+    } else {
       //this.stopAnim();
     }
   }
 
-  componentWillUnmount(){
+  componentWillUnmount() {
     this.disableTVEventHandler();
   }
 
-  focus =()=>{
-    if(this.buttonRef.current){
+  focus = () => {
+    if (this.buttonRef.current) {
       //console.log("Appbutton focus "+ this.props.title);
       //this.buttonRef.current.focus();
       /*this.buttonRef.current.setNativeProps({
         hasTVPreferredFocus:true
       });*/
     }
-  }
-  
+  };
+
   enableTVEventHandler() {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
       const {isActive, isFocused} = page.props;
-      if(!isActive || !isFocused){
+      if (!isActive || !isFocused) {
         return null;
       }
-      if(evt.eventType == "blur" || evt.eventType == "focus"){
+      if (evt.eventType == 'blur' || evt.eventType == 'focus') {
         return;
       }
 
@@ -146,25 +126,25 @@ class AppButton extends React.Component {
     });
   }
 
-  onPress = ()=>{
+  onPress = () => {
     const {isActive, isFocused, onPress} = this.props;
-    console.log("Appbutton onPress: " + isActive + " " + isFocused);
-    if(!isActive || !isFocused){
+    console.log('Appbutton onPress: ' + isActive + ' ' + isFocused);
+    if (!isActive || !isFocused) {
       return;
     }
 
-    this.setState({isPressed:true});
+    this.setState({isPressed: true});
     let pressedTimer = Timer(() => {
-      this.setState({isPressed:false});
-      if(!isActive || !isFocused){
+      this.setState({isPressed: false});
+      if (!isActive || !isFocused) {
         return;
       }
-      if(onPress){
+      if (onPress) {
         onPress();
       }
     }, 100);
     pressedTimer.start();
-  }
+  };
 
   disableTVEventHandler() {
     if (this.tvEventHandler) {
@@ -174,43 +154,52 @@ class AppButton extends React.Component {
   }
 
   render() {
-    const {text, isFocused, onPress, style, isActive, onFocus, ...otherProps} = this.props;
+    const {
+      text,
+      isFocused,
+      onPress,
+      style,
+      isActive,
+      onFocus,
+      ...otherProps
+    } = this.props;
     const {isPressed} = this.state;
 
-    if(isEmpty(text)){
+    if (isEmpty(text)) {
       return null;
     }
 
-    console.log("Button " + otherProps.title + " " + isFocused );
+    console.log('Button ' + otherProps.title + ' ' + isFocused);
 
-    let buttonStyle = isFocused? [styles.button,styles.buttonFocused,style]: [styles.button, style];
-    if(isPressed){
-      buttonStyle = [styles.button,styles.buttonSelected,style];
+    let buttonStyle = isFocused
+      ? [styles.button, styles.buttonFocused, style]
+      : [styles.button, style];
+    if (isPressed) {
+      buttonStyle = [styles.button, styles.buttonSelected, style];
     }
 
-    let buttonTextStyle = isFocused? [styles.buttonText,styles.buttonTextFocused]: [styles.buttonText];
+    let buttonTextStyle = isFocused
+      ? [styles.buttonText, styles.buttonTextFocused]
+      : [styles.buttonText];
 
     //We need a real button if onFocus is passed in
-    if(onFocus){
+    if (onFocus) {
       return (
-        //Don't use native focusable components, it will mess up the react-native-swiper because of the focus management.
-        
         <TouchableOpacity
           ref={this.buttonRef}
           //accessible={true}
           //hasTVPreferredFocus={isFocused}
-          activeOpacity ={1}
+          activeOpacity={1}
           onFocus={onFocus}
           onPress={onPress}
-          {...otherProps}
-        >
-        <Animated.View
-        style={[buttonStyle,
-        //{opacity:this.state.alpha},
-        //{transform: [{ scale: this.state.alpha}]}
-        ]}
-        >
-          <Text style={buttonTextStyle}>{text}</Text>
+          {...otherProps}>
+          <Animated.View
+            style={[
+              buttonStyle,
+              //{opacity:this.state.alpha},
+              //{transform: [{ scale: this.state.alpha}]}
+            ]}>
+            <Text style={buttonTextStyle}>{text}</Text>
           </Animated.View>
         </TouchableOpacity>
       );
@@ -219,13 +208,13 @@ class AppButton extends React.Component {
     return (
       //Don't use native focusable components, it will mess up the react-native-swiper because of the focus management.
       <Animated.View
-        style={[buttonStyle,
-        //{opacity:this.state.alpha},
-        //{transform: [{ scale: this.state.alpha}]}
+        style={[
+          buttonStyle,
+          //{opacity:this.state.alpha},
+          //{transform: [{ scale: this.state.alpha}]}
         ]}
         ref={this.props.innerRef}
-        {...otherProps}
-      >
+        {...otherProps}>
         <Text style={buttonTextStyle}>{text}</Text>
       </Animated.View>
     );
@@ -235,49 +224,50 @@ class AppButton extends React.Component {
 const styles = StyleSheet.create({
   buttonText: {
     fontSize: 24,
-    color: "white",
-    fontWeight: "normal",
-    alignSelf: "center",
+    color: 'white',
+    fontWeight: 'normal',
+    alignSelf: 'center',
     textShadowColor: 'gray',
-    fontFamily: "HelveticaNeue",
-    paddingLeft:30,
-    paddingRight:30,
-    paddingTop:10,
-    paddingBottom:10
+    fontFamily: 'HelveticaNeue',
+    paddingLeft: 30,
+    paddingRight: 30,
+    paddingTop: 10,
+    paddingBottom: 10,
   },
   buttonTextFocused: {
-    color: "black",
+    color: 'black',
   },
   button: {
     alignItems: 'center',
-    justifyContent: 'center', 
+    justifyContent: 'center',
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderWidth: 1,
     borderRadius: 10,
-    borderColor: "white",
-    opacity: 0.6
+    borderColor: 'white',
+    minWidth: 160,
+    opacity: 0.6,
   },
   buttonFocused: {
     opacity: 1.0,
     backgroundColor: 'rgba(200,200,200,1.0)',
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
     },
     shadowOpacity: 1,
     shadowRadius: 3.84,
-    elevation:20
+    elevation: 20,
   },
   buttonSelected: {
-    shadowOpacity: .5,
+    shadowOpacity: 0.5,
     shadowRadius: 2,
-    shadowOffset:{width:4,height:4},
+    shadowOffset: {width: 4, height: 4},
     opacity: 1.0,
     borderWidth: 0,
-    elevation:0,
-    backgroundColor: 'rgba(100,100,100,1.0)'
+    elevation: 0,
+    backgroundColor: 'rgba(100,100,100,1.0)',
   },
 });
 

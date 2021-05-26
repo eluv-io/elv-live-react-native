@@ -561,14 +561,16 @@ class Gallery extends React.Component {
       image = item.image;
     }catch(e){}
 
-    let buttonText = "Enter Event";
+    let buttonText = "Buy";
+
     if(item.isRedeemed){
+      buttonText = "Enter Event";
       if(item.isAvailable && item.hasEnded){
         buttonText = "Watch Again"
       }
     }
 
-    //console.log("Gallery renderItem1: key " + key + " currentViewIndex " + currentViewIndex + " item.index " + item.index);
+    console.log("Gallery renderItem1: title " + item.title + " isAccessible " + item.isAccessible + " isAvailable " + item.isAvailable);
 
     return(
     <View key = {key} style={styles.container}>

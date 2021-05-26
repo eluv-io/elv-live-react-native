@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 /**
  * Sample React Native App
  * https://github.com/facebook/react-native
@@ -14,162 +15,165 @@ import ReactNative, {
   Text,
   Image,
   AppState,
-  TVEventHandler
+  TVEventHandler,
 } from 'react-native';
 
-import GalleryPage from './pages/gallerypage'
-import Login from './components/login'
-import AppButton from './components/appbutton'
-import SitePage from './pages/sitepage'
-import PlayerPage from './pages/playerpage'
-import MainPage from './pages/mainpage'
-import PresentsPage from './pages/presentspage'
-import ConfigPage from './pages/configpage'
+import GalleryPage from './pages/gallerypage';
+import Login from './components/login';
+import AppButton from './components/appbutton';
+import SitePage from './pages/sitepage';
+import PlayerPage from './pages/playerpage';
+import MainPage from './pages/mainpage';
+import PresentsPage from './pages/presentspage';
+import ConfigPage from './pages/configpage';
+import TicketPage from './pages/buypage/ticketpage';
+import BuyConfirm from './pages/buypage/buyconfirm';
 import Fabric from './fabric';
 import Config from './config.json';
-import AppContext, {initialState} from './AppContext'
-import { Navigation, Route } from './components/navigation';
-import {JQ, isEmpty,endsWithList} from './utils'
+import AppContext, {initialState} from './AppContext';
+import {Navigation, Route} from './components/navigation';
+import {JQ, isEmpty, endsWithList} from './utils';
 import Timer from './utils/timer';
 import Video from 'react-native-video';
-import BackgroundVideo from './static/videos/EluvioLive.mp4'
-import EluvioLiveLogo from './static/images/fulllogo.jpg'
+import BackgroundVideo from './static/videos/EluvioLive.mp4';
+import EluvioLiveLogo from './static/images/fulllogo.jpg';
 import Spinner from 'react-native-loading-spinner-overlay';
-import { LogBox } from 'react-native';
+import {LogBox} from 'react-native';
 import DefaultPreference from 'react-native-default-preference';
-import { ElvPlatform } from './fabric/elvplatform';
+import {ElvPlatform} from './fabric/elvplatform';
 import DeviceInfo from 'react-native-device-info';
 import uuid from 'react-native-uuid';
 import * as RNIap from 'react-native-iap';
 
-const APP_STORAGE_KEY = "@eluvio_live";
-const APP_VERSION = "1.0.43";
+const APP_STORAGE_KEY = '@eluvio_live';
+const APP_VERSION = '1.0.43';
 
 const isHermes = () => !!global.HermesInternal;
 
 function LoginPage(props) {
   return (
     <View style={styles.container}>
-    <Video
-      source = {BackgroundVideo}
-      style={styles.background}
-      //muted = {true}
-      resizeMode ="cover"
-      //repeat = {true}
-    />
-      <Login {...props}/>
-  </View>
+      <Video
+        source={BackgroundVideo}
+        style={styles.background}
+        //muted = {true}
+        resizeMode="cover"
+        //repeat = {true}
+      />
+      <Login {...props} />
+    </View>
   );
 }
 
-function ErrorPage(props){
+function ErrorPage(props) {
   const {appReload} = useContext(AppContext);
 
   let text = null;
-  if(props.data && props.data.text){
+  if (props.data && props.data.text) {
     text = props.data.text;
   }
 
-  let buttonText = "Continue";
-  if(props.data && props.data.reload){
-    buttonText = "Reload";
+  let buttonText = 'Continue';
+  if (props.data && props.data.reload) {
+    buttonText = 'Reload';
   }
 
-  if(!props.isActive){
+  if (!props.isActive) {
     return null;
   }
 
   return (
     <View style={styles.background}>
-      <Image source={EluvioLiveLogo}
-        style={
-          {
-            width:"100%",
-            height:300,
-            marginTop:-50,
-            marginBottom:20,
-          }
-        }
+      <Image
+        source={EluvioLiveLogo}
+        style={{
+          width: '100%',
+          height: 300,
+          marginTop: -50,
+          marginBottom: 20,
+        }}
       />
-      {text?<Text style={styles.text}>{text}</Text>: null}
-      <AppButton 
+      {text ? <Text style={styles.text}>{text}</Text> : null}
+      <AppButton
         hasTVPreferredFocus={true}
-        onPress = {async ()=>{
-          console.log("Errorpage button pressed.");
-          try{
-            if(props.data){
+        onPress={async () => {
+          console.log('Errorpage button pressed.');
+          try {
+            if (props.data) {
               let data = props.data;
 
-              if(data.reload){
+              if (data.reload) {
                 await appReload();
               }
 
-              if(props.data && props.data.next){
-                props.navigation.replace(next[0],next[1]);
+              if (props.data && props.data.next) {
+                props.navigation.replace(
+                  props.data.next[0],
+                  props.data.next[1],
+                );
                 return;
               }
             }
             props.navigation.goBack();
-          }catch(e){
-            console.error("Errorpage: ",e);
+          } catch (e) {
+            console.error('Errorpage: ', e);
           }
         }}
-        isFocused = {true}
-        isActive = {true}
+        isFocused={true}
+        isActive={true}
         text={buttonText}
       />
     </View>
   );
 }
 
-function ProgressPage(props){
+function ProgressPage(props) {
   return (
     <View style={styles.background}>
-    <Spinner
-      visible={props.isActive}
-      textContent={'Loading...'}
-      textStyle={styles.text}
-    />
+      <Spinner
+        visible={props.isActive}
+        textContent={'Loading...'}
+        textStyle={styles.text}
+      />
     </View>
   );
 }
 
-function initPlatform(network){
+function initPlatform(network) {
   return new Promise(async (resolve, reject) => {
-    console.time("****** App initplatform ******");
+    console.time('****** App initplatform ******');
     try {
       var configUrl = Config.networks[network].configUrl;
       var libraryId = Config.networks[network].platform.libraryId;
       var siteId = Config.networks[network].platform.objectId;
       var fabric = new Fabric();
-      console.log("Loading configUrl: " + configUrl);
+      console.log('Loading configUrl: ' + configUrl);
       await fabric.init({configUrl});
-      var platform = new ElvPlatform({fabric,libraryId,siteId});
+      var platform = new ElvPlatform({fabric, libraryId, siteId});
       resolve({fabric, platform});
     } catch (e) {
       reject(e);
-    } finally{
-      console.timeEnd("****** App initplatform ******");
+    } finally {
+      console.timeEnd('****** App initplatform ******');
     }
-  })
+  });
 }
 
-
 let defaultState = {
-  redeemItems:{},
-  ticketCode:"",
-  error:null,
-  site:null,
-  platform:null,
+  redeemItems: {},
+  ticketCode: '',
+  error: null,
+  site: null,
+  platform: null,
   fabric: null,
   reloadFinished: false,
-  showDebug:false,
-  network: "production",
-  availablePurchases: []
+  showDebug: false,
+  network: 'production',
+  availablePurchases: [],
 };
 
 export default class App extends React.Component {
-  state = initialState
+  state = initialState;
   constructor(props) {
     super(props);
     this.state = defaultState;
@@ -180,10 +184,10 @@ export default class App extends React.Component {
     this.tvEventHandler = null;
     this.appState = null;
     this.sessionTag = uuid.v4();
-    console.log("Using Hermes engine? " + isHermes());
+    console.log('Using Hermes engine? ' + isHermes());
     if (__DEV__) {
       console.log('Running in Debug Mode.');
-    }else{
+    } else {
       console.log('Running in Release Mode.');
     }
   }
@@ -192,143 +196,173 @@ export default class App extends React.Component {
     await this.loadState();
     await this.loadInAppPurchases();
 
-    AppState.addEventListener("change", this._handleAppStateChange);
+    AppState.addEventListener('change', this._handleAppStateChange);
 
     timerFunc = async () => {
-      try{
-        if(!this.state.platform){
-          console.log("refresh");
+      try {
+        if (!this.state.platform) {
+          console.log('refresh');
           await this.reload();
-        }else{
+        } else {
           let sites = this.state.platform.getSites();
-          if(!sites || sites.length == 0){
-            console.log("refresh");
+          if (!sites || sites.length == 0) {
+            console.log('refresh');
             await this.reload();
           }
         }
-      }catch(e){
-        console.error("App refresh timer: " + e);
+      } catch (e) {
+        console.error('App refresh timer: ' + e);
         //await this.handleSetState({error:e});
-        if(this.navigationRef.current){
-          console.error("App refresh timer showing error page: ");
-          this.navigationRef.current.navigate("error",{reload:true});
+        if (this.navigationRef.current) {
+          console.error('App refresh timer showing error page: ');
+          this.navigationRef.current.navigate('error', {reload: true});
         }
       }
     };
 
-    refreshTimer= Timer(timerFunc, 60000);
+    refreshTimer = Timer(timerFunc, 60000);
     refreshTimer.start();
     await timerFunc();
     this.enableTVEventHandler();
-    console.log("Session params: " + this.getQueryParams());
+    console.log('Session params: ' + this.getQueryParams());
+  };
 
-  }
-
-  componentWillUnmount = ()=>{
-    AppState.removeEventListener("change");
-    console.log("App will unmount.");
+  componentWillUnmount = () => {
+    AppState.removeEventListener('change');
+    console.log('App will unmount.');
     this.disableTVEventHandler();
-  }
+  };
 
   loadInAppPurchases = async () => {
-    try{
-      console.log("Loading InApp Purchases");
+    try {
+      console.log('Loading InApp Purchases');
       /*
       These product IDs must match the item entries you created in the App Store Connect and Google Play Console.
       If you want to add more or edit their attributes you can do so there.
       */
-      const productIds = [
-      'iq__45jnGrzNET2wi3ExCcgrknU6k6Yv',
-      ];
-      
+      const productIds = ['iq__45jnGrzNET2wi3ExCcgrknU6k6Yv'];
 
       // Retrieve product details
       let products = await RNIap.getProducts(productIds);
-      console.log("InApp Products: ",products);
-      await this.handleSetState({availablePurchases:products});
-      
-    }catch(e){
-      console.error("Error loading InApp Purchases",e);
+      console.log('InApp Products: ', products);
+      await this.handleSetState({availablePurchases: products});
+    } catch (e) {
+      console.error('Error loading InApp Purchases', e);
     }
-  }
-
+  };
 
   enableTVEventHandler = () => {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
-      if(isEmpty(evt)){
-        return;
-      }
-      
-      if(evt.eventType == "blur" || evt.eventType == "focus"){
+      if (isEmpty(evt)) {
         return;
       }
 
-      if(typeof evt.eventType  === 'string' || evt.eventType instanceof String){
-        if(!page.remoteEvents){
+      if (evt.eventType == 'blur' || evt.eventType == 'focus') {
+        return;
+      }
+
+      if (
+        typeof evt.eventType === 'string' ||
+        evt.eventType instanceof String
+      ) {
+        if (!page.remoteEvents) {
           page.remoteEvents = [];
         }
         page.remoteEvents.push(evt.eventType.toLowerCase());
         //console.log("Current events: " + JQ(this.remoteEvents));
-        if(page.remoteEvents.length > 10){
+        if (page.remoteEvents.length > 10) {
           page.remoteEvents.shift();
         }
 
-        let cheatcodeClear = ["longSelect","left","right","left","right","longSelect"];
-        if(endsWithList(page.remoteEvents,cheatcodeClear)){
-          console.log("!!!!!! Cheatcode cleardata activated! " + JQ(page.remoteEvents));
+        let cheatcodeClear = [
+          'longSelect',
+          'left',
+          'right',
+          'left',
+          'right',
+          'longSelect',
+        ];
+        if (endsWithList(page.remoteEvents, cheatcodeClear)) {
+          console.log(
+            '!!!!!! Cheatcode cleardata activated! ' + JQ(page.remoteEvents),
+          );
           await page.clearData();
           page.forceUpdate();
           return;
         }
 
-        let cheatcodeDebug = ["longSelect","up","up","up","up","longSelect"];
-        if(endsWithList(page.remoteEvents,cheatcodeDebug)){
-          console.log("!!!!!! Cheatcode debug activated! " + JQ(page.remoteEvents));
+        let cheatcodeDebug = [
+          'longSelect',
+          'up',
+          'up',
+          'up',
+          'up',
+          'longSelect',
+        ];
+        if (endsWithList(page.remoteEvents, cheatcodeDebug)) {
+          console.log(
+            '!!!!!! Cheatcode debug activated! ' + JQ(page.remoteEvents),
+          );
           let showDebug = page.state.showDebug;
-          await page.handleSetState({showDebug:!showDebug});
+          await page.handleSetState({showDebug: !showDebug});
           return;
         }
 
-        let cheatcodeConfig = ["longSelect","down","down","down","down","longSelect"];
-        if(endsWithList(page.remoteEvents,cheatcodeConfig)){
-          console.log("!!!!!! Cheatcode config activated! " + JQ(page.remoteEvents));
-          page.navigationRef.current.navigate("config");
+        let cheatcodeConfig = [
+          'longSelect',
+          'down',
+          'down',
+          'down',
+          'down',
+          'longSelect',
+        ];
+        if (endsWithList(page.remoteEvents, cheatcodeConfig)) {
+          console.log(
+            '!!!!!! Cheatcode config activated! ' + JQ(page.remoteEvents),
+          );
+          page.navigationRef.current.navigate('config');
           return;
         }
       }
-      
     });
-  }
+  };
 
   disableTVEventHandler = () => {
     if (this.tvEventHandler) {
       this.tvEventHandler.disable();
       delete this.tvEventHandler;
     }
-  }
+  };
 
-
-  getQueryParams = ()=>{
-    return `&session_id=${encodeURIComponent(this.sessionTag)}&app_id=${encodeURIComponent(DeviceInfo.getBundleId())}&app_version=${encodeURIComponent(APP_VERSION)}&system_version=${encodeURIComponent(DeviceInfo.getSystemVersion())}`;
-  }
+  getQueryParams = () => {
+    return `&session_id=${encodeURIComponent(
+      this.sessionTag,
+    )}&app_id=${encodeURIComponent(
+      DeviceInfo.getBundleId(),
+    )}&app_version=${encodeURIComponent(
+      APP_VERSION,
+    )}&system_version=${encodeURIComponent(DeviceInfo.getSystemVersion())}`;
+  };
 
   _handleAppStateChange = async (nextAppState) => {
-    try{
-      console.log("App _handleAppStateChange " +nextAppState)
-      if (!this.appState || (this.appState.match(/inactive|background/) &&
-        nextAppState === "active")
+    try {
+      console.log('App _handleAppStateChange ' + nextAppState);
+      if (
+        !this.appState ||
+        (this.appState.match(/inactive|background/) &&
+          nextAppState === 'active')
       ) {
-        console.log("App has come to the foreground!");
+        console.log('App has come to the foreground!');
         await this.reload();
       }
 
       this.appState = nextAppState;
-      console.log("AppState", this.appState);
-    }catch(e){
-      console.error("Error reloading on app open: " + e);
-      if(this.navigationRef.current){
-        this.navigationRef.current.navigate("error",{reload:true});
+      console.log('AppState', this.appState);
+    } catch (e) {
+      console.error('Error reloading on app open: ' + e);
+      if (this.navigationRef.current) {
+        this.navigationRef.current.navigate('error', {reload: true});
       }
     }
   };
@@ -338,115 +372,121 @@ export default class App extends React.Component {
   };
 
   loadState = async () => {
-    console.time("****** App loadState ******");
+    console.time('****** App loadState ******');
     let saved = await this.getData();
-    console.log("loadState ", saved);
-    if(saved != null && !isEmpty(saved.redeemItems != undefined)){
-      this.setState({redeemItems:saved.redeemItems});
-    }else{
-      console.log("no state found, setting default: ");
+    console.log('loadState ', saved);
+    if (saved != null && !isEmpty(saved.redeemItems != undefined)) {
+      this.setState({redeemItems: saved.redeemItems});
+    } else {
+      console.log('no state found, setting default: ');
       this.setState(defaultState);
     }
-    console.timeEnd("****** App loadState ******");
-  }
+    console.timeEnd('****** App loadState ******');
+  };
 
   clearData = async () => {
-    console.time("****** App clearData ******");
+    console.time('****** App clearData ******');
     try {
       //TODO: Confirmation dialog?
-      await DefaultPreference.set(APP_STORAGE_KEY, "");
+      await DefaultPreference.set(APP_STORAGE_KEY, '');
       await this.loadState();
       await this.switchNetwork();
     } catch (e) {
-      console.error("Could not clear app data." + e);
+      console.error('Could not clear app data.' + e);
     } finally {
-      console.timeEnd("****** App clearData ******");
+      console.timeEnd('****** App clearData ******');
     }
-  }
+  };
 
   storeData = async (value) => {
-    console.time("****** App storeData ******");
+    console.time('****** App storeData ******');
     try {
       const jsonValue = JSON.stringify(value);
       await DefaultPreference.set(APP_STORAGE_KEY, jsonValue);
     } catch (e) {
-      console.error("Could not save app data.");
-    }finally{
-      console.timeEnd("****** App storeData ******");
+      console.error('Could not save app data.');
+    } finally {
+      console.timeEnd('****** App storeData ******');
     }
-  }
+  };
 
   getData = async () => {
-    console.time("****** App getData ******");
+    console.time('****** App getData ******');
     try {
       const jsonValue = await DefaultPreference.get(APP_STORAGE_KEY);
-      console.log("retrieved from prefs: ", jsonValue);
+      console.log('retrieved from prefs: ', jsonValue);
       let state = JSON.parse(jsonValue);
       return state;
-    } catch(e) {
-      console.error("Could not retrieve app data.");
+    } catch (e) {
+      console.error('Could not retrieve app data.');
       return null;
     } finally {
-      console.timeEnd("****** App getData ******");
+      console.timeEnd('****** App getData ******');
     }
-  }
+  };
 
-  reload =  async ()=>{
-    console.time("****** App reload ******");
+  reload = async () => {
+    console.time('****** App reload ******');
     let newSite = null;
     let fabric = null;
     let platform = null;
-    try{
-      await this.handleSetState({error:null,reloadFinished:false});
+    try {
+      await this.handleSetState({error: null, reloadFinished: false});
 
-      let {site,ticketCode,redeemItems,network} = this.state;
+      let {site, ticketCode, redeemItems, network} = this.state;
       newSite = site;
 
-      console.log("Loading network: ",network);
-      if(!network){
-        throw "No network specified.";
+      console.log('Loading network: ', network);
+      if (!network) {
+        throw 'No network specified.';
       }
       let res = await initPlatform(network);
       fabric = res.fabric;
       platform = res.platform;
-      if(site && platform && fabric && ticketCode){
+      if (site && platform && fabric && ticketCode) {
         let tenantId = site.info.tenant_id;
-        let status = await this.redeemCode(fabric,site,redeemItems,tenantId,ticketCode);
-        if(!status){
-          console.error("Error redeeming site. Invalid code.");
-          throw "Error redeeming site";
+        let status = await this.redeemCode(
+          fabric,
+          site,
+          redeemItems,
+          tenantId,
+          ticketCode,
+        );
+        if (!status) {
+          console.error('Error redeeming site. Invalid code.');
+          throw 'Error redeeming site';
         }
-        
+
         platform.setFabric(fabric);
         await platform.load();
-        
-        let sites =  platform.getSites();
-        for(index in sites){
+
+        let sites = platform.getSites();
+        for (index in sites) {
           let test = sites[index];
-          if(test.objectId && test.objectId == site.objectId){
+          if (test.objectId && test.objectId == site.objectId) {
             newSite = test;
             break;
           }
         }
-      }else{
+      } else {
         platform.setFabric(fabric);
         await platform.load();
       }
 
-      if(this.state.site){
-        console.log("Current Site: " + this.state.site.title);
+      if (this.state.site) {
+        console.log('Current Site: ' + this.state.site.title);
       }
-      await this.handleSetState({fabric,platform, site:newSite});
-    }catch(e){
-      console.error("Error in App reload: ",e);
+      await this.handleSetState({fabric, platform, site: newSite});
+    } catch (e) {
+      console.error('Error in App reload: ', e);
       //this.handleSetState({error: e});
       throw e;
-    }finally{
-      console.log("Finished reload");
-      await this.handleSetState({reloadFinished:true});
-      console.timeEnd("****** App reload ******");
+    } finally {
+      console.log('Finished reload');
+      await this.handleSetState({reloadFinished: true});
+      console.timeEnd('****** App reload ******');
     }
-  }
+  };
 
   //Use callback to execute after setState finishes.
   /*
@@ -455,141 +495,143 @@ export default class App extends React.Component {
   }*/
 
   //You can use async/await now
-  handleSetState = (state)=>{
+  handleSetState = (state) => {
     return new Promise((resolve) => {
-      if(state.site){
-        console.log("handleSetState: " + JQ(state.site.versionHash));
+      if (state.site) {
+        console.log('handleSetState: ' + JQ(state.site.versionHash));
       }
       this.setState(state, resolve);
     });
-  }
+  };
 
-  switchNetwork = async (network)=>{
-    if(!network){
-      network = "production";
+  switchNetwork = async (network) => {
+    if (!network) {
+      network = 'production';
     }
-    console.log("App switchNetwork: " + network);
-    try{
+    console.log('App switchNetwork: ' + network);
+    try {
       await this.handleSetState(defaultState);
-      if(Object.keys(Config.networks).includes(network)){
-        console.log("Network key is valid. Proceeding...");
+      if (Object.keys(Config.networks).includes(network)) {
+        console.log('Network key is valid. Proceeding...');
         await this.handleSetState({network});
         await this.reload();
         this.navigationRef.current.loadDefault();
         return true;
       }
-    }catch(e){
-      console.error("SwitchNetwork: " + e)
-      if(this.navigationRef.current){
+    } catch (e) {
+      console.error('SwitchNetwork: ' + e);
+      if (this.navigationRef.current) {
         //console.error("Navigating to error:");
-        this.navigationRef.current.replace("error",{text:"Could not reach Eluvio Live. Check your connection and try again.",reload:true});
-        return false;;
+        this.navigationRef.current.replace('error', {
+          text:
+            'Could not reach Eluvio Live. Check your connection and try again.',
+          reload: true,
+        });
+        return false;
       }
     }
-  }
+  };
 
-  getRedeemedCodes = () =>{
+  getRedeemedCodes = () => {
     return this.state.redeemItems;
-  }
+  };
 
   //Internal
-  redeemCode = async (fabric,site, redeemItems, tenantId,ticketCode) =>{
-    console.time("* App redeemCode *");
-    console.log("RedeemCode ticketCode: " + ticketCode);
-    let otpId = await fabric.redeemCode(tenantId,ticketCode);
-    console.log("App redeemCode response: " + otpId);
-    if(otpId != null){
+  redeemCode = async (fabric, site, redeemItems, tenantId, ticketCode) => {
+    console.time('* App redeemCode *');
+    console.log('RedeemCode ticketCode: ' + ticketCode);
+    let otpId = await fabric.redeemCode(tenantId, ticketCode);
+    console.log('App redeemCode response: ' + otpId);
+    if (otpId != null) {
       let items = {...redeemItems};
       let objectId = site.objectId;
-      items[objectId] = {ticketCode,tenantId,otpId};
-      console.log("Redeem success. ");
-      await this.handleSetState({redeemItems:items});
+      items[objectId] = {ticketCode, tenantId, otpId};
+      console.log('Redeem success. ');
+      await this.handleSetState({redeemItems: items});
       await this.saveState();
-      console.timeEnd("* App redeemCode *");
+      console.timeEnd('* App redeemCode *');
       return otpId;
     }
-    console.timeEnd("* App redeemCode *");
+    console.timeEnd('* App redeemCode *');
     return null;
-  }
+  };
 
-  RenderDebug =() =>{
-    try{
-    let {showDebug, fabric, network} = this.state;
+  RenderDebug = () => {
+    try {
+      let {showDebug, fabric, network} = this.state;
 
-    if(!showDebug){
-      return null;
+      if (!showDebug) {
+        return null;
+      }
+
+      let debugText = {
+        textAlign: 'right',
+        color: 'white',
+        fontSize: 20,
+      };
+
+      return (
+        <View
+          style={{
+            position: 'absolute',
+            padding: 30,
+            diplay: 'flex',
+            right: 0,
+            top: 0,
+            color: 'white',
+            fontSize: 20,
+          }}>
+          <Text style={debugText}>
+            {'QueryParams: ' + this.getQueryParams()}
+          </Text>
+          <Text style={debugText}>{'QFab: ' + fabric.baseUrl({})}</Text>
+          <Text style={debugText}>{'Network: ' + network}</Text>
+        </View>
+      );
+    } catch (e) {
+      console.error('renderDebug: ' + e);
     }
-
-    let debugText = {
-      textAlign:"right",
-      color:"white",
-      fontSize: 20
-    };
-
-    return (
-      <View 
-        style={{
-          position:"absolute",
-          padding:30,
-          diplay:"flex",
-          right:0, 
-          top:0,
-          color:"white",
-          fontSize: 20
-        }}
-      >
-      <Text 
-        style={debugText}
-        >
-        {"QueryParams: "+this.getQueryParams()}
-      </Text>
-      <Text 
-        style={debugText}
-        >
-        {"QFab: "+fabric.baseUrl({})}
-      </Text>
-      <Text 
-        style={debugText}
-        >
-        {"Network: "+network}
-      </Text>
-      </View>
-    );
-    }catch(e){console.error("renderDebug: " + e);}
     return null;
-  }
+  };
 
   render() {
-    const {fabric, site, platform, redeemItems,showDebug,reloadFinished,network} = this.state;
+    const {
+      fabric,
+      site,
+      platform,
+      redeemItems,
+      showDebug,
+      reloadFinished,
+      network,
+    } = this.state;
 
     return (
-      <AppContext.Provider value={
-        {
+      <AppContext.Provider
+        value={{
           fabric,
           site,
           platform,
           redeemItems,
           showDebug,
           network,
-          getQueryParams:this.getQueryParams,
-          setAppState:this.handleSetState,
-          appReload:this.reload,
+          getQueryParams: this.getQueryParams,
+          setAppState: this.handleSetState,
+          appReload: this.reload,
           appClearData: this.clearData,
           switchNetwork: this.switchNetwork,
-          reloadFinished: reloadFinished
-          }
-        }
-        >
+          reloadFinished: reloadFinished,
+        }}>
         <Navigation ref={this.navigationRef} default="main">
-            <Route name="main" component={MainPage} />
-            <Route name="redeem" component={LoginPage} />
-            <Route name="site" component={SitePage} />
-            <Route name="player" component={PlayerPage} />
-            <Route name="gallery" component={GalleryPage} />
-            <Route name="presents" component={PresentsPage} />
-            <Route name="config" component={ConfigPage} />
-            <Route name="progress" component={ProgressPage} />            
-            <Route name="error" component={ErrorPage} />
+          <Route name="main" component={MainPage} />
+          <Route name="buy" component={TicketPage} />
+          <Route name="buyconfirm" component={BuyConfirm} />
+          <Route name="site" component={SitePage} />
+          <Route name="player" component={PlayerPage} />
+          <Route name="gallery" component={GalleryPage} />
+          <Route name="presents" component={PresentsPage} />
+          <Route name="config" component={ConfigPage} />
+          <Route name="progress" component={ProgressPage} />
+          <Route name="error" component={ErrorPage} />
         </Navigation>
         <this.RenderDebug />
       </AppContext.Provider>
@@ -602,51 +644,51 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'black'
+    backgroundColor: 'black',
   },
   background: {
-    position: "absolute",
-    display: "flex",
+    position: 'absolute',
+    display: 'flex',
     alignItems: 'center',
-    justifyContent: "center",
+    justifyContent: 'center',
     backgroundColor: 'black',
-    width: "100%",
-    height: "100%"
+    width: '100%',
+    height: '100%',
   },
   spinnerTextStyle: {
-    color: '#FFF'
+    color: '#FFF',
   },
   errorMessage: {
-    color: '#FFF'
+    color: '#FFF',
   },
   buttonText: {
     fontSize: 18,
-    color: "white",
-    fontWeight: "bold",
-    alignSelf: "center",
-    textTransform: "uppercase",
+    color: 'white',
+    fontWeight: 'bold',
+    alignSelf: 'center',
+    textTransform: 'uppercase',
     fontSize: 14,
     textShadowColor: 'gray',
     letterSpacing: 7,
-    fontFamily: "HelveticaNeue",
+    fontFamily: 'HelveticaNeue',
   },
   text: {
-    fontFamily: "Helvetica",
+    fontFamily: 'Helvetica',
     textAlign: 'center',
-    margin:60,
+    margin: 60,
     color: '#fff',
     fontSize: 36,
-    fontWeight: "500"
+    fontWeight: '500',
   },
   continueButton: {
     alignItems: 'center',
-    justifyContent: 'center',    
+    justifyContent: 'center',
     paddingVertical: 10,
     paddingHorizontal: 12,
     width: 200,
     height: 60,
     borderWidth: 2,
     borderRadius: 10,
-    borderColor: "white",
+    borderColor: 'white',
   },
 });
