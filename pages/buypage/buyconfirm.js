@@ -73,7 +73,7 @@ class BuyConfirm extends React.Component {
 
   render() {
     const {platform, site} = this.context;
-    const {isActive, data} = this.props;
+    const {isActive, data, navigation} = this.props;
     const {focused} = this.state;
 
     let item = data;
@@ -111,8 +111,6 @@ class BuyConfirm extends React.Component {
       console.error('Ticket image error: ', e);
     }
 
-    let accountId = 'test@email.com';
-
     return (
       <View style={styles.container}>
         <Image
@@ -146,8 +144,13 @@ class BuyConfirm extends React.Component {
               <AppButton
                 style={styles.button}
                 hasTVPreferredFocus={true}
-                onPress={() => {
+                onPress={async () => {
                   console.log('Confirm Buy pressed.');
+                  if (await InApp.requestPurchase(item.id)) {
+                    console.log('Purchase succesful!');
+                  } else {
+                    console.log('Purchase failed!');
+                  }
                 }}
                 onFocus={() => {
                   this.setState({focused: 'buy'});
@@ -161,6 +164,7 @@ class BuyConfirm extends React.Component {
                 style={styles.button}
                 onPress={() => {
                   console.log('Confirm Cancel pressed.');
+                  navigation.goBack();
                 }}
                 onFocus={() => {
                   this.setState({focused: 'cancel'});
@@ -170,10 +174,6 @@ class BuyConfirm extends React.Component {
                 title="Confirm Cancel Button"
                 isActive={isActive}
               />
-            </View>
-            <View style={styles.itemTextColumn}>
-              <Text style={styles.account}>Account</Text>
-              <Text style={styles.account}>{accountId}</Text>
             </View>
           </View>
         </View>

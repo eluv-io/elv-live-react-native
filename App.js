@@ -43,7 +43,8 @@ import DefaultPreference from 'react-native-default-preference';
 import {ElvPlatform} from './fabric/elvplatform';
 import DeviceInfo from 'react-native-device-info';
 import uuid from 'react-native-uuid';
-import * as RNIap from 'react-native-iap';
+import InApp from './providers/inapp';
+import {areIntervalsOverlapping} from 'date-fns';
 
 const APP_STORAGE_KEY = '@eluvio_live';
 const APP_VERSION = '1.0.43';
@@ -192,13 +193,20 @@ export default class App extends React.Component {
     }
   }
 
+  onPurchaseUpdated = (purchase) => {
+    console.log('******** onPurchaseUpdated ', purchase);
+  };
+
+  onPurchaseError = (error) => {
+    console.log('******** onPurchaseError ', error);
+  };
+
   componentDidMount = async () => {
     await this.loadState();
-    await this.loadInAppPurchases();
-
     AppState.addEventListener('change', this._handleAppStateChange);
+    await InApp.initConnection(this.onPurchaseUpdated, this.onPurchaseError);
 
-    timerFunc = async () => {
+    const timerFunc = async () => {
       try {
         if (!this.state.platform) {
           console.log('refresh');
@@ -220,35 +228,18 @@ export default class App extends React.Component {
       }
     };
 
-    refreshTimer = Timer(timerFunc, 60000);
+    const refreshTimer = Timer(timerFunc, 60000);
     refreshTimer.start();
     await timerFunc();
     this.enableTVEventHandler();
     console.log('Session params: ' + this.getQueryParams());
   };
 
-  componentWillUnmount = () => {
+  componentWillUnmount = async () => {
     AppState.removeEventListener('change');
     console.log('App will unmount.');
     this.disableTVEventHandler();
-  };
-
-  loadInAppPurchases = async () => {
-    try {
-      console.log('Loading InApp Purchases');
-      /*
-      These product IDs must match the item entries you created in the App Store Connect and Google Play Console.
-      If you want to add more or edit their attributes you can do so there.
-      */
-      const productIds = ['iq__45jnGrzNET2wi3ExCcgrknU6k6Yv'];
-
-      // Retrieve product details
-      let products = await RNIap.getProducts(productIds);
-      console.log('InApp Products: ', products);
-      await this.handleSetState({availablePurchases: products});
-    } catch (e) {
-      console.error('Error loading InApp Purchases', e);
-    }
+    await InApp.endConnection();
   };
 
   enableTVEventHandler = () => {
@@ -461,7 +452,7 @@ export default class App extends React.Component {
         await platform.load();
 
         let sites = platform.getSites();
-        for (index in sites) {
+        for (var index in sites) {
           let test = sites[index];
           if (test.objectId && test.objectId == site.objectId) {
             newSite = test;
@@ -472,6 +463,9 @@ export default class App extends React.Component {
         platform.setFabric(fabric);
         await platform.load();
       }
+
+      let purchases = await InApp.getAvailablePurchases();
+      console.log('****************** Available Purchases: ', purchases);
 
       if (this.state.site) {
         console.log('Current Site: ' + this.state.site.title);
