@@ -1,6 +1,9 @@
 //import products from '../testdata/products';
 import {JQ} from '../utils';
 import * as RNIap from 'react-native-iap';
+//import {NativeModules} from 'react-native';
+//const {RNStoreKit} = NativeModules;
+import * as StoreKit from '../ios/StoreKit';
 
 export const initConnection = async (
   purchaseListener,
@@ -11,6 +14,9 @@ export const initConnection = async (
     await RNIap.initConnection();
     RNIap.purchaseUpdatedListener(purchaseListener);
     RNIap.purchaseErrorListener(purchaseListener);
+    //console.log('******* NATIVEMODULES ', Object.keys(NativeModules));
+    //console.log('testing storekit ', RNStoreKit);
+    //StoreKit.setBundleIdentifier('live.eluv.io');
   } catch (e) {
     console.error('InApp purchase initConnection error: ', e);
   }
@@ -30,7 +36,10 @@ export const loadInAppPurchases = async (productIds) => {
 
     // Retrieve product details
     let products = await RNIap.getProducts(productIds);
-    console.log('InApp Products: ', products);
+    //console.log('InApp Products: ', products);
+    //let products2 = await StoreKit.RequestProducts(productIds);
+    //console.log('Products2: ', products2);
+
     return products;
   } catch (e) {
     console.error('Error loading InApp Purchases', e);
@@ -40,7 +49,7 @@ export const loadInAppPurchases = async (productIds) => {
 
 // returns list of available tickets based on the skus per platform
 export const getAvailableTickets = async (site) => {
-  console.log('Site Tickets: ' + JQ(site.info.tickets));
+  //console.log('Site Tickets: ' + JQ(site.info.tickets));
 
   let productIdToInfo = getAllSiteProductUUIDs(site);
   let products = [];
@@ -50,7 +59,7 @@ export const getAvailableTickets = async (site) => {
     //console.log('index: ', index);
     var purchase = purchases[index];
     var info = productIdToInfo[purchase.productId];
-    console.log('info: ', info);
+    //console.log('info: ', info);
     if (!info) {
       continue;
     }

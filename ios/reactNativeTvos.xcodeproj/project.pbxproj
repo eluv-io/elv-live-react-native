@@ -30,6 +30,24 @@
 		9999CA5957E549FA83C058C4 /* FontAwesome5_Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EA62239A08A74968A52D03C2 /* FontAwesome5_Regular.ttf */; };
 		AB8FBC3DA3C142A5963450C5 /* FontAwesome.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EFFB20A2E93A485A88768DEC /* FontAwesome.ttf */; };
 		ABFD20C998D44EFCA32CF702 /* MaterialCommunityIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 02D95F66A6F94E588FF21840 /* MaterialCommunityIcons.ttf */; };
+		B00F17CD266411B100BD6D67 /* RNStoreKit.m in Sources */ = {isa = PBXBuildFile; fileRef = B00F17C4266411B000BD6D67 /* RNStoreKit.m */; };
+		B00F17CE266411B100BD6D67 /* RNStoreKit.m in Sources */ = {isa = PBXBuildFile; fileRef = B00F17C4266411B000BD6D67 /* RNStoreKit.m */; };
+		B00F17CF266411B100BD6D67 /* RNStoreKit.m in Sources */ = {isa = PBXBuildFile; fileRef = B00F17C4266411B000BD6D67 /* RNStoreKit.m */; };
+		B00F17D0266411B100BD6D67 /* RNProductRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B00F17C6266411B000BD6D67 /* RNProductRequest.m */; };
+		B00F17D1266411B100BD6D67 /* RNProductRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B00F17C6266411B000BD6D67 /* RNProductRequest.m */; };
+		B00F17D2266411B100BD6D67 /* RNProductRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B00F17C6266411B000BD6D67 /* RNProductRequest.m */; };
+		B00F17D3266411B100BD6D67 /* RNProduct.m in Sources */ = {isa = PBXBuildFile; fileRef = B00F17C9266411B000BD6D67 /* RNProduct.m */; };
+		B00F17D4266411B100BD6D67 /* RNProduct.m in Sources */ = {isa = PBXBuildFile; fileRef = B00F17C9266411B000BD6D67 /* RNProduct.m */; };
+		B00F17D5266411B100BD6D67 /* RNProduct.m in Sources */ = {isa = PBXBuildFile; fileRef = B00F17C9266411B000BD6D67 /* RNProduct.m */; };
+		B00F17D6266411B100BD6D67 /* RNTransaction.m in Sources */ = {isa = PBXBuildFile; fileRef = B00F17CB266411B100BD6D67 /* RNTransaction.m */; };
+		B00F17D7266411B100BD6D67 /* RNTransaction.m in Sources */ = {isa = PBXBuildFile; fileRef = B00F17CB266411B100BD6D67 /* RNTransaction.m */; };
+		B00F17D8266411B100BD6D67 /* RNTransaction.m in Sources */ = {isa = PBXBuildFile; fileRef = B00F17CB266411B100BD6D67 /* RNTransaction.m */; };
+		B00F17D9266411B100BD6D67 /* RNDownload.m in Sources */ = {isa = PBXBuildFile; fileRef = B00F17CC266411B100BD6D67 /* RNDownload.m */; };
+		B00F17DA266411B100BD6D67 /* RNDownload.m in Sources */ = {isa = PBXBuildFile; fileRef = B00F17CC266411B100BD6D67 /* RNDownload.m */; };
+		B00F17DB266411B100BD6D67 /* RNDownload.m in Sources */ = {isa = PBXBuildFile; fileRef = B00F17CC266411B100BD6D67 /* RNDownload.m */; };
+		B00F17DD2665473700BD6D67 /* index.js in Resources */ = {isa = PBXBuildFile; fileRef = B00F17DC2665473700BD6D67 /* index.js */; };
+		B00F17DE2665473700BD6D67 /* index.js in Resources */ = {isa = PBXBuildFile; fileRef = B00F17DC2665473700BD6D67 /* index.js */; };
+		B00F17DF2665473700BD6D67 /* index.js in Resources */ = {isa = PBXBuildFile; fileRef = B00F17DC2665473700BD6D67 /* index.js */; };
 		B012C58E254FC34700993400 /* libRNExitApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B012C58D254FC34700993400 /* libRNExitApp.a */; };
 		B01BE66D2649A9A600931D75 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B01BE66C2649A9A600931D75 /* StoreKit.framework */; };
 		B071D6D22660B0B20070995A /* TVServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B071D6D12660B0B20070995A /* TVServices.framework */; };
@@ -91,6 +109,17 @@
 		8DC2855AB2CCC04BED0978AE /* libPods-reactNativeTvos.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-reactNativeTvos.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		903F0A197D24469AAF310CB5 /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
 		A0216F1136BF7C90703C880F /* libPods-reactNativeTvos-tvOS-reactNativeTvos-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-reactNativeTvos-tvOS-reactNativeTvos-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B00F17C3266411B000BD6D67 /* RNProductRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNProductRequest.h; sourceTree = "<group>"; };
+		B00F17C4266411B000BD6D67 /* RNStoreKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNStoreKit.m; sourceTree = "<group>"; };
+		B00F17C5266411B000BD6D67 /* RNTransaction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTransaction.h; sourceTree = "<group>"; };
+		B00F17C6266411B000BD6D67 /* RNProductRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNProductRequest.m; sourceTree = "<group>"; };
+		B00F17C7266411B000BD6D67 /* RNDownload.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNDownload.h; sourceTree = "<group>"; };
+		B00F17C8266411B000BD6D67 /* RNProduct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNProduct.h; sourceTree = "<group>"; };
+		B00F17C9266411B000BD6D67 /* RNProduct.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNProduct.m; sourceTree = "<group>"; };
+		B00F17CA266411B000BD6D67 /* RNStoreKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNStoreKit.h; sourceTree = "<group>"; };
+		B00F17CB266411B100BD6D67 /* RNTransaction.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNTransaction.m; sourceTree = "<group>"; };
+		B00F17CC266411B100BD6D67 /* RNDownload.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNDownload.m; sourceTree = "<group>"; };
+		B00F17DC2665473700BD6D67 /* index.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = index.js; sourceTree = "<group>"; };
 		B012C58D254FC34700993400 /* libRNExitApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libRNExitApp.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		B012C593254FC35300993400 /* libRNExitApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libRNExitApp.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		B012C599254FC41200993400 /* libRNExitApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libRNExitApp.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -190,8 +219,8 @@
 				B012C58D254FC34700993400 /* libRNExitApp.a */,
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
-				8DC2855AB2CCC04BED0978AE /* libPods-reactNativeTvos.a */,
 				4F21F13455730034D850CD1C /* libPods-reactNativeTvos-reactNativeTvosTests.a */,
+				8DC2855AB2CCC04BED0978AE /* libPods-reactNativeTvos.a */,
 				EA54FCF2086BA3B4678F8237 /* libPods-reactNativeTvos-tvOS.a */,
 				A0216F1136BF7C90703C880F /* libPods-reactNativeTvos-tvOS-reactNativeTvos-tvOSTests.a */,
 			);
@@ -231,6 +260,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				B00F17A926620F3D00BD6D67 /* StoreKit */,
 				B099B4BA257ECAA000CC8765 /* reactNativeTvos-tvOS.entitlements */,
 				13B07FAE1A68108700A75B9A /* reactNativeTvos */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
@@ -269,6 +299,24 @@
 				3BDF8C4CCF278F944E8C6CBF /* Pods-reactNativeTvos-tvOS-reactNativeTvos-tvOSTests.release.xcconfig */,
 			);
 			path = Pods;
+			sourceTree = "<group>";
+		};
+		B00F17A926620F3D00BD6D67 /* StoreKit */ = {
+			isa = PBXGroup;
+			children = (
+				B00F17C7266411B000BD6D67 /* RNDownload.h */,
+				B00F17CC266411B100BD6D67 /* RNDownload.m */,
+				B00F17C8266411B000BD6D67 /* RNProduct.h */,
+				B00F17C9266411B000BD6D67 /* RNProduct.m */,
+				B00F17C3266411B000BD6D67 /* RNProductRequest.h */,
+				B00F17C6266411B000BD6D67 /* RNProductRequest.m */,
+				B00F17CA266411B000BD6D67 /* RNStoreKit.h */,
+				B00F17C4266411B000BD6D67 /* RNStoreKit.m */,
+				B00F17C5266411B000BD6D67 /* RNTransaction.h */,
+				B00F17CB266411B100BD6D67 /* RNTransaction.m */,
+				B00F17DC2665473700BD6D67 /* index.js */,
+			);
+			path = StoreKit;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -427,6 +475,7 @@
 				9999CA5957E549FA83C058C4 /* FontAwesome5_Regular.ttf in Resources */,
 				09E2F93766E54C10AF5176C8 /* FontAwesome5_Solid.ttf in Resources */,
 				5E55B9B2167040B5A08CADCD /* Fontisto.ttf in Resources */,
+				B00F17DD2665473700BD6D67 /* index.js in Resources */,
 				634FE8CBF75349509884C47A /* Foundation.ttf in Resources */,
 				0A6C7328F8164422967787CB /* Ionicons.ttf in Resources */,
 				ABFD20C998D44EFCA32CF702 /* MaterialCommunityIcons.ttf in Resources */,
@@ -442,6 +491,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */,
+				B00F17DE2665473700BD6D67 /* index.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -449,6 +499,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B00F17DF2665473700BD6D67 /* index.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -824,8 +875,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B00F17D3266411B100BD6D67 /* RNProduct.m in Sources */,
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
+				B00F17D6266411B100BD6D67 /* RNTransaction.m in Sources */,
+				B00F17D9266411B100BD6D67 /* RNDownload.m in Sources */,
+				B00F17CD266411B100BD6D67 /* RNStoreKit.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				B00F17D0266411B100BD6D67 /* RNProductRequest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -833,8 +889,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B00F17D4266411B100BD6D67 /* RNProduct.m in Sources */,
 				2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */,
+				B00F17D7266411B100BD6D67 /* RNTransaction.m in Sources */,
+				B00F17DA266411B100BD6D67 /* RNDownload.m in Sources */,
+				B00F17CE266411B100BD6D67 /* RNStoreKit.m in Sources */,
 				2D02E4BC1E0B4A80006451C7 /* AppDelegate.m in Sources */,
+				B00F17D1266411B100BD6D67 /* RNProductRequest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -842,7 +903,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B00F17D8266411B100BD6D67 /* RNTransaction.m in Sources */,
+				B00F17CF266411B100BD6D67 /* RNStoreKit.m in Sources */,
+				B00F17D2266411B100BD6D67 /* RNProductRequest.m in Sources */,
 				2DCD954D1E0B4F2C00145EB5 /* reactNativeTvosTests.m in Sources */,
+				B00F17D5266411B100BD6D67 /* RNProduct.m in Sources */,
+				B00F17DB266411B100BD6D67 /* RNDownload.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -970,7 +1036,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CODE_SIGN_ENTITLEMENTS = "reactNativeTvos-tvOS/reactNativeTvos-tvOS.entitlements";
-				CURRENT_PROJECT_VERSION = 43;
+				CURRENT_PROJECT_VERSION = 44;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 2KH8KC3MMX;
 				ENABLE_BITCODE = NO;
@@ -1004,7 +1070,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CODE_SIGN_ENTITLEMENTS = "reactNativeTvos-tvOS/reactNativeTvos-tvOS.entitlements";
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 43;
+				CURRENT_PROJECT_VERSION = 44;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 2KH8KC3MMX;
 				ENABLE_BITCODE = YES;

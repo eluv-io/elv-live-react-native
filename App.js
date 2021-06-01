@@ -44,7 +44,6 @@ import {ElvPlatform} from './fabric/elvplatform';
 import DeviceInfo from 'react-native-device-info';
 import uuid from 'react-native-uuid';
 import InApp from './providers/inapp';
-import {areIntervalsOverlapping} from 'date-fns';
 
 const APP_STORAGE_KEY = '@eluvio_live';
 const APP_VERSION = '1.0.43';

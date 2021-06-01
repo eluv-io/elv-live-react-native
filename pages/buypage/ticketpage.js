@@ -75,7 +75,7 @@ class TicketPage extends React.Component {
     this.enableTVEventHandler();
     try {
       let products = await InApp.getAvailableTickets(site);
-      console.log('Ticket page: ', products);
+      //console.log('Ticket page: ', products);
       // eslint-disable-next-line react/no-did-mount-set-state
       this.setState({products});
     } catch (e) {
