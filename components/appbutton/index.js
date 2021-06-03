@@ -114,7 +114,7 @@ class AppButton extends React.Component {
       if (!isActive || !isFocused) {
         return null;
       }
-      if (evt.eventType == 'blur' || evt.eventType == 'focus') {
+      if (evt.eventType === 'blur' || evt.eventType === 'focus') {
         return;
       }
 

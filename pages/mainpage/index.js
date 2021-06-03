@@ -5,6 +5,8 @@ import {
   View,
   TVEventHandler,
   TouchableOpacity,
+  FlatList,
+  Image,
 } from 'react-native';
 import AppContext from '../../AppContext';
 import Header from '../../components/header';
@@ -13,6 +15,7 @@ import ThumbSelector from '../../components/thumbselector';
 import {isEmpty, JQ, endsWithList} from '../../utils';
 import MenuDrawer from 'react-native-side-drawer';
 import AppButton from '../../components/appbutton';
+import restoreIcon from '../../static/icons/restore_purchase.png';
 
 const BLUR_OPACITY = 0.3;
 
@@ -486,7 +489,7 @@ class MainPage extends React.Component {
       navigation.navigate('error', {text: 'Could not retrieve event info.'});
     }
   };
-
+  /*
   drawerContent = () => {
     const {isActive} = this.props;
     const {restorePurchases} = this.context;
@@ -511,6 +514,64 @@ class MainPage extends React.Component {
           text="Restore Purchases"
         />
       </View>
+    );
+  };
+*/
+
+  drawerContent = () => {
+    const {isActive} = this.props;
+    const {restorePurchases} = this.context;
+    const {openDrawer} = this.state;
+    console.log('drawerContent()');
+    let items = [
+      {
+        text: 'Restore Purchases',
+        onPress: async () => {
+          console.log('Restore Purchases button pressed.');
+          if (!isActive || !openDrawer) {
+            return;
+          }
+          try {
+            await restorePurchases();
+            this.toggleOpenDrawer();
+          } catch (e) {
+            console.error('Restore Purchases: ', e);
+          }
+        },
+        hasFocus: true,
+      },
+    ];
+
+    const renderItem = ({item, index, separator}) => {
+      let itemStyle =
+        index === this.state.menuSelectedIndex
+          ? [styles.menuItem, styles.menuItemSelected]
+          : styles.menuItem;
+
+      return (
+        <TouchableOpacity
+          style={itemStyle}
+          activeOpacity={1}
+          hasTVPreferredFocus={item.hasFocus}
+          onFocus={() => this.setState({menuSelectedIndex: index})}
+          onPress={item.onPress}>
+          <Image
+            style={styles.menuItemImage}
+            source={restoreIcon}
+            resizeMode="cover"
+          />
+          <Text style={styles.menuText}>{item.text}</Text>
+        </TouchableOpacity>
+      );
+    };
+
+    return (
+      <FlatList
+        contentContainerStyle={styles.menu}
+        data={items}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.text}
+      />
     );
   };
 
@@ -549,7 +610,8 @@ class MainPage extends React.Component {
           drawerPercentage={20}
           animationTime={250}
           overlay={true}
-          opacity={0.4}>
+          opacity={0.4}
+          style={{width: '100%', padding: 0}}>
           <Gallery
             isActive={isActive && !isShowingExtras && !openDrawer}
             layout={1}
@@ -707,16 +769,6 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '300',
   },
-  menuText: {
-    color: 'white',
-    fontWeight: 'bold',
-    alignSelf: 'center',
-    textTransform: 'uppercase',
-    fontSize: 14,
-    textShadowColor: 'gray',
-    letterSpacing: 7,
-    fontFamily: 'HelveticaNeue',
-  },
   logo: {
     width: '100%',
     height: 225,
@@ -805,11 +857,53 @@ const styles = StyleSheet.create({
     fontSize: 36,
     fontWeight: '300',
   },
-  animatedBox: {
+  menuList: {
+    backgroundColor: 'blue',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
     flex: 1,
+  },
+  menu: {
     backgroundColor: 'rgba(0, 0, 0, 0.95)',
-    paddingTop: 50,
-    padding: 20,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%',
+    paddingHorizontal: 0,
+    flex: 1,
+  },
+  menuText: {
+    fontSize: 24,
+    color: 'white',
+    fontWeight: 'normal',
+    alignSelf: 'center',
+    textShadowColor: 'gray',
+    fontFamily: 'HelveticaNeue',
+    marginHorizontal: 10,
+  },
+  menuItem: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexWrap: 'nowrap',
+    flexDirection: 'row',
+    width: '100%',
+    height: 84,
+    marginVertical: 0,
+    marginHorizontal: 0,
+  },
+  menuItemSelected: {
+    backgroundColor: '#232323',
+  },
+  menuItemImage: {
+    width: 36,
+    height: 36,
+    marginHorizontal: 10,
   },
 });
 

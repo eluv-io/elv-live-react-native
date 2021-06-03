@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 //import Image from 'react-native-fast-image'
 import Swiper from 'react-native-swiper';
-import reactNativeTvosController from 'react-native-tvos-controller';
 import AppContext from '../../AppContext';
 import AppButton from '../../components/appbutton';
 import {isEmpty, JQ, dateCountdown, RandomInt} from '../../utils';
@@ -22,7 +21,6 @@ import LinearGradient from 'react-native-linear-gradient';
 import FadeInView from '../../components/fadeinview';
 import Timer from '../../utils/timer';
 import Video from 'react-native-video';
-import {isThisHour} from 'date-fns';
 
 const BLUR_OPACITY = 0.3;
 const IMAGE_OFFSET = '15%';
