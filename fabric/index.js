@@ -156,7 +156,7 @@ export default class Fabric {
       }
 
       console.log('getContent URL: ', url);
-      res = await fetch(normalizeUrl(url));
+      let res = await fetch(normalizeUrl(url));
       return await res.json();
     } catch (e) {
       console.error('Fabric getContent error: ' + e);

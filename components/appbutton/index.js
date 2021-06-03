@@ -110,7 +110,7 @@ class AppButton extends React.Component {
   enableTVEventHandler() {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
-      const {isActive, isFocused} = page.props;
+      const {isActive, isFocused, fakeButton} = page.props;
       if (!isActive || !isFocused) {
         return null;
       }
@@ -120,7 +120,7 @@ class AppButton extends React.Component {
 
       //console.log("Appbutton event: " + evt.eventType);
 
-      if (evt && evt.eventType === 'select') {
+      if (fakeButton && evt && evt.eventType === 'select') {
         page.onPress();
       }
     });
@@ -140,6 +140,7 @@ class AppButton extends React.Component {
         return;
       }
       if (onPress) {
+        console.log('AppButton calling onPress');
         onPress();
       }
     }, 100);
@@ -161,6 +162,9 @@ class AppButton extends React.Component {
       style,
       isActive,
       onFocus,
+      textOnly,
+      disabled,
+      fakeButton,
       ...otherProps
     } = this.props;
     const {isPressed} = this.state;
@@ -169,26 +173,33 @@ class AppButton extends React.Component {
       return null;
     }
 
-    console.log('Button ' + otherProps.title + ' ' + isFocused);
+    //console.log('Button ' + otherProps.title + ' ' + isFocused);
 
     let buttonStyle = isFocused
       ? [styles.button, styles.buttonFocused, style]
       : [styles.button, style];
-    if (isPressed) {
-      buttonStyle = [styles.button, styles.buttonSelected, style];
-    }
 
     let buttonTextStyle = isFocused
       ? [styles.buttonText, styles.buttonTextFocused]
       : [styles.buttonText];
 
+    if (textOnly) {
+      buttonStyle = isFocused ? [styles.button, style] : [style];
+      buttonTextStyle = [styles.buttonText];
+    }
+
+    if (isPressed) {
+      buttonStyle = [styles.button, styles.buttonSelected, style];
+    }
+
     //We need a real button if onFocus is passed in
-    if (onFocus) {
+    if (!fakeButton) {
       return (
         <TouchableOpacity
           ref={this.buttonRef}
           //accessible={true}
           //hasTVPreferredFocus={isFocused}
+          disabled={disabled}
           activeOpacity={1}
           onFocus={onFocus}
           onPress={onPress}
@@ -205,14 +216,14 @@ class AppButton extends React.Component {
       );
     }
 
+    if (disabled) {
+      buttonStyle = [...buttonStyle, {opacity: 0.5}];
+    }
+
     return (
       //Don't use native focusable components, it will mess up the react-native-swiper because of the focus management.
       <Animated.View
-        style={[
-          buttonStyle,
-          //{opacity:this.state.alpha},
-          //{transform: [{ scale: this.state.alpha}]}
-        ]}
+        style={[buttonStyle]}
         ref={this.props.innerRef}
         {...otherProps}>
         <Text style={buttonTextStyle}>{text}</Text>

@@ -57,7 +57,7 @@ class BuyConfirm extends React.Component {
         return;
       }
 
-      console.log('<<<<<<<< Ticketpage event received: ' + evt.eventType);
+      console.log('<<<<<<<< Confirm page event received: ' + evt.eventType);
 
       if (evt.eventType === 'swipeUp' || evt.eventType === 'up') {
       }
@@ -145,12 +145,42 @@ class BuyConfirm extends React.Component {
                 style={styles.button}
                 hasTVPreferredFocus={true}
                 onPress={async () => {
+                  const {
+                    addPendingPurchase,
+                    pendingPurchases,
+                    restorePurchases,
+                  } = this.context;
                   console.log('Confirm Buy pressed.');
-                  if (await InApp.requestPurchase(item.id)) {
-                    console.log('Purchase succesful!');
-                  } else {
-                    console.log('Purchase failed!');
+                  try {
+                    if (pendingPurchases.includes(item.id)) {
+                      console.warn('Purchase already pending.');
+                      return;
+                    }
+
+                    await InApp.requestPurchase(item.id);
+                    console.log('Confirm Buy Purchase succesful!');
+                    //TODO: set pending state for app
+                    if (addPendingPurchase) {
+                      console.log('Buy Confirm adding pending purchase.');
+                      await addPendingPurchase(item.id);
+                    }
+                  } catch (e) {
+                    console.error('Buy Confirm Purchase error ', e);
+                    //unknown error can be thrown if the product has already been purchased.
+                    try {
+                      if (addPendingPurchase) {
+                        console.log('Buy Confirm adding pending purchase.');
+                        await addPendingPurchase(item.id);
+                      }
+                      await restorePurchases();
+                    } catch (err) {
+                      console.error(
+                        'ByConfirm error restoring purchases: ',
+                        err,
+                      );
+                    }
                   }
+                  navigation.goBack(true);
                 }}
                 onFocus={() => {
                   this.setState({focused: 'buy'});

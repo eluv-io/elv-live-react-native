@@ -132,7 +132,7 @@ class ElvPlatform {
     );
     //console.log("resolveSite tv_main_logo: " + site.tv_main_logo);
 
-    site.getTicketInfo = (otpId) => {
+    site.getTicketInfo = ({productId, otpId}) => {
       //console.log("site: getTicketDate " + otpId);
       //console.log("site tickets: " + JQ(site.info.tickets));
       for (var index in site.info.tickets) {
@@ -143,14 +143,16 @@ class ElvPlatform {
           for (var index2 in ticket.skus) {
             let sku = ticket.skus[index2];
             //console.log("sku: " + JQ(sku));
-            if (sku.otp_id && sku.otp_id != '' && sku.otp_id === otpId) {
+            if (sku.uuid && sku.uuid !== '' && sku.uuid === productId) {
+              //console.log("Found ticket info!");
+              return sku;
+            }
+            if (sku.otpId && sku.otpId !== '' && sku.otpId === otpId) {
               //console.log("Found ticket info!");
               return sku;
             }
           }
-        } catch (e) {
-          //console.error("Could not find ticket date for otpId " + otpId + " " +e);
-        }
+        } catch (e) {}
       }
       return null;
     };

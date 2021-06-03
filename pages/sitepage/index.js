@@ -1,18 +1,17 @@
 import React, {useState} from 'react';
 import {
-  Text, 
-  StyleSheet, 
-  View, 
+  Text,
+  StyleSheet,
+  View,
   Image,
   TouchableOpacity,
   Button,
   TVFocusGuideView,
-  TVEventHandler
-} 
-from 'react-native';
-import AppContext from '../../AppContext'
-import { isEmpty, JQ, dateCountdown, dateStarted} from '../../utils';
-import Gallery from '../../components/gallery'
+  TVEventHandler,
+} from 'react-native';
+import AppContext from '../../AppContext';
+import {isEmpty, JQ, dateCountdown, dateStarted} from '../../utils';
+import Gallery from '../../components/gallery';
 
 const BLUR_OPACITY = 0.3;
 
@@ -24,8 +23,8 @@ class SitePage extends React.Component {
     let currentViewIndex = 0;
     this.state = {
       currentViewIndex,
-      extras: []
-    }
+      extras: [],
+    };
     this.tvEventHandler = null;
     this.swiperRef = React.createRef();
     this.galleryRef = React.createRef();
@@ -34,41 +33,40 @@ class SitePage extends React.Component {
     this.select = this.select.bind(this);
   }
 
-  onUpdate = async ()=>{
+  onUpdate = async () => {
     //console.log("Sitepage timer.");
-    if(this.props.isActive){
+    if (this.props.isActive) {
       //console.log("update!");
       let extras = await this.getExtras();
       this.setState({extras});
     }
-  }
+  };
 
   async componentDidMount() {
-    console.log("Sitepage componentDidMount");
-    this.updateInterval = setInterval(this.onUpdate,
-      1000);
+    console.log('Sitepage componentDidMount');
+    this.updateInterval = setInterval(this.onUpdate, 1000);
   }
 
   getExtras = async () => {
-    const {site,fabric} = this.context;
-    const {data,navigation,isActive} = this.props;
+    const {site, fabric, isSitePending} = this.context;
+    const {data, navigation, isActive} = this.props;
     const {redeemItems} = this.context;
-    if(!isActive){
-      return[];
+    if (!isActive) {
+      return [];
     }
     let extras = [];
 
-    try{
-      console.log("Site Page getExtras");
-      console.log("Site Page getExtras site: ",site.title);
+    try {
+      console.log('Site Page getExtras');
+      console.log('Site Page getExtras site: ', site.title);
       let siteIsRedeemed = false;
-      
 
-      if(!site.info.free && site.objectId && !isEmpty(redeemItems)){
-        siteIsRedeemed = site.objectId in redeemItems;
+      if (site.objectId && !isEmpty(redeemItems)) {
+        siteIsRedeemed = Object.keys(redeemItems).includes(site.objectId);
       }
-
-      console.log("getExtras isRedeemed: " + siteIsRedeemed);
+      console.log('redeemItems keys: ', redeemItems);
+      console.log('site id: ' + site.objectId);
+      console.log('site isRedeemed: ' + siteIsRedeemed);
 
       //Push the main event site as the first extra
       let main = {};
@@ -77,91 +75,99 @@ class SitePage extends React.Component {
       main.image = site.tv_main_background;
       main.logo = site.tv_main_logo;
       main.objectId = site.objectId;
-      main.isAccessible = site.info.accessible;
-      if(!site.promoVideoUrl){
+      main.ticket = site.currentTicket;
+      main.isAccessible =
+        (site.info.state && site.info.state !== 'Inaccessible') ||
+        site.info.accessible;
+      if (!site.promoVideoUrl) {
         main.videoUrl = await site.createPromoUrl();
         site.promoVideoUrl = main.videoUrl;
-      }else{
-        main.videoUrl=site.promoVideoUrl;
+      } else {
+        main.videoUrl = site.promoVideoUrl;
       }
 
+      main.isPending = isSitePending(site);
+
       //console.log("<<<<<<<<<<<<<<<<<<< SitePage loading site: " + JQ(main));
-      
+
       let date = null;
       let dateString = null;
       let isAvailable = false;
       let hasEnded = false;
 
-      try{
-      if(siteIsRedeemed){
-        const {redeemItems} = this.context;
-        let {otpId} = redeemItems[site.objectId];
-        let ticketInfo = site.getTicketInfo(otpId);
+      try {
+        if (siteIsRedeemed) {
+          let {productId} = redeemItems[site.objectId];
+          let ticketInfo = site.getTicketInfo({productId});
 
-        //ticketInfo.start_time = "2021-04-21T02:20:00-04:00";
-        //ticketInfo.end_time = "2021-04-20T02:30:00-04:00";
-        //console.log("ticketInfo: " + JQ(ticketInfo));
+          //ticketInfo.start_time = "2021-04-21T02:20:00-04:00";
+          //ticketInfo.end_time = "2021-04-20T02:30:00-04:00";
+          //console.log("ticketInfo: " + JQ(ticketInfo));
 
-        if(ticketInfo != null){
-          if(!isEmpty(ticketInfo.start_time)){
-            date = ticketInfo.start_time;
-            //console.log("setting start date: " + date);
+          if (ticketInfo != null) {
+            if (!isEmpty(ticketInfo.start_time)) {
+              date = ticketInfo.start_time;
+              //console.log("setting start date: " + date);
 
-            //We are before the start date
-            if(!dateStarted(date)){
-              //console.log("Date has not started.");
-              dateString = dateCountdown(date);
-              if(isEmpty(dateString)){
-                dateString = "Starting shortly...";
-              }
-              isAvailable = false;
-            }else{
-              //console.log("Date has started.");
-              let endtime = ticketInfo.end_time;
-              //console.log("Endtime: " + endtime);
-              isAvailable = true;
-              if(!dateStarted(endtime)){
-                //console.log("Endtime has NOT passed");
-                dateString = "Currently in progress";
-                navigation.navigate("player");
-                clearInterval(this.updateInterval);
-              }else{
-                //console.log("Endtime has passed.");
-                hasEnded = true;
-                let channels = site.channels;
-                let channel = channels["default"];
-                if(!channel){
-                  channel = channels[Object.keys(channels)[0]];
+              //We are before the start date
+              if (!dateStarted(date)) {
+                //console.log("Date has not started.");
+                dateString = dateCountdown(date);
+                if (isEmpty(dateString)) {
+                  dateString = 'Starting shortly...';
                 }
-                //console.log("SITE Channel: ", JQ(channel));
-
-                isAvailable = !channel["."].resolution_error;
-                if(isAvailable){
-                  //Check options.json
-                  try{
-                    let channelHash = channel["."]["source"];
-                    let info = await fabric.getChannelPlayoutInfo(channelHash);
-                    if(!info){
-                      throw 'Playout ended';
-                    }
-                  }catch(e){
-                    isAvailable = false;
-                    dateString = "Event has ended";
-                    clearInterval(this.updateInterval);
+                isAvailable = false;
+              } else {
+                //console.log("Date has started.");
+                let endtime = ticketInfo.end_time;
+                //console.log("Endtime: " + endtime);
+                isAvailable = true;
+                if (!dateStarted(endtime)) {
+                  //console.log("Endtime has NOT passed");
+                  dateString = 'Currently in progress';
+                  navigation.navigate('player');
+                  clearInterval(this.updateInterval);
+                } else {
+                  //console.log("Endtime has passed.");
+                  hasEnded = true;
+                  let channels = site.channels;
+                  let channel = channels.default;
+                  if (!channel) {
+                    channel = channels[Object.keys(channels)[0]];
                   }
-                  //console.log("Offerings: ", offerings);
-                }else{
-                  dateString = "Event has ended";
+                  //console.log("SITE Channel: ", JQ(channel));
+
+                  isAvailable = !channel['.'].resolution_error;
+                  if (isAvailable) {
+                    //Check options.json
+                    try {
+                      let channelHash = channel['.'].source;
+                      let info = await fabric.getChannelPlayoutInfo(
+                        channelHash,
+                      );
+                      if (!info) {
+                        throw 'Playout ended';
+                      }
+                    } catch (e) {
+                      isAvailable = false;
+                      dateString = 'Event has ended';
+                      clearInterval(this.updateInterval);
+                    }
+                    //console.log("Offerings: ", offerings);
+                  } else {
+                    dateString = 'Event has ended';
+                  }
+                  //console.log("isAvailable: " + isAvailable);
                 }
-                //console.log("isAvailable: " + isAvailable);
               }
             }
           }
         }
+      } catch (e) {
+        console.error(e);
       }
-      }catch(e){console.error(e);}
-      
-      if(isEmpty(dateString)){
+
+      if (isEmpty(dateString)) {
         //console.log("Could not determine ticket date.");
         dateString = site.info.event_info.date;
         isAvailable = true;
@@ -177,80 +183,79 @@ class SitePage extends React.Component {
       main.free = site.info.free;
       main.hasEnded = hasEnded;
       extras.push(main);
-    }catch(e){
+    } catch (e) {
       console.log(e);
     }
-    try{
-      for(index in site.info.extras){
+    try {
+      for (var index in site.info.extras) {
         let extra = site.info.extras[index];
         extra.isAccessible = true; //XXX: Show for now since extras don't have this key to be able to select it in gallery.
         extras.push(extra);
       }
 
-      if(data && this.galleryRef.current && !isNaN(data.extra)){
+      if (data && this.galleryRef.current && !isNaN(data.extra)) {
         //Add 1 to account for the main event inserted at the beginning when selected from main page.
         let currentViewIndex = parseInt(data.extra) + 1;
-        console.log("SitePage select: " + currentViewIndex);
+        console.log('SitePage select: ' + currentViewIndex);
         this.galleryRef.current.setIndex(currentViewIndex);
       }
-    }catch(e){
+    } catch (e) {
       console.log(e);
     }
 
     return extras;
-  }
+  };
 
-  componentWillUnmount(){
+  componentWillUnmount() {
     clearInterval(this.updateInterval);
   }
 
-  select({index,item}){
+  select({index, item}) {
     const {isActive} = this.props;
-    if(!isActive){
+    if (!isActive) {
       return;
     }
-
 
     const {setAppState} = this.context;
     const {navigation} = this.props;
 
     let {currentViewIndex} = this.state;
-    if(index !=  currentViewIndex){
-      this.setState({currentViewIndex:index});
+    if (index != currentViewIndex) {
+      this.setState({currentViewIndex: index});
     }
 
-    try{
-      if(item.channels != undefined){
+    try {
+      if (item.channels != undefined) {
         navigation.navigate('player');
         return;
       }
-    }catch(e){
+    } catch (e) {
       console.error(e);
     }
 
-    try{
-      if(item.package != undefined){
+    try {
+      if (item.package != undefined) {
         let data = [];
-        for(const i in item.package.info.gallery){
+        for (const i in item.package.info.gallery) {
           let galleryItem = {...item.package.info.gallery[i]};
-          if(galleryItem.image.url != undefined){
+          if (galleryItem.image.url != undefined) {
             galleryItem.image = galleryItem.image.url;
           }
           data.push(galleryItem);
-          console.log("push data: " + JQ(galleryItem));
+          console.log('push data: ' + JQ(galleryItem));
         }
         navigation.navigate('gallery', data);
       }
-    }catch(e){
+    } catch (e) {
       console.error(e);
     }
   }
 
   render() {
-    const {platform,setAppState} = this.context;
+    const {platform, setAppState} = this.context;
     const {navigation, isActive} = this.props;
-    const {currentViewIndex,extras} = this.state;
-    if(!isActive){
+    const {currentViewIndex, extras} = this.state;
+    if (!isActive) {
       return null;
     }
 
@@ -261,10 +266,11 @@ class SitePage extends React.Component {
         <Gallery
           ref={this.galleryRef}
           isActive={isActive}
-          layout={0} data={data}
+          layout={0}
+          data={data}
           firstLayout={1}
           select={this.select}
-          />
+        />
       </View>
     );
   }
@@ -278,31 +284,31 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
   },
   background: {
-    position: "absolute",
+    position: 'absolute',
     alignItems: 'center',
-    justifyContent: "center",
+    justifyContent: 'center',
     backgroundColor: 'rgba(0,0,0,0)',
-    width: "100%",
-    height: "100%"
+    width: '100%',
+    height: '100%',
   },
   linearGradient: {
-    position: "absolute",
-    left:0,
-    top:0,
+    position: 'absolute',
+    left: 0,
+    top: 0,
     alignItems: 'center',
-    justifyContent: "center",
-    width: "70%",
-    height: "100%"
+    justifyContent: 'center',
+    width: '70%',
+    height: '100%',
   },
   text: {
     color: '#fff',
     fontSize: 30,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   formContainer: {
-    position: "absolute",
-    left:190,
-    top:175,
+    position: 'absolute',
+    left: 190,
+    top: 175,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
@@ -314,24 +320,24 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   buttonContainer: {
-    position: "absolute",
-    left:0,
+    position: 'absolute',
+    left: 0,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-end',
-    width: "40%",
+    width: '40%',
     height: '60%',
     paddingBottom: 300,
     margin: 30,
   },
   controlsContainer: {
-    position: "absolute",
-    left:0,
+    position: 'absolute',
+    left: 0,
     top: 0,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-end',
-    width: "100%",
+    width: '100%',
     height: '100%',
   },
   button: {
@@ -340,61 +346,61 @@ const styles = StyleSheet.create({
     margin: 30,
     elevation: 8,
     justifyContent: 'center',
-    backgroundColor:'rgba(0,0,0,.8)',
+    backgroundColor: 'rgba(0,0,0,.8)',
     borderRadius: 5,
     paddingVertical: 10,
     paddingHorizontal: 12,
     width: 200,
     height: 60,
     borderWidth: 2,
-    borderColor: "white",
-    color: "white",
-    opacity:BLUR_OPACITY
+    borderColor: 'white',
+    color: 'white',
+    opacity: BLUR_OPACITY,
   },
   buttonText: {
     fontSize: 18,
-    color: "white",
-    fontWeight: "bold",
-    alignSelf: "center",
-    textTransform: "uppercase",
+    color: 'white',
+    fontWeight: 'bold',
+    alignSelf: 'center',
+    textTransform: 'uppercase',
     fontSize: 14,
     textShadowColor: 'gray',
     letterSpacing: 7,
-    fontFamily: "HelveticaNeue",
+    fontFamily: 'HelveticaNeue',
   },
   logo: {
-    width:"100%",
+    width: '100%',
     height: 225,
-    resizeMode: "contain",
+    resizeMode: 'contain',
     //backgroundColor: "blue",
-    padding:0
+    padding: 0,
   },
   nextContainer: {
-    padding:30,
-    paddingBottom:150,
-    position: "absolute",
-    height: "100%",
+    padding: 30,
+    paddingBottom: 150,
+    position: 'absolute',
+    height: '100%',
     right: 0,
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
   nextButton: {
-    opacity: BLUR_OPACITY
+    opacity: BLUR_OPACITY,
   },
   buttonFocused: {
-    shadowOpacity: .5,
+    shadowOpacity: 0.5,
     shadowRadius: 2,
-    shadowOffset:{width:4,height:4},
-    opacity: 1
+    shadowOffset: {width: 4, height: 4},
+    opacity: 1,
   },
   previousButton: {
-    opacity: BLUR_OPACITY
+    opacity: BLUR_OPACITY,
   },
   previousContainer: {
-    padding:30,
-    paddingBottom:150,
-    position: "absolute",
-    height: "100%",
+    padding: 30,
+    paddingBottom: 150,
+    position: 'absolute',
+    height: '100%',
     left: 0,
     alignItems: 'center',
     justifyContent: 'flex-end',
@@ -406,50 +412,50 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     bottom: 78,
-    width: "100%",
-    flexDirection: 'row'
+    width: '100%',
+    flexDirection: 'row',
   },
   paginationItem: {
-    marginRight:5,
-    marginLeft:5,
-    width:159,
+    marginRight: 5,
+    marginLeft: 5,
+    width: 159,
     height: 3,
-    backgroundColor: "white",
-    opacity: BLUR_OPACITY
+    backgroundColor: 'white',
+    opacity: BLUR_OPACITY,
   },
   paginationActive: {
-    marginRight:5,
-    marginLeft:5,
-    width:295,
+    marginRight: 5,
+    marginLeft: 5,
+    width: 295,
     height: 3,
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   noOpacity: {
-    opacity:0
+    opacity: 0,
   },
   headerText: {
     color: '#fff',
     fontSize: 50,
   },
   subheaderText: {
-    fontFamily: "Helvetica",
+    fontFamily: 'Helvetica',
     letterSpacing: 13,
     textAlign: 'center',
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
     lineHeight: 50,
-    marginTop:66,
+    marginTop: 66,
     color: '#fff',
     fontSize: 32,
-    fontWeight: "300"
+    fontWeight: '300',
   },
   dateText: {
-    fontFamily: "Helvetica",
+    fontFamily: 'Helvetica',
     letterSpacing: 2,
     textAlign: 'center',
-    marginTop:60,
+    marginTop: 60,
     color: '#fff',
     fontSize: 36,
-    fontWeight: "300"
+    fontWeight: '300',
   },
 });
 

@@ -44,6 +44,8 @@ import {ElvPlatform} from './fabric/elvplatform';
 import DeviceInfo from 'react-native-device-info';
 import uuid from 'react-native-uuid';
 import InApp from './providers/inapp';
+import {RefreshControlBase} from 'react-native';
+var UrlJoin = require('url-join');
 
 const APP_STORAGE_KEY = '@eluvio_live';
 const APP_VERSION = '1.0.43';
@@ -169,7 +171,7 @@ let defaultState = {
   reloadFinished: false,
   showDebug: false,
   network: 'production',
-  availablePurchases: [],
+  pendingPurchases: [],
 };
 
 export default class App extends React.Component {
@@ -179,6 +181,13 @@ export default class App extends React.Component {
     this.state = defaultState;
     this.navigationRef = React.createRef();
     this.reload = this.reload.bind(this);
+    this.onPurchaseUpdated = this.onPurchaseUpdated.bind(this);
+    this.onPurchaseError = this.onPurchaseError.bind(this);
+    this.isSitePending = this.isSitePending.bind(this);
+    this.addPendingPurchase = this.addPendingPurchase.bind(this);
+    this.removePendingPurchase = this.removePendingPurchase.bind(this);
+    this.removeAllPendingPurchases = this.removeAllPendingPurchases.bind(this);
+
     LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
     LogBox.ignoreAllLogs();
     this.tvEventHandler = null;
@@ -192,15 +201,122 @@ export default class App extends React.Component {
     }
   }
 
-  onPurchaseUpdated = (purchase) => {
+  addPendingPurchase = async (productId) => {
+    let pendingPurchases = this.state.pendingPurchases;
+    if (!pendingPurchases) {
+      pendingPurchases = [];
+    }
+
+    pendingPurchases.push(productId);
+    await this.handleSetState({pendingPurchases});
+  };
+
+  removeItemAll = (arr, value) => {
+    var i = 0;
+    while (i < arr.length) {
+      if (arr[i] === value) {
+        arr.splice(i, 1);
+      } else {
+        ++i;
+      }
+    }
+    return arr;
+  };
+
+  removePendingPurchase = async (productId) => {
+    let pendingPurchases = this.state.pendingPurchases;
+    if (!pendingPurchases) {
+      pendingPurchases = [];
+    }
+
+    pendingPurchases = this.removeItemAll(pendingPurchases, productId);
+    await this.handleSetState({pendingPurchases});
+  };
+
+  removeAllPendingPurchases = async () => {
+    let pendingPurchases = [];
+    await this.handleSetState({pendingPurchases});
+  };
+
+  isSitePending = (site) => {
+    if (!site) {
+      return false;
+    }
+
+    let pendingPurchases = this.state.pendingPurchases;
+    if (!pendingPurchases) {
+      return false;
+    }
+
+    let productIdsToInfo = InApp.getAllSiteProductUUIDs(site);
+
+    let keys = Object.keys(productIdsToInfo);
+    console.log('isSitePending pendingPurchases: ', pendingPurchases);
+    console.log('isSitePending site productIds: ', keys);
+    const filteredArray = keys.filter((value) =>
+      pendingPurchases.includes(value),
+    );
+
+    console.log('isSitePending filtered: ', filteredArray);
+
+    return filteredArray.length > 0;
+  };
+
+  onPurchaseUpdated = async (purchase) => {
     console.log('******** onPurchaseUpdated ', purchase);
+    let {site} = this.state;
+    if (!site) {
+      await this.reload();
+      return;
+    }
+    try {
+      console.log('onPurchaseUpdated Purchase succesful!');
+      //await this.restorePurchases();
+
+      let ticket = await this.getTicketFromPurchase(purchase);
+      console.log('onPurchaseUpdated ticket ', ticket);
+      if (isEmpty(ticket)) {
+        throw 'could not get ticket from Eluvio Live Server';
+      }
+      let item = {
+        ticketCode: ticket,
+        productId: purchase.productId,
+      };
+      let {redeemItems} = this.state;
+      redeemItems[site.objectId] = item;
+      site.currentTicket = ticket;
+      if (!site.purchases) {
+        site.purchases = {};
+      }
+
+      site.purchases[purchase.productId] = purchase;
+      await this.handleSetState({redeemItems, ticketCode: site.ticket});
+      console.log('onPurchaseUpdated reloading ');
+      await this.reload();
+    } catch (e) {
+      console.error('onPurchaseUpdated ', e);
+      this.navigationRef.current.navigate('error', {text: 'Purchase failed.'});
+    }
+    await this.removePendingPurchase(purchase.productId);
   };
 
   onPurchaseError = (error) => {
     console.log('******** onPurchaseError ', error);
+    try {
+      //responseCode 0 seems to be some failure from the library itself and not from Apple
+      if (error.responseCode !== '0') {
+        this.removePendingPurchase(error.productId);
+        this.navigationRef.current.navigate('error', {
+          text: 'Purchase failed.',
+        });
+      }
+    } catch (e) {
+      console.error('onPurchaseError ', e);
+    }
   };
 
   componentDidMount = async () => {
+    console.log('***************** App componentDidMount *****************');
     await this.loadState();
     AppState.addEventListener('change', this._handleAppStateChange);
     await InApp.initConnection(this.onPurchaseUpdated, this.onPurchaseError);
@@ -212,7 +328,7 @@ export default class App extends React.Component {
           await this.reload();
         } else {
           let sites = this.state.platform.getSites();
-          if (!sites || sites.length == 0) {
+          if (!sites || sites.length === 0) {
             console.log('refresh');
             await this.reload();
           }
@@ -248,7 +364,7 @@ export default class App extends React.Component {
         return;
       }
 
-      if (evt.eventType == 'blur' || evt.eventType == 'focus') {
+      if (evt.eventType === 'blur' || evt.eventType === 'focus') {
         return;
       }
 
@@ -364,22 +480,27 @@ export default class App extends React.Component {
   loadState = async () => {
     console.time('****** App loadState ******');
     let saved = await this.getData();
-    console.log('loadState ', saved);
-    if (saved != null && !isEmpty(saved.redeemItems != undefined)) {
-      this.setState({redeemItems: saved.redeemItems});
+    console.log('App loadState ', saved);
+    if (saved != null && !isEmpty(saved.redeemItems !== undefined)) {
+      await this.handleSetState({redeemItems: saved.redeemItems});
     } else {
       console.log('no state found, setting default: ');
-      this.setState(defaultState);
+      await this.handleSetState({redeemItems: {}});
     }
     console.timeEnd('****** App loadState ******');
   };
 
   clearData = async () => {
     console.time('****** App clearData ******');
+    console.log('<<<<<<<<<<< App clearData >>>>>>>>>>>');
     try {
       //TODO: Confirmation dialog?
       await DefaultPreference.set(APP_STORAGE_KEY, '');
       await this.loadState();
+      console.log(
+        '<<<<<<<<<<< clearData loadState finished. RedeemItems: ',
+        this.state.redeemItems,
+      );
       await this.switchNetwork();
     } catch (e) {
       console.error('Could not clear app data.' + e);
@@ -415,6 +536,62 @@ export default class App extends React.Component {
     }
   };
 
+  restorePurchases = async () => {
+    let {redeemItems, platform} = this.state;
+    let purchases = null;
+    try {
+      let sites = platform.getSites();
+      purchases = await InApp.getAvailablePurchases();
+      console.log('****************** Available InApp Purchases: ');
+      for (var p in purchases) {
+        console.log(p.productId);
+      }
+
+      //Adding purchases to site object
+      //console.log('Processing purchases for sites ', sites);
+      for (var index in sites) {
+        let s = sites[index];
+        console.log('Processing site: ', s.display_title);
+        let productIdToInfo = InApp.getAllSiteProductUUIDs(s);
+        let productIds = Object.keys(productIdToInfo);
+        console.log('ProductIds for site.', productIds);
+        for (var i in purchases) {
+          let purchase = purchases[i];
+          console.log('testing purchase', purchase.productId);
+          if (productIds.includes(purchase.productId)) {
+            console.log('Found id ', purchase.productId);
+            if (!s.purchases) {
+              s.purchases = {};
+            }
+            //Try to get the ticket
+            let ticket = await this.getTicketFromPurchase(purchase);
+            if (!isEmpty(ticket.error)) {
+              continue;
+            }
+            //console.log('Found ticket: ', ticket);
+            purchase.ticket = ticket;
+            s.purchases[purchase.productId] = purchase;
+            //TODO: Handle multiple purchased tickets
+            let item = {
+              ticketCode: ticket,
+              productId: purchase.productId,
+            };
+            redeemItems[s.objectId] = item;
+            s.currentTicket = ticket;
+          }
+        }
+      }
+      await this.handleSetState({
+        redeemItems,
+        pendingPurchases: [],
+      });
+      await this.saveState();
+      await this.reload();
+    } catch (e) {
+      console.error('Error loading purchases: ', e);
+    }
+  };
+
   reload = async () => {
     console.time('****** App reload ******');
     let newSite = null;
@@ -427,13 +604,16 @@ export default class App extends React.Component {
       newSite = site;
 
       console.log('Loading network: ', network);
+      console.log('RedeemItems ', redeemItems);
       if (!network) {
         throw 'No network specified.';
       }
       let res = await initPlatform(network);
       fabric = res.fabric;
       platform = res.platform;
-      if (site && platform && fabric && ticketCode) {
+      platform.setFabric(fabric);
+
+      if (site && ticketCode) {
         let tenantId = site.info.tenant_id;
         let status = await this.redeemCode(
           fabric,
@@ -447,29 +627,29 @@ export default class App extends React.Component {
           throw 'Error redeeming site';
         }
 
-        platform.setFabric(fabric);
         await platform.load();
-
         let sites = platform.getSites();
+
         for (var index in sites) {
           let test = sites[index];
-          if (test.objectId && test.objectId == site.objectId) {
+          if (test.objectId && test.objectId === site.objectId) {
             newSite = test;
             break;
           }
         }
       } else {
-        platform.setFabric(fabric);
         await platform.load();
       }
-
-      let purchases = await InApp.getAvailablePurchases();
-      console.log('****************** Available Purchases: ', purchases);
 
       if (this.state.site) {
         console.log('Current Site: ' + this.state.site.title);
       }
-      await this.handleSetState({fabric, platform, site: newSite});
+      await this.handleSetState({
+        fabric,
+        platform,
+        site: newSite,
+        redeemItems,
+      });
     } catch (e) {
       console.error('Error in App reload: ', e);
       //this.handleSetState({error: e});
@@ -479,6 +659,35 @@ export default class App extends React.Component {
       await this.handleSetState({reloadFinished: true});
       console.timeEnd('****** App reload ******');
     }
+  };
+
+  getTicketFromPurchase = async (purchase) => {
+    console.log('getTicketFromPurchase');
+    if (!isEmpty(purchase.ticket)) {
+      return purchase.ticket;
+    }
+    let url = Config.server.production;
+    if (__DEV__) {
+      url = Config.server.development;
+    }
+
+    url = UrlJoin(url, 'products', purchase.productId);
+
+    console.log('Using ELuvio Live Server url: ', url);
+    let response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({receipt: purchase.transactionReceipt}),
+    });
+
+    if (response.ok) {
+      return await response.text();
+    }
+
+    return null;
   };
 
   //Use callback to execute after setState finishes.
@@ -538,7 +747,15 @@ export default class App extends React.Component {
     if (otpId != null) {
       let items = {...redeemItems};
       let objectId = site.objectId;
-      items[objectId] = {ticketCode, tenantId, otpId};
+      console.log('getting ticket info, ', otpId);
+      let ticket = site.getTicketInfo({otpId});
+      console.log('ticket info: ', ticket);
+      let productId = '';
+      if (ticket && !isEmpty(ticket.uuid)) {
+        productId = ticket.uuid;
+      }
+      console.log('productId: ', productId);
+      items[objectId] = {ticketCode, productId};
       console.log('Redeem success. ');
       await this.handleSetState({redeemItems: items});
       await this.saveState();
@@ -596,6 +813,8 @@ export default class App extends React.Component {
       showDebug,
       reloadFinished,
       network,
+      purchases,
+      pendingPurchases,
     } = this.state;
 
     return (
@@ -607,11 +826,16 @@ export default class App extends React.Component {
           redeemItems,
           showDebug,
           network,
+          purchases,
+          pendingPurchases,
           getQueryParams: this.getQueryParams,
           setAppState: this.handleSetState,
           appReload: this.reload,
           appClearData: this.clearData,
           switchNetwork: this.switchNetwork,
+          restorePurchases: this.restorePurchases,
+          addPendingPurchase: this.addPendingPurchase,
+          isSitePending: this.isSitePending,
           reloadFinished: reloadFinished,
         }}>
         <Navigation ref={this.navigationRef} default="main">

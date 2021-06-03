@@ -80,7 +80,7 @@ class Gallery extends React.Component {
   //parm maxRows is the number of rows of images to calculate for.
   //Note, it is up to the caller to use the appropriate height for row numbers.
   createImageWidths = (maxSize, maxWidth, maxRows) => {
-    imageWidths = [];
+    let imageWidths = [];
     let width = 0;
     let totalWidth = maxWidth;
     let row = 0;
@@ -137,15 +137,9 @@ class Gallery extends React.Component {
 
       console.log('Gallery event active: ' + evt.eventType);
 
-      if (
-        (evt && evt.eventType === 'right') ||
-        evt.eventType === 'swipeRight'
-      ) {
+      if (evt && evt.eventType === 'right') {
         page._next();
-      } else if (
-        (evt && evt.eventType === 'left') ||
-        evt.eventType === 'swipeLeft'
-      ) {
+      } else if (evt && evt.eventType === 'left') {
         page._previous();
       } else if (evt && evt.eventType === 'select') {
         page._select();
@@ -185,7 +179,8 @@ class Gallery extends React.Component {
   }
 
   _previous() {
-    const {isActive, previous, data} = this.props;
+    const {isActive, previous, data, onLeft} = this.props;
+    console.log('Gallery previous ' + isActive);
     if (!isActive) {
       return;
     }
@@ -197,11 +192,13 @@ class Gallery extends React.Component {
       return;
     }
 
-    if (currentViewIndex == 0) {
+    if (currentViewIndex === 0) {
+      if (onLeft) {
+        onLeft();
+      }
       return;
     }
 
-    console.log('Gallery previous ' + currentViewIndex);
     currentViewIndex--;
     this.setState({currentViewIndex});
 
@@ -278,9 +275,9 @@ class Gallery extends React.Component {
 
   render() {
     const {layout, currentViewIndex} = this.state;
-    console.log('Gallery render currentIndex: ' + currentViewIndex);
+    //console.log('Gallery render currentIndex: ' + currentViewIndex);
 
-    if (layout == 0) {
+    if (layout === 0) {
       return this.renderLayout0({...stylesCommon, ...stylesLayout0});
     } else {
       return this.renderLayout1({...stylesCommon, ...stylesLayout1});
@@ -595,7 +592,9 @@ class Gallery extends React.Component {
 
     let buttonText = 'Buy';
 
-    if (item.isRedeemed) {
+    if (item.isPending) {
+      buttonText = 'Pending';
+    } else if (!isEmpty(item.ticket) || item.isRedeemed) {
       buttonText = 'Enter Event';
       if (item.isAvailable && item.hasEnded) {
         buttonText = 'Watch Again';
@@ -608,7 +607,13 @@ class Gallery extends React.Component {
         ' isAccessible ' +
         item.isAccessible +
         ' isAvailable ' +
-        item.isAvailable,
+        item.isAvailable +
+        ' isRedeemed ' +
+        item.isRedeemed +
+        ' ticket ' +
+        item.ticket +
+        ' isPending ' +
+        item.isPending,
     );
 
     return (
@@ -644,10 +649,12 @@ class Gallery extends React.Component {
           {item.isAvailable && item.isAccessible ? (
             <AppButton
               style={styles.button}
+              disabled={item.isPending}
               text={buttonText}
               isActive={isActive}
               isFocused={currentViewIndex == key}
               hasTVPreferredFocus={true}
+              fakeButton={true}
               title={title}
             />
           ) : null}

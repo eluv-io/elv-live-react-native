@@ -5,6 +5,8 @@ import * as RNIap from 'react-native-iap';
 //const {RNStoreKit} = NativeModules;
 import * as StoreKit from '../ios/StoreKit';
 
+let purchaseEmitter = null;
+let purchaseErrorEmitter = null;
 export const initConnection = async (
   purchaseListener,
   purchaseErrorListener,
@@ -12,8 +14,8 @@ export const initConnection = async (
   try {
     console.log('InApp initConnection');
     await RNIap.initConnection();
-    RNIap.purchaseUpdatedListener(purchaseListener);
-    RNIap.purchaseErrorListener(purchaseListener);
+    purchaseEmitter = RNIap.purchaseUpdatedListener(purchaseListener);
+    purchaseErrorEmitter = RNIap.purchaseErrorListener(purchaseErrorListener);
     //console.log('******* NATIVEMODULES ', Object.keys(NativeModules));
     //console.log('testing storekit ', RNStoreKit);
     //StoreKit.setBundleIdentifier('live.eluv.io');
@@ -24,6 +26,12 @@ export const initConnection = async (
 
 export const endConnection = async () => {
   try {
+    if (purchaseEmitter) {
+      purchaseEmitter.remove();
+    }
+    if (purchaseErrorEmitter) {
+      purchaseErrorEmitter.remove();
+    }
     await RNIap.endConnection();
   } catch (e) {
     console.error('InApp purchase endConnection error: ', e);
@@ -48,13 +56,16 @@ export const loadInAppPurchases = async (productIds) => {
 };
 
 // returns list of available tickets based on the skus per platform
-export const getAvailableTickets = async (site) => {
+export const getAvailableTickets = async (site, purchases = null) => {
   //console.log('Site Tickets: ' + JQ(site.info.tickets));
 
   let productIdToInfo = getAllSiteProductUUIDs(site);
   let products = [];
 
-  let purchases = await loadInAppPurchases(Object.keys(productIdToInfo));
+  if (!purchases) {
+    purchases = await loadInAppPurchases(Object.keys(productIdToInfo));
+  }
+
   for (var index in purchases) {
     //console.log('index: ', index);
     var purchase = purchases[index];
@@ -68,7 +79,7 @@ export const getAvailableTickets = async (site) => {
   return products;
 };
 
-const getAllSiteProductUUIDs = (site) => {
+export const getAllSiteProductUUIDs = (site) => {
   //let productIds = ['5SysrEw4RLqkaCwDD7krAz', 'WrS3eNnVwX5Wpf2dPpDk8D'];
   console.log('getAllSiteProductUUIDs');
 
@@ -103,7 +114,7 @@ export const getAvailablePurchases = async () => {
     console.log('******* InApp.getAvailablePurchases');
     const purchases = await RNIap.getAvailablePurchases();
     //var purchases = null;
-    console.log('Available purchases => ', purchases);
+    //console.log('Available purchases => ', purchases);
     if (purchases && purchases.length > 0) {
       return purchases;
     }
@@ -114,19 +125,15 @@ export const getAvailablePurchases = async () => {
   return null;
 };
 
-const requestPurchase = async (productId) => {
-  try {
-    console.log('RequestPurchase: ', productId);
-    await RNIap.requestPurchase(productId);
-    return true;
-  } catch (err) {
-    console.log('requestPurchase error => ', err);
-  }
-  return false;
+//Could throw an error.
+export const requestPurchase = async (productId) => {
+  console.log('RequestPurchase: ', productId);
+  await RNIap.requestPurchase(productId);
 };
 
 export default {
   getAvailableTickets,
+  getAllSiteProductUUIDs,
   getAvailablePurchases,
   requestPurchase,
   initConnection,

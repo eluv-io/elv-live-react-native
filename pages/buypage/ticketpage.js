@@ -90,19 +90,16 @@ class TicketPage extends React.Component {
   enableTVEventHandler = () => {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
-      const {navigation} = page.props;
-      const {appClearData, showDebug, setAppState} = page.context;
-
       const {isActive} = page.props;
       if (!isActive || isEmpty(evt)) {
         return;
       }
 
-      if (evt.eventType == 'focus') {
+      if (evt.eventType === 'focus') {
         return;
       }
 
-      if (evt.eventType == 'blur' || evt.eventType == 'focus') {
+      if (evt.eventType === 'blur' || evt.eventType === 'focus') {
         return;
       }
 

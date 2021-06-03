@@ -1,228 +1,248 @@
 import React from 'react';
 import {
-  Text, 
-  StyleSheet, 
-  View, 
-  TextInput, 
+  Text,
+  StyleSheet,
+  View,
+  TextInput,
   Image,
   TouchableOpacity,
-  Keyboard
-} 
-from 'react-native';
-import AppContext from '../../AppContext'
-import { isEmpty, JQ } from '../../utils';
+  Keyboard,
+} from 'react-native';
+import AppContext from '../../AppContext';
+import {isEmpty, JQ} from '../../utils';
 import Timer from '../../utils/timer';
-import AppButton from '../appbutton'
-
+import AppButton from '../appbutton';
 
 const BLUR_OPACITY = 0.5;
 
 const LoginInput = (props) => {
-    const {isActive, onFocus, isFocused,onKeyboardDidShow,onKeyboardDidHide} = props;
-    const inputRef = React.useRef();
-    
-    const onPress = () => {
-      if(!isActive) return;
-      if (inputRef.current) {
-        inputRef.current.focus();
-        if(onKeyboardDidShow){
-          onKeyboardDidShow();
-        }
-      }
-    };
+  const {
+    isActive,
+    onFocus,
+    isFocused,
+    onKeyboardDidShow,
+    onKeyboardDidHide,
+  } = props;
+  const inputRef = React.useRef();
 
-    return (
+  const onPress = () => {
+    if (!isActive) {
+      return;
+    }
+    if (inputRef.current) {
+      inputRef.current.focus();
+      if (onKeyboardDidShow) {
+        onKeyboardDidShow();
+      }
+    }
+  };
+
+  return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={1.0}
       onFocus={onFocus}
-      hasTVPreferredFocus={isFocused}
-    >
-    <TextInput
-      {...props}
-      style={isFocused? styles.inputStyle : [styles.inputStyle, styles.unfocused]}
-      clearTextOnFocus={true}
-      //BUG: the placeholder color changes to black once you enter something: RN tvos 6.4
-      placeholderTextColor = "white"
-      ref = {inputRef}
-      keyboardAppearance='dark'
-      onSubmitEditing={()=>{
-          if(onKeyboardDidHide){
+      hasTVPreferredFocus={isFocused}>
+      <TextInput
+        {...props}
+        style={
+          isFocused ? styles.inputStyle : [styles.inputStyle, styles.unfocused]
+        }
+        clearTextOnFocus={true}
+        //BUG: the placeholder color changes to black once you enter something: RN tvos 6.4
+        placeholderTextColor="white"
+        ref={inputRef}
+        keyboardAppearance="dark"
+        onSubmitEditing={() => {
+          if (onKeyboardDidHide) {
             onKeyboardDidHide();
           }
-        }
-      }
-      >
-     </TextInput>
-     </TouchableOpacity>
-    );
+        }}
+      />
+    </TouchableOpacity>
+  );
 };
 
-const LoginButton = React.forwardRef(({ onPress, title,onFocus,isFocused,isSelected},ref) => {
-  let buttonStyle = isFocused ? styles.submitButton : styles.submitButtonUnfocused;
-  if(isSelected){
-    buttonStyle = [styles.submitButtonUnfocused,styles.submitButtonSelected];
-  }
-  
-  return (
-    <AppButton
-      ref={ref}
-      style={buttonStyle}
-      onPress={onPress}
-      onFocus={onFocus}
-      text={title}
-      isFocused={isFocused}
-      title="Redeem"
-    />
-  );
-});
+const LoginButton = React.forwardRef(
+  ({onPress, title, onFocus, isFocused, isSelected}, ref) => {
+    let buttonStyle = isFocused
+      ? styles.submitButton
+      : styles.submitButtonUnfocused;
+    if (isSelected) {
+      buttonStyle = [styles.submitButtonUnfocused, styles.submitButtonSelected];
+    }
+
+    return (
+      <AppButton
+        ref={ref}
+        style={buttonStyle}
+        onPress={onPress}
+        onFocus={onFocus}
+        text={title}
+        isFocused={isFocused}
+        title="Redeem"
+      />
+    );
+  },
+);
 
 class Login extends React.Component {
-  static contextType = AppContext
+  static contextType = AppContext;
   constructor(props) {
     super(props);
     this.state = {
-      focused : "code",
-      code: ""
-    }
+      focused: 'code',
+      code: '',
+    };
     this.buttonRef = React.createRef();
   }
 
   async componentDidMount() {
-    Keyboard.addListener("keyboardDidShow", this.onKeyboardDidShow);
-    Keyboard.addListener("keyboardDidHide", this.onKeyboardDidHide);
+    Keyboard.addListener('keyboardDidShow', this.onKeyboardDidShow);
+    Keyboard.addListener('keyboardDidHide', this.onKeyboardDidHide);
   }
 
-  componentWillUnmount=()=>{
-    console.log("RedeemPage componentWillUnmount.");  
-    Keyboard.removeListener("keyboardDidShow", this.onKeyboardDidShow);
-    Keyboard.removeListener("keyboardDidHide", this.onKeyboardDidHide);
-  }
+  componentWillUnmount = () => {
+    console.log('RedeemPage componentWillUnmount.');
+    Keyboard.removeListener('keyboardDidShow', this.onKeyboardDidShow);
+    Keyboard.removeListener('keyboardDidHide', this.onKeyboardDidHide);
+  };
 
-  onKeyboardDidShow = ()=>{
-    console.log("KeyboardDidShow ");
-    this.setState({showingKeyboard:true});
-  }
-  
-  onKeyboardDidHide = ()=>{
-    console.log("KeyboardDidHide");
-    try{
-      if(this.buttonRef.current){
-        console.log("Switching focus:");
+  onKeyboardDidShow = () => {
+    console.log('KeyboardDidShow ');
+    this.setState({showingKeyboard: true});
+  };
+
+  onKeyboardDidHide = () => {
+    console.log('KeyboardDidHide');
+    try {
+      if (this.buttonRef.current) {
+        console.log('Switching focus:');
         this.buttonRef.current.focus();
         //this.setState({focused:"enter"});
       }
-    }catch(e){console.error("Error switching focus to login button: "+e)}
-    this.setState({showingKeyboard:false});
-  }
+    } catch (e) {
+      console.error('Error switching focus to login button: ' + e);
+    }
+    this.setState({showingKeyboard: false});
+  };
 
   render() {
     let {navigation, isActive} = this.props;
-    if(!isActive){
-      return <View style={styles.black}/>;
+    if (!isActive) {
+      return <View style={styles.black} />;
     }
-    console.log("Login render.");
+    console.log('Login render.');
     let {code, focused} = this.state;
-
 
     //XXX:
     //code = "RLnkQi9";
 
-    const {fabric, platform, site, setAppState,appReload} = this.context;
-    try{
-    //let tenantId = site.info.tenant_id;
-    //let siteId = site.objectId;
-    console.log("RedeemPage site display title: " + site.title);  
-    //console.log("RedeemPage site Id: " + siteId);  
-    //console.log("RedeemPage site tenant Id: " + tenantId);
-    //console.log("Login focused: " + focused);
+    const {fabric, platform, site, setAppState, appReload} = this.context;
+    try {
+      //let tenantId = site.info.tenant_id;
+      //let siteId = site.objectId;
+      console.log('RedeemPage site display title: ' + site.title);
+      //console.log("RedeemPage site Id: " + siteId);
+      //console.log("RedeemPage site tenant Id: " + tenantId);
+      //console.log("Login focused: " + focused);
 
-    return (
-      <View style={styles.container}>
+      return (
+        <View style={styles.container}>
           <View style={styles.formContainer}>
             <View style={styles.inputContainer}>
               <Text style={styles.formText}>Presents</Text>
               <Image
                 style={styles.logo}
-                source = {{
-                  uri: site.tv_main_logo
+                source={{
+                  uri: site.tv_main_logo,
                 }}
               />
               <LoginInput
                 secureTextEntry={false}
                 placeholder="Access Code"
                 placeholderTextColor="white"
-                value = {code}
-                isActive = {isActive}
-                onChangeText = {text => {
-                    if(!isActive) return;
-                    this.setState({code:text});
+                value={code}
+                isActive={isActive}
+                onChangeText={(text) => {
+                  if (!isActive) {
+                    return;
                   }
-                }
-                onFocus={()=>{this.setState({focused:"code"})}}
-                isFocused = {focused == "code"}
+                  this.setState({code: text});
+                }}
+                onFocus={() => {
+                  this.setState({focused: 'code'});
+                }}
+                isFocused={focused == 'code'}
                 onKeyboardDidShow={this.onKeyboardDidShow}
                 onKeyboardDidHide={this.onKeyboardDidHide}
               />
             </View>
             <LoginButton
               title="Enter Event"
-              ref = {this.buttonRef}
-              onPress={async()=>{
+              ref={this.buttonRef}
+              onPress={async () => {
                 isActive = this.props.isActive;
-                console.log("Submit:  button onPress " + isActive);
-                if(!isActive || isEmpty(code)) return;
-                console.log("Submit: code " + code);
+                console.log('Submit:  button onPress ' + isActive);
+                if (!isActive || isEmpty(code)) {
+                  return;
+                }
+                console.log('Submit: code ' + code);
 
-                this.setState({selected:"enter"});
+                this.setState({selected: 'enter'});
                 let that = this;
                 this.pressedTimer = Timer(() => {
                   that.setState({
-                    selected: null
+                    selected: null,
                   });
                 }, 300);
                 this.pressedTimer.start();
-                console.log("Submit: Setting app state: ");
-                await setAppState({ticketCode:code});
-                try{
-                  console.log("Submit: setAppState finished");
-                  navigation.navigate("progress");
-                  console.log("Submit: reloadingApp");
+                console.log('Submit: Setting app state: ');
+                await setAppState({ticketCode: code});
+                try {
+                  console.log('Submit: setAppState finished');
+                  navigation.navigate('progress');
+                  console.log('Submit: reloadingApp');
                   await appReload();
 
-                  if(!this.props.data){
+                  if (!this.props.data) {
                     //TODO: go directly to playerpage if site is available to play
-                    console.log("Submit: navigation to site");
-                    navigation.navigate("site");
+                    console.log('Submit: navigation to site');
+                    navigation.navigate('site');
                     navigation.removeUnder();
-                  }else{
-                    console.log("Submit: navigation to site with data.");
-                    navigation.navigate("site",{...this.props.data});
+                  } else {
+                    console.log('Submit: navigation to site with data.');
+                    navigation.navigate('site', {...this.props.data});
                     navigation.removeUnder();
                   }
-                }catch(e){
+                } catch (e) {
                   //TODO: real Error objects
-                  if(typeof e === 'string' && e.includes("redeeming")){
-                    console.error("Error redeeming ticket: " + e);
-                    navigation.replace("error", {text:"Invalid code."});
-                  }else{
-                    console.error("Error loading site: " + e);
-                    navigation.replace("error", {text:"Could not retrieve event info. Please try again.",reload:true});
+                  if (typeof e === 'string' && e.includes('redeeming')) {
+                    console.error('Error redeeming ticket: ' + e);
+                    navigation.replace('error', {text: 'Invalid code.'});
+                  } else {
+                    console.error('Error loading site: ' + e);
+                    navigation.replace('error', {
+                      text: 'Could not retrieve event info. Please try again.',
+                      reload: true,
+                    });
                     navigation.removeUnder();
                   }
                 }
               }}
-              onFocus={()=>{this.setState({focused:"enter"})}}
-              isFocused = {focused == "enter"}
-              isSelected = {this.state.selected === "enter"}
+              onFocus={() => {
+                this.setState({focused: 'enter'});
+              }}
+              isFocused={focused == 'enter'}
+              isSelected={this.state.selected === 'enter'}
             />
           </View>
         </View>
       );
-    }catch(e){
-      console.error("Error Login: ",e);
+    } catch (e) {
+      console.error('Error Login: ', e);
       navigation.loadDefault();
-      return(null);
+      return null;
     }
   }
 }
@@ -232,14 +252,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    width:'100%',
-    maxHeight:'100%',
+    width: '100%',
+    maxHeight: '100%',
   },
-  black:{
+  black: {
     backgroundColor: 'black',
   },
-  noOpacity:{
-    opacity:0
+  noOpacity: {
+    opacity: 0,
   },
   formLabel: {
     marginTop: 10,
@@ -247,10 +267,10 @@ const styles = StyleSheet.create({
     color: 'gray',
   },
   background: {
-    resizeMode: "contain",
-    margin:50,
-    maxHeight:150,
-    width:"90%"
+    resizeMode: 'contain',
+    margin: 50,
+    maxHeight: 150,
+    width: '90%',
   },
   formContainer: {
     flex: 1,
@@ -258,15 +278,15 @@ const styles = StyleSheet.create({
     //backgroundColor: 'rgba(0,0,0,1)',
     justifyContent: 'flex-start',
     marginTop: 330,
-    width:'25%',
+    width: '25%',
   },
   logo: {
     justifyContent: 'center',
     alignContent: 'center',
     marginBottom: 50,
-    resizeMode: "contain",
-    width: "100%",
-    height: 225
+    resizeMode: 'contain',
+    width: '100%',
+    height: 225,
   },
   inputContainer: {
     justifyContent: 'flex-start',
@@ -275,30 +295,30 @@ const styles = StyleSheet.create({
   inputStyle: {
     marginBottom: 20,
     width: '100%',
-    height:60,
-    paddingLeft:30,
-    paddingRight:30,
-    paddingTop:20,
-    paddingBottom:20,
+    height: 60,
+    paddingLeft: 30,
+    paddingRight: 30,
+    paddingTop: 20,
+    paddingBottom: 20,
     paddingHorizontal: 10,
-    alignContent:"center",
-    textAlign:"center",
+    alignContent: 'center',
+    textAlign: 'center',
     backgroundColor: 'rgba(255,255,255,.8)',
-    fontWeight: "400",
-    color: "black",
+    fontWeight: '400',
+    color: 'black',
     //textShadowColor: 'gray',
     letterSpacing: 3,
-    fontFamily: "Helvetica",
+    fontFamily: 'Helvetica',
     fontSize: 24,
-    borderRadius:10,
+    borderRadius: 10,
     //borderWidth: 1,
     //borderColor: "white",
-    opacity:1,
+    opacity: 1,
     //borderWidth: 3,
     //borderColor: '#3E2E02'
   },
   inputText: {
-    color:"black"
+    color: 'black',
   },
   formText: {
     marginBottom: 50,
@@ -306,21 +326,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignSelf: 'center',
     fontSize: 32,
-    fontWeight: "200",
+    fontWeight: '200',
     letterSpacing: 7,
-    fontFamily: "HelveticaNeue",
-    color:"#F4E8D6"
+    fontFamily: 'HelveticaNeue',
+    color: '#F4E8D6',
   },
   submitButtonUnfocused: {
     marginTop: 20,
     elevation: 8,
     justifyContent: 'center',
     //backgroundColor: "#afa78e",
-    backgroundColor:'rgba(0,0,0,.8)',
+    backgroundColor: 'rgba(0,0,0,.8)',
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    borderColor: "white",
+    borderColor: 'white',
     opacity: BLUR_OPACITY,
   },
   submitButton: {
@@ -331,31 +351,31 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    borderColor: "white"
+    borderColor: 'white',
   },
   submitButtonSelected: {
-    shadowOpacity: .5,
+    shadowOpacity: 0.5,
     shadowRadius: 2,
-    shadowOffset:{width:4,height:4},
+    shadowOffset: {width: 4, height: 4},
     opacity: 1,
     borderWidth: 0,
-    elevation:0,
-    backgroundColor: 'rgba(100,100,100,1.0)'
+    elevation: 0,
+    backgroundColor: 'rgba(100,100,100,1.0)',
   },
   linearGradient: {
     flex: 1,
-    resizeMode: "cover",
+    resizeMode: 'cover',
     alignItems: 'center',
-    justifyContent: "center",
-    width: "100%",
-    height: "100%",
-    borderRadius:5
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%',
+    borderRadius: 5,
   },
   unfocused: {
     opacity: BLUR_OPACITY,
     backgroundColor: 'rgba(200,200,200,.5)',
-    color: "white",
-  }
+    color: 'white',
+  },
 });
 
 export default Login;

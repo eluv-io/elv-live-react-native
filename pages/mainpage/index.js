@@ -1,11 +1,18 @@
 import React from 'react';
-import {Text, StyleSheet, View, TVEventHandler, Image} from 'react-native';
+import {
+  Text,
+  StyleSheet,
+  View,
+  TVEventHandler,
+  TouchableOpacity,
+} from 'react-native';
 import AppContext from '../../AppContext';
 import Header from '../../components/header';
 import Gallery from '../../components/gallery';
 import ThumbSelector from '../../components/thumbselector';
 import {isEmpty, JQ, endsWithList} from '../../utils';
-import Spinner from 'react-native-loading-spinner-overlay';
+import MenuDrawer from 'react-native-side-drawer';
+import AppButton from '../../components/appbutton';
 
 const BLUR_OPACITY = 0.3;
 
@@ -16,6 +23,7 @@ class MainPage extends React.Component {
     this.state = {
       currentViewIndex: 0,
       isShowingExtras: false,
+      openDrawer: false,
     };
     this.tvEventHandler = null;
     this.swiperRef = React.createRef();
@@ -36,7 +44,13 @@ class MainPage extends React.Component {
 
   loadSiteData = () => {
     console.log('MainPage loadSiteData');
-    const {platform, redeemItems} = this.context;
+    const {
+      platform,
+      redeemItems,
+      purchases,
+      pendingPurchases,
+      isSitePending,
+    } = this.context;
     const {isActive} = this.props;
     if (!platform || !isActive) {
       console.log('exiting, not active.');
@@ -44,7 +58,7 @@ class MainPage extends React.Component {
     }
 
     let sites = platform.getSites();
-    siteData = [];
+    let siteData = [];
 
     for (const key in sites) {
       try {
@@ -72,7 +86,7 @@ class MainPage extends React.Component {
           'MainPage loadSiteData Site: ' +
             site.title +
             ' accessible ' +
-            site.info.accessible,
+            site.info.state,
         );
         let item = {};
         item.title = eventTitle;
@@ -80,11 +94,22 @@ class MainPage extends React.Component {
         item.image = site.tv_main_background;
         item.logo = site.tv_main_logo;
         item.release_date = site.info.event_info.date;
+        item.ticket = site.currentTicket;
         item.isAvailable = true;
-        item.isAccessible = true; //XXX: //site.info.accessible && site.info.accessible === true;
+        item.isAccessible =
+          (site.info.state && site.info.state !== 'Inaccessible') ||
+          site.info.accessible;
+
+        item.isPending = isSitePending(site);
+        console.log(
+          'MainPage loadSiteData Site: ' +
+            site.title +
+            ' isPending ' +
+            item.isPending,
+        );
 
         if (site.objectId && !isEmpty(redeemItems)) {
-          item.isRedeemed = site.objectId in redeemItems;
+          item.isRedeemed = Object.keys(redeemItems).includes(site.objectId);
         } else {
           item.isRedeemed = false;
         }
@@ -150,23 +175,28 @@ class MainPage extends React.Component {
     this.disableTVEventHandler();
   }
 
+  toggleOpenDrawer = () => {
+    console.log('toggleOpenDrawer ', this.state.openDrawer);
+    this.setState({openDrawer: !this.state.openDrawer});
+  };
+
   enableTVEventHandler = () => {
     this.tvEventHandler = new TVEventHandler();
     this.tvEventHandler.enable(this, async function (page, evt) {
       const {currentViewIndex, views, isShowingExtras} = page.state;
       const {navigation} = page.props;
-      const {appClearData, showDebug, setAppState} = page.context;
+      const {site, appClearData, showDebug, setAppState} = page.context;
 
       const {isActive} = page.props;
       if (!isActive || isEmpty(evt)) {
         return;
       }
 
-      if (evt.eventType == 'focus') {
+      if (evt.eventType === 'focus') {
         return;
       }
 
-      if (evt.eventType == 'blur' || evt.eventType == 'focus') {
+      if (evt.eventType === 'blur' || evt.eventType === 'focus') {
         return;
       }
 
@@ -175,6 +205,13 @@ class MainPage extends React.Component {
       }
 
       console.log('<<<<<<<< MainPage event received: ' + evt.eventType);
+
+      if (evt.eventType === 'swipeRight' || evt.eventType === 'right') {
+        console.log('close drawer');
+        if (page.state.openDrawer) {
+          page.toggleOpenDrawer();
+        }
+      }
 
       if (evt.eventType === 'swipeUp' || evt.eventType === 'up') {
         let siteData = page.loadSiteData();
@@ -259,6 +296,11 @@ class MainPage extends React.Component {
     }
   };
 
+  onLeft = () => {
+    console.log('MainPage onLeft');
+    this.toggleOpenDrawer();
+  };
+
   getSites = async () => {
     const {platform} = this.context;
 
@@ -289,7 +331,7 @@ class MainPage extends React.Component {
     const {navigation} = this.props;
     const {currentViewIndex} = this.state;
 
-    if (index != currentViewIndex) {
+    if (index !== currentViewIndex) {
       this.setState({currentViewIndex: index});
     }
 
@@ -316,11 +358,11 @@ class MainPage extends React.Component {
       }
 
       let redeemInfo = redeemItems[site.objectId];
-      if (
-        site.info.free ||
-        (!isEmpty(redeemInfo) && !isEmpty(redeemInfo.ticketCode))
-      ) {
-        await setAppState({site, ticketCode: redeemInfo.ticketCode});
+      let ticketCode = redeemInfo ? redeemInfo.ticketCode : site.currentTicket;
+      console.log('TICKETCODE: ', ticketCode);
+
+      if (site.info.free || !isEmpty(ticketCode)) {
+        await setAppState({site, ticketCode: ticketCode});
         try {
           let {site} = this.context;
           let logo = site.tv_main_logo;
@@ -445,10 +487,37 @@ class MainPage extends React.Component {
     }
   };
 
-  render() {
-    const {platform, network} = this.context;
+  drawerContent = () => {
     const {isActive} = this.props;
-    const {currentViewIndex, isShowingExtras} = this.state;
+    const {restorePurchases} = this.context;
+    const {openDrawer} = this.state;
+    return (
+      <View style={styles.animatedBox}>
+        <AppButton
+          hasTVPreferredFocus={true}
+          onPress={async () => {
+            console.log('Restore Purchases button pressed.');
+            try {
+              await restorePurchases();
+              this.toggleOpenDrawer();
+            } catch (e) {
+              console.error('Restore Purchases: ', e);
+            }
+          }}
+          isActive={isActive && openDrawer}
+          isFocused={true}
+          textOnly={true}
+          fakeButton={true}
+          text="Restore Purchases"
+        />
+      </View>
+    );
+  };
+
+  render() {
+    const {platform} = this.context;
+    const {isActive} = this.props;
+    const {currentViewIndex, isShowingExtras, openDrawer} = this.state;
     //console.log("Mainpage>>>render currentViewIndex " + currentViewIndex);
     if (!platform) {
       return <View style={styles.background} />;
@@ -469,43 +538,52 @@ class MainPage extends React.Component {
     let extras = null;
     extras = this.loadSiteExtras(currentViewIndex);
 
-    //console.log("<<<<< extras " + JQ(extras));
+    console.log('<<<<< MainPage render openDrawer ' + openDrawer);
     let eluvioLogo = platform.eluvioLogo || '';
 
     return (
       <View style={styles.container}>
-        <Gallery
-          isActive={isActive && !isShowingExtras}
-          layout={1}
-          data={data}
-          next={this.next}
-          previous={this.previous}
-          select={this.select}
-          onIndexChanged={(index) => {
-            console.log('MainPage onIndexChanged: ' + index);
-            this.setState({currentViewIndex: index});
-          }}
-          index={currentViewIndex}
-        />
-        {!isEmpty(extras) ? (
-          <ThumbSelector
-            isActive={isActive && isShowingExtras && !isEmpty(extras)}
-            showBackground={false}
-            showText={false}
-            showImageLabels={true}
-            data={extras}
-            onHideControls={() => {
-              this.onExtrasVisible(false);
+        <MenuDrawer
+          open={openDrawer}
+          drawerContent={this.drawerContent()}
+          drawerPercentage={20}
+          animationTime={250}
+          overlay={true}
+          opacity={0.4}>
+          <Gallery
+            isActive={isActive && !isShowingExtras && !openDrawer}
+            layout={1}
+            data={data}
+            next={this.next}
+            previous={this.previous}
+            select={this.select}
+            onLeft={this.onLeft}
+            onIndexChanged={(index) => {
+              console.log('MainPage onIndexChanged: ' + index);
+              this.setState({currentViewIndex: index});
             }}
-            onShowControls={() => {
-              this.onExtrasVisible(true);
-            }}
-            select={this.onSelectExtra}
-            slide
-            ref={this.extrasRef}
+            index={currentViewIndex}
           />
-        ) : null}
-        <Header logo={eluvioLogo} network={platform.network} />
+          {!isEmpty(extras) ? (
+            <ThumbSelector
+              isActive={isActive && isShowingExtras && !isEmpty(extras)}
+              showBackground={false}
+              showText={false}
+              showImageLabels={true}
+              data={extras}
+              onHideControls={() => {
+                this.onExtrasVisible(false);
+              }}
+              onShowControls={() => {
+                this.onExtrasVisible(true);
+              }}
+              select={this.onSelectExtra}
+              slide
+              ref={this.extrasRef}
+            />
+          ) : null}
+          <Header logo={eluvioLogo} network={platform.network} />
+        </MenuDrawer>
       </View>
     );
   }
@@ -619,6 +697,17 @@ const styles = StyleSheet.create({
     opacity: BLUR_OPACITY,
   },
   buttonText: {
+    fontFamily: 'Helvetica',
+    letterSpacing: 13,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    lineHeight: 50,
+    marginTop: 66,
+    color: '#fff',
+    fontSize: 32,
+    fontWeight: '300',
+  },
+  menuText: {
     color: 'white',
     fontWeight: 'bold',
     alignSelf: 'center',
@@ -715,6 +804,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 36,
     fontWeight: '300',
+  },
+  animatedBox: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    paddingTop: 50,
+    padding: 20,
   },
 });
 
