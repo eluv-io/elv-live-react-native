@@ -70,7 +70,8 @@ export const getAvailableTickets = async (site, purchases = null) => {
     //console.log('index: ', index);
     var purchase = purchases[index];
     var info = productIdToInfo[purchase.productId];
-    //console.log('info: ', info);
+    info.price = purchase.price;
+    console.log('info: ', info);
     if (!info) {
       continue;
     }

@@ -44,7 +44,7 @@ const Item = ({
           <Text style={styles.title}>{item.title}</Text>
           <Text style={styles.description}>{item.description}</Text>
         </View>
-        <View style={[styles.row, styles.itemBuy]}>
+        <View style={[styles.row]}>
           <Text style={styles.price}>${item.price}</Text>
           <AppButton
             hasTVPreferredFocus={isFocused}
@@ -217,6 +217,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 1.4,
     lineHeight: 27,
+    marginHorizontal: 20,
   },
   description: {
     fontFamily: 'Helvetica',

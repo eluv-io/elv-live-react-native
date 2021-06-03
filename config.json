@@ -1,7 +1,7 @@
 {
   "server":{
-    "production":"",
-    "development":"http://192.168.50.197:3000"
+    "production":"https://live.api.qluv.io",
+    "development":"https://live.api.qluv.io"
   },
   "networks": {
     "production": {
