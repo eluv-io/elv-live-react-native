@@ -146,7 +146,7 @@ class TicketPage extends React.Component {
 
     return (
       <View style={styles.container}>
-        <Header logo={platform.eluvioLogo} network={platform.network} />
+        <Header logo={platform.eluvioLogo} network={network} />
         <FlatList
           style={styles.list}
           data={products}

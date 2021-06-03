@@ -72,7 +72,7 @@ class BuyConfirm extends React.Component {
   };
 
   render() {
-    const {platform, site} = this.context;
+    const {platform, network, site, isSitePending} = this.context;
     const {isActive, data, navigation} = this.props;
     const {focused} = this.state;
 
@@ -80,7 +80,7 @@ class BuyConfirm extends React.Component {
     if (!item) {
       return (
         <View style={styles.container}>
-          <Header logo={platform.eluvioLogo} network={platform.network} />
+          <Header logo={platform.eluvioLogo} network={network} />
           <Text style={styles.title}>Something Went Wrong</Text>
         </View>
       );
@@ -120,7 +120,7 @@ class BuyConfirm extends React.Component {
             uri: site.tv_main_background,
           }}
         />
-        <Header logo={platform.eluvioLogo} network={platform.network} />
+        <Header logo={platform.eluvioLogo} network={network} />
 
         <View style={styles.item}>
           <View style={styles.column}>
@@ -149,6 +149,7 @@ class BuyConfirm extends React.Component {
                     addPendingPurchase,
                     pendingPurchases,
                     restorePurchases,
+                    removePendingPurchase,
                   } = this.context;
                   console.log('Confirm Buy pressed.');
                   try {
@@ -156,6 +157,8 @@ class BuyConfirm extends React.Component {
                       console.warn('Purchase already pending.');
                       return;
                     }
+
+                    navigation.navigate('progress');
 
                     await InApp.requestPurchase(item.id);
                     console.log('Confirm Buy Purchase succesful!');
@@ -178,6 +181,7 @@ class BuyConfirm extends React.Component {
                         'ByConfirm error restoring purchases: ',
                         err,
                       );
+                      await removePendingPurchase(item.id);
                     }
                   }
                   navigation.goBack(true);
@@ -186,7 +190,7 @@ class BuyConfirm extends React.Component {
                   this.setState({focused: 'buy'});
                 }}
                 isFocused={focused === 'buy'}
-                text="Buy"
+                text={isSitePending(site) ? 'Pending' : 'Buy'}
                 title="Confirm Buy Button"
                 isActive={isActive}
               />

@@ -44,7 +44,7 @@ import {ElvPlatform} from './fabric/elvplatform';
 import DeviceInfo from 'react-native-device-info';
 import uuid from 'react-native-uuid';
 import InApp from './providers/inapp';
-import {RefreshControlBase} from 'react-native';
+
 var UrlJoin = require('url-join');
 
 const APP_STORAGE_KEY = '@eluvio_live';

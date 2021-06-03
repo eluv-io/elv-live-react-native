@@ -47,13 +47,8 @@ class MainPage extends React.Component {
 
   loadSiteData = () => {
     console.log('MainPage loadSiteData');
-    const {
-      platform,
-      redeemItems,
-      purchases,
-      pendingPurchases,
-      isSitePending,
-    } = this.context;
+    const {platform, redeemItems, isSitePending} = this.context;
+    console.log('$$$$$$ REDEEMITEMS ', redeemItems);
     const {isActive} = this.props;
     if (!platform || !isActive) {
       console.log('exiting, not active.');
@@ -104,12 +99,12 @@ class MainPage extends React.Component {
           site.info.accessible;
 
         item.isPending = isSitePending(site);
-        console.log(
+        /*console.log(
           'MainPage loadSiteData Site: ' +
             site.title +
             ' isPending ' +
             item.isPending,
-        );
+        );*/
 
         if (site.objectId && !isEmpty(redeemItems)) {
           item.isRedeemed = Object.keys(redeemItems).includes(site.objectId);
@@ -519,7 +514,7 @@ class MainPage extends React.Component {
 */
 
   drawerContent = () => {
-    const {isActive} = this.props;
+    const {isActive, navigation} = this.props;
     const {restorePurchases} = this.context;
     const {openDrawer} = this.state;
     console.log('drawerContent()');
@@ -532,8 +527,10 @@ class MainPage extends React.Component {
             return;
           }
           try {
+            navigation.navigate('progress');
             await restorePurchases();
             this.toggleOpenDrawer();
+            navigation.goBack();
           } catch (e) {
             console.error('Restore Purchases: ', e);
           }
@@ -576,7 +573,7 @@ class MainPage extends React.Component {
   };
 
   render() {
-    const {platform} = this.context;
+    const {platform, network} = this.context;
     const {isActive} = this.props;
     const {currentViewIndex, isShowingExtras, openDrawer} = this.state;
     //console.log("Mainpage>>>render currentViewIndex " + currentViewIndex);
@@ -599,7 +596,7 @@ class MainPage extends React.Component {
     let extras = null;
     extras = this.loadSiteExtras(currentViewIndex);
 
-    console.log('<<<<< MainPage render openDrawer ' + openDrawer);
+    console.log('<<<<< MainPage render network ' + network);
     let eluvioLogo = platform.eluvioLogo || '';
 
     return (
@@ -644,7 +641,7 @@ class MainPage extends React.Component {
               ref={this.extrasRef}
             />
           ) : null}
-          <Header logo={eluvioLogo} network={platform.network} />
+          <Header logo={eluvioLogo} network={network} />
         </MenuDrawer>
       </View>
     );
@@ -693,14 +690,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '70%',
     height: '100%',
-  },
-  networkText: {
-    color: '#ca00a7',
-    fontSize: 20,
-    justifyContent: 'center',
-    fontWeight: 'bold',
-    marginLeft: 5,
-    marginTop: 2,
   },
   text: {
     color: '#fff',

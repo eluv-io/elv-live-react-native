@@ -58,6 +58,14 @@ const styles = StyleSheet.create({
     height: 40,
     resizeMode: 'contain',
   },
+  networkText: {
+    color: '#ca00a7',
+    fontSize: 20,
+    justifyContent: 'center',
+    fontWeight: 'bold',
+    marginLeft: 5,
+    marginTop: 2,
+  },
 });
 
 export default Header;
