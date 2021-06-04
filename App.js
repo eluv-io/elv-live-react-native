@@ -840,7 +840,7 @@ export default class App extends React.Component {
       pendingPurchases,
     } = this.state;
 
-    console.log('+++++++++++++++++++ APP redeemItems ', redeemItems);
+    //console.log('+++++++++++++++++++ APP redeemItems ', redeemItems);
 
     return (
       <AppContext.Provider

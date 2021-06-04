@@ -133,7 +133,9 @@ class ElvPlatform {
     //console.log("resolveSite tv_main_logo: " + site.tv_main_logo);
 
     site.getTicketInfo = ({productId, otpId}) => {
-      console.log('site: getTicketDate ' + otpId);
+      console.log(
+        'site: getTicketInfo otpId ' + otpId + ' productId ' + productId,
+      );
       //console.log("site tickets: " + JQ(site.info.tickets));
       for (var index in site.info.tickets) {
         try {
@@ -144,11 +146,8 @@ class ElvPlatform {
             if (!isEmpty(sku.otp_id)) {
               console.log('ticket sku: ' + JQ(sku));
             }
-            console.log(
-              'otpId: ' + otpId.substring(2) + ' sku.otp_id ' + sku.otp_id,
-            );
             if (!isEmpty(sku.uuid) && sku.uuid === productId) {
-              //console.log("Found ticket info!");
+              console.log('Found ticket info!');
               return sku;
             }
 
@@ -160,7 +159,9 @@ class ElvPlatform {
               return sku;
             }
           }
-        } catch (e) {}
+        } catch (e) {
+          console.error('Error getting ticket info ', e);
+        }
       }
       return null;
     };

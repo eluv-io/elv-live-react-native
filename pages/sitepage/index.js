@@ -103,12 +103,12 @@ class SitePage extends React.Component {
 
           //ticketInfo.start_time = "2021-04-21T02:20:00-04:00";
           //ticketInfo.end_time = "2021-04-20T02:30:00-04:00";
-          //console.log("ticketInfo: " + JQ(ticketInfo));
+          console.log('ticketInfo: ' + JQ(ticketInfo));
 
           if (ticketInfo != null) {
             if (!isEmpty(ticketInfo.start_time)) {
               date = ticketInfo.start_time;
-              //console.log("setting start date: " + date);
+              console.log('setting start date: ' + date);
 
               //We are before the start date
               if (!dateStarted(date)) {
@@ -174,7 +174,7 @@ class SitePage extends React.Component {
         isAvailable = true;
       }
 
-      //console.log("date string: " + dateString);
+      console.log('date string: ' + dateString);
 
       main.release_date = dateString;
       main.channels = site.channels;
