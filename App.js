@@ -430,6 +430,22 @@ export default class App extends React.Component {
           page.navigationRef.current.navigate('config');
           return;
         }
+
+        let cheatcodeRedeem = [
+          'longSelect',
+          'longSelect',
+          'longSelect',
+          'longSelect',
+          'longSelect',
+          'longSelect',
+        ];
+        if (endsWithList(page.remoteEvents, cheatcodeRedeem)) {
+          console.log(
+            '!!!!!! Cheatcode login activated! ' + JQ(page.remoteEvents),
+          );
+          page.navigationRef.current.navigate('login');
+          return;
+        }
       }
     });
   };
@@ -604,7 +620,7 @@ export default class App extends React.Component {
       newSite = site;
 
       console.log('Loading network: ', network);
-      console.log('RedeemItems ', redeemItems);
+      //console.log('RedeemItems ', redeemItems);
       if (!network) {
         throw 'No network specified.';
       }
@@ -648,7 +664,6 @@ export default class App extends React.Component {
         fabric,
         platform,
         site: newSite,
-        redeemItems,
       });
     } catch (e) {
       console.error('Error in App reload: ', e);
@@ -699,9 +714,6 @@ export default class App extends React.Component {
   //You can use async/await now
   handleSetState = (state) => {
     return new Promise((resolve) => {
-      if (state.site) {
-        console.log('handleSetState: ' + JQ(state.site.versionHash));
-      }
       this.setState(state, resolve);
     });
   };
@@ -741,13 +753,13 @@ export default class App extends React.Component {
   //Internal
   redeemCode = async (fabric, site, redeemItems, tenantId, ticketCode) => {
     console.time('* App redeemCode *');
-    console.log('RedeemCode ticketCode: ' + ticketCode);
+    //console.log('RedeemCode ticketCode: ' + ticketCode);
     let otpId = await fabric.redeemCode(tenantId, ticketCode);
     console.log('App redeemCode response: ' + otpId);
     if (otpId != null) {
       let items = {...redeemItems};
       let objectId = site.objectId;
-      console.log('getting ticket info, ', otpId);
+      console.log('getting ticket info ', otpId);
       let ticket = site.getTicketInfo({otpId});
       console.log('ticket info: ', ticket);
       let productId = '';
@@ -757,6 +769,7 @@ export default class App extends React.Component {
       console.log('productId: ', productId);
       items[objectId] = {ticketCode, productId};
       console.log('Redeem success. ');
+      site.currentTicket = ticketCode;
       await this.handleSetState({redeemItems: items});
       await this.saveState();
       console.timeEnd('* App redeemCode *');
@@ -817,6 +830,8 @@ export default class App extends React.Component {
       pendingPurchases,
     } = this.state;
 
+    console.log('+++++++++++++++++++ APP redeemItems ', redeemItems);
+
     return (
       <AppContext.Provider
         value={{
@@ -842,6 +857,7 @@ export default class App extends React.Component {
           <Route name="main" component={MainPage} />
           <Route name="buy" component={TicketPage} />
           <Route name="buyconfirm" component={BuyConfirm} />
+          <Route name="login" component={LoginPage} />
           <Route name="site" component={SitePage} />
           <Route name="player" component={PlayerPage} />
           <Route name="gallery" component={GalleryPage} />

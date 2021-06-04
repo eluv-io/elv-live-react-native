@@ -42,10 +42,11 @@ class SitePage extends React.Component {
     }
   };
 
-  async componentDidMount() {
+  componentDidMount = async () => {
     console.log('Sitepage componentDidMount');
     this.updateInterval = setInterval(this.onUpdate, 1000);
-  }
+    await this.onUpdate();
+  };
 
   getExtras = async () => {
     const {site, fabric, isSitePending} = this.context;
@@ -64,7 +65,7 @@ class SitePage extends React.Component {
       if (site.objectId && !isEmpty(redeemItems)) {
         siteIsRedeemed = Object.keys(redeemItems).includes(site.objectId);
       }
-      console.log('redeemItems keys: ', redeemItems);
+
       console.log('site id: ' + site.objectId);
       console.log('site isRedeemed: ' + siteIsRedeemed);
 

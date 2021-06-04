@@ -133,22 +133,30 @@ class ElvPlatform {
     //console.log("resolveSite tv_main_logo: " + site.tv_main_logo);
 
     site.getTicketInfo = ({productId, otpId}) => {
-      //console.log("site: getTicketDate " + otpId);
+      console.log('site: getTicketDate ' + otpId);
       //console.log("site tickets: " + JQ(site.info.tickets));
       for (var index in site.info.tickets) {
         try {
           let ticket = site.info.tickets[index];
-          //console.log("site ticket: " + JQ(ticket));
 
           for (var index2 in ticket.skus) {
             let sku = ticket.skus[index2];
-            //console.log("sku: " + JQ(sku));
-            if (sku.uuid && sku.uuid !== '' && sku.uuid === productId) {
+            if (!isEmpty(sku.otp_id)) {
+              console.log('ticket sku: ' + JQ(sku));
+            }
+            console.log(
+              'otpId: ' + otpId.substring(2) + ' sku.otp_id ' + sku.otp_id,
+            );
+            if (!isEmpty(sku.uuid) && sku.uuid === productId) {
               //console.log("Found ticket info!");
               return sku;
             }
-            if (sku.otpId && sku.otpId !== '' && sku.otpId === otpId) {
-              //console.log("Found ticket info!");
+
+            if (
+              !isEmpty(sku.otp_id) &&
+              (sku.otp_id === otpId.substring(2) || sku.otp_id === otpId)
+            ) {
+              console.log('Found ticket info!');
               return sku;
             }
           }

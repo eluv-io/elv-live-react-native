@@ -48,7 +48,6 @@ class MainPage extends React.Component {
   loadSiteData = () => {
     console.log('MainPage loadSiteData');
     const {platform, redeemItems, isSitePending} = this.context;
-    console.log('$$$$$$ REDEEMITEMS ', redeemItems);
     const {isActive} = this.props;
     if (!platform || !isActive) {
       console.log('exiting, not active.');

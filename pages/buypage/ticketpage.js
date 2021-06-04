@@ -8,7 +8,7 @@ import {
   FlatList,
 } from 'react-native';
 import AppContext from '../../AppContext';
-import {isEmpty, JQ, endsWithList} from '../../utils';
+import {isEmpty, JQ} from '../../utils';
 import Header from '../../components/header';
 import InApp from '../../providers/inapp';
 import AppButton from '../../components/appbutton';
