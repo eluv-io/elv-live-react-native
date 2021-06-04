@@ -762,6 +762,16 @@ export default class App extends React.Component {
       console.log('getting ticket info ', otpId);
       let ticket = site.getTicketInfo({otpId});
       console.log('ticket info: ', ticket);
+      if (!ticket) {
+        console.error(
+          'Could not find ticket with otpId ' +
+            otpId +
+            ' for site ' +
+            site.objectId,
+        );
+        return null;
+      }
+
       let productId = '';
       if (ticket && !isEmpty(ticket.uuid)) {
         productId = ticket.uuid;

@@ -146,7 +146,7 @@ class SitePage extends React.Component {
                       let info = await fabric.getChannelPlayoutInfo(
                         channelHash,
                       );
-                      if (!info) {
+                      if (!info || !info.playlistUrl) {
                         throw 'Playout ended';
                       }
                     } catch (e) {

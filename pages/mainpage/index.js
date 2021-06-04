@@ -356,7 +356,6 @@ class MainPage extends React.Component {
 
       let redeemInfo = redeemItems[site.objectId];
       let ticketCode = redeemInfo ? redeemInfo.ticketCode : site.currentTicket;
-      console.log('TICKETCODE: ', ticketCode);
 
       if (site.info.free || !isEmpty(ticketCode)) {
         await setAppState({site, ticketCode: ticketCode});

@@ -14,6 +14,7 @@ import AppContext from '../../AppContext';
 import ThumbGallery from '../../components/gallery/thumbgallery';
 import FadeInView from '../../components/fadeinview';
 import EluvioLiveLogo from '../../static/images/fulllogo.jpg';
+import {Icon} from 'react-native-elements';
 
 var URI = require('urijs');
 
@@ -140,7 +141,7 @@ class PlayerPage extends React.Component {
       });
       console.log('views response: ' + JQ(currentViews));
       if (!currentViews.errors) {
-        for (index in currentViews) {
+        for (var index in currentViews) {
           let view = currentViews[index];
           console.log('Found view: ' + JQ(view));
           if (!isEmpty(view.image_uri)) {
@@ -302,13 +303,13 @@ class PlayerPage extends React.Component {
   }
 
   async init() {
-    const {site, fabric, getQueryParams} = this.context;
     if (!this.props.isActive) {
       return;
     }
 
     // console.log("Playerpage init()");
     try {
+      const {site, fabric, getQueryParams} = this.context;
       console.log('Player site: ' + site.versionHash);
       let channels = await site.getLatestChannels();
       console.log('Channels response: ', JQ(channels));
@@ -346,21 +347,27 @@ class PlayerPage extends React.Component {
       } catch (e) {}
 
       let videoUrl = null;
-      if (info.playlistUrl) {
-        videoUrl = info.playlistUrl + getQueryParams();
-      }
+      try {
+        if (info.playlistUrl) {
+          videoUrl = info.playlistUrl + getQueryParams();
+        }
+      } catch (e) {}
+
       let multiview = null;
-      if (info.multiview) {
-        multiview = info.multiview;
-      }
+      try {
+        if (info.multiview) {
+          multiview = info.multiview;
+        }
+      } catch (e) {}
 
-      let showMultiview = multiview != null && multiview != undefined;
-
+      let showMultiview = multiview != null && multiview !== undefined;
+      let error = null;
       if (!videoUrl) {
-        await this.handleSetState({error: 'Error occured.'});
-        return;
+        error = 'Could not get video uri.';
       }
-      //console.log(`player: channelHash ${channelHash}  videoUrl ${videoUrl} offering ${offering} sid ${sid} `);
+      console.log(
+        `player: channelHash ${channelHash}  videoUrl ${videoUrl} offering ${offering} sid ${sid} showMultiview ${showMultiview}`,
+      );
       await this.handleSetState({
         title: site.title,
         channelHash,
@@ -368,7 +375,7 @@ class PlayerPage extends React.Component {
         videoUrl,
         sid,
         showMultiview,
-        error: null,
+        error,
       });
     } catch (e) {
       await this.handleSetState({error: 'Could not get video uri. ' + e});
@@ -402,14 +409,20 @@ class PlayerPage extends React.Component {
       return null;
     }
 
-    return null; ///XXX: Not implemented yet until later release.
-    /*
-    return(
-      <FadeInView style={styles.hints} fadeOut={true}>
-        <Text style={styles.hintsText}>Swipe up for views</Text>
+    console.log('PlayerPage RenderHints');
+
+    return (
+      <FadeInView style={styles.hints} fadeOut={true} duration={6000}>
+        <Icon
+          iconStyle={styles.hintsIcon}
+          name="chevron-up"
+          type="font-awesome"
+          color="#ffffff"
+          size={40}
+        />
+        <Text style={styles.hintsText}>Tap up to switch views</Text>
       </FadeInView>
     );
-*/
   };
 
   render() {
@@ -420,7 +433,6 @@ class PlayerPage extends React.Component {
       isShowingControls,
       showMultiview,
       playPause,
-      message,
     } = this.state;
     const {isActive, navigation} = this.props;
     //console.log("PlayerPage render: videoUrl " + videoUrl + " error: " +  JQ(error) + " isActive " + isActive + " isShowingControls: " + isShowingControls);
@@ -429,8 +441,12 @@ class PlayerPage extends React.Component {
     //error = "e";
     //videoUrl = "https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8"
     //VOD
-    //videoUrl = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8";
+    //videoUrl =
+    //  'https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8';
     //videoUrl = "https://storage.googleapis.com/gaetan/hls.js/master-fmp4-bug.m3u8";
+
+    //error = null;
+    //showMultiview = true;
 
     if (error != null) {
       console.log('Error loading video: ' + JQ(error));
@@ -539,22 +555,21 @@ const styles = StyleSheet.create({
   },
   hints: {
     position: 'absolute',
+    display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    bottom: 200,
-    flexDirection: 'row',
+    bottom: 100,
+    flexDirection: 'column',
   },
   hintsIcon: {
+    alignSelf: 'center',
     marginRight: 5,
     marginLeft: 5,
-    resizeMode: 'cover',
-    width: THUMBWIDTH * 0.8,
-    height: ((THUMBWIDTH * 9) / 16) * 0.8,
   },
   hintsText: {
     fontFamily: 'Helvetica',
     textAlign: 'center',
-    margin: 60,
+    margin: 30,
     color: '#fff',
     fontSize: 36,
     fontWeight: '500',

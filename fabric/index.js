@@ -250,13 +250,19 @@ export default class Fabric {
   };
 
   getChannelPlayoutInfo = async ({channelHash}) => {
+    let multiview = null;
+    let sessionId = null;
+    let playlistUrl = null;
+    let offering = null;
+    let baseUrl = null;
+    let viewsUrl = null;
+    let offerings = null;
     try {
       let endpoint = this.baseUrl({});
-      let offerings = await this.getOfferings(channelHash);
-      let offering = Object.keys(offerings)[0];
+      offerings = await this.getOfferings(channelHash);
+      offering = Object.keys(offerings)[0];
       console.log('Offering: ', offering);
 
-      let multiview = null;
       try {
         multiview = offerings[offering].properties.multiview;
       } catch (e) {}
@@ -274,31 +280,36 @@ export default class Fabric {
       formatsUrl = UrlJoin(endpoint, uri);
       console.log(formatsUrl);
 
-      res = await fetch(normalizeUrl(formatsUrl));
+      let res = await fetch(normalizeUrl(formatsUrl));
       let formats = await res.json();
 
       console.log('Formats: ' + JQ(formats));
 
       // Pick HLS - prefer clear if multiple
       let format = 'hls-clear';
-      let sessionId = '';
       try {
         sessionId = formats[format].sid;
       } catch (e) {}
-      let baseUrl = formatsUrl.substring(0, formatsUrl.lastIndexOf('/'));
-      let playlistUrl = baseUrl + '/' + formats[format].uri;
+      baseUrl = formatsUrl.substring(0, formatsUrl.lastIndexOf('/'));
+      playlistUrl = baseUrl + '/' + formats[format].uri;
 
       console.log('Playlist URL: ', playlistUrl);
 
-      let viewsUrl = null;
       if (multiview != null) {
         viewsUrl = baseUrl + '/views.json';
       }
-      return {playlistUrl, offering, viewsUrl, baseUrl, sessionId, multiview};
     } catch (e) {
       console.error('Fabric getPlayoutInfo error: ' + e);
     }
-    return null;
+    return {
+      playlistUrl,
+      offerings,
+      offering,
+      viewsUrl,
+      baseUrl,
+      sessionId,
+      multiview,
+    };
   };
 
   async getChannelViews({channelHash, offering, sid}) {
