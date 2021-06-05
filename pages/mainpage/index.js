@@ -16,6 +16,7 @@ import {isEmpty, JQ, endsWithList} from '../../utils';
 import MenuDrawer from 'react-native-side-drawer';
 import AppButton from '../../components/appbutton';
 import restoreIcon from '../../static/icons/restore_purchase.png';
+import InApp from '../../providers/inapp';
 
 const BLUR_OPACITY = 0.3;
 
@@ -338,6 +339,12 @@ class MainPage extends React.Component {
       console.log('select site selected ' + JQ(site.title));
       console.log('select site is free? ' + JQ(site.info.free));
       console.log('select site tv_main_logo ' + JQ(site.tv_main_logo));
+
+      let products = await InApp.getAvailableTickets(site);
+      if (isEmpty(products)) {
+        console.error('No Available InApp purchases for tickets.');
+        return;
+      }
 
       if (site.info.free) {
         try {

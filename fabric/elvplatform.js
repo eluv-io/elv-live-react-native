@@ -191,7 +191,7 @@ class ElvPlatform {
       extra.basePath = UrlJoin(site.metaDataPath, `/info/extras/${index}`);
       //console.log("Extra basepath: ",extra.basePath);
       let packageLink = extra.package;
-      if (packageLink.info != undefined) {
+      if (packageLink.info !== undefined) {
         extra.isAvailable = true;
         //console.log("package available.");
         try {

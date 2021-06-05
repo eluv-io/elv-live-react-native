@@ -11,7 +11,6 @@ import {
   Dimensions,
 } from 'react-native';
 //import Image from 'react-native-fast-image'
-import Swiper from 'react-native-swiper';
 import AppContext from '../../AppContext';
 import AppButton from '../../components/appbutton';
 import {isEmpty, JQ, dateCountdown, RandomInt} from '../../utils';
@@ -526,7 +525,7 @@ class Gallery extends React.Component {
     }
 
     let total = views.length;
-
+    /*
     return (
       <View style={styles.container}>
         <Swiper
@@ -548,6 +547,15 @@ class Gallery extends React.Component {
           }}>
           {views}
         </Swiper>
+        {this.renderArrows({currentViewIndex, total, styles})}
+      </View>
+    );
+    */
+
+    return (
+      <View style={styles.container}>
+        {views[currentViewIndex]}
+        {this.renderPagination(currentViewIndex, total)}
         {this.renderArrows({currentViewIndex, total, styles})}
       </View>
     );
@@ -668,37 +676,16 @@ class Gallery extends React.Component {
   renderLayout1 = (styles) => {
     const {currentViewIndex} = this.state;
     const {data} = this.props;
-    const views = [];
-
-    for (var key in data) {
-      let item = data[key];
-      item.index = key;
-      views.push(this.renderItem1({key, item, styles}));
-    }
-
-    let total = views.length;
+    let total = data.length;
 
     return (
       <View style={styles.container}>
-        <Swiper
-          showsButtons={false}
-          loop={false}
-          index={currentViewIndex}
-          ref={this.swiperRef}
-          renderPagination={this.renderPagination}
-          scrollEnabled={this.isActive()}
-          onIndexChanged={(index) => {
-            console.log('Gallery onIndexChanged: ' + index);
-            try {
-              if (this.props.onIndexChanged) {
-                this.props.onIndexChanged(index);
-              }
-            } catch (e) {
-              console.error('Gallery onIndexChanged:' + e);
-            }
-          }}>
-          {views}
-        </Swiper>
+        {this.renderItem1({
+          key: currentViewIndex,
+          item: data[currentViewIndex],
+          styles,
+        })}
+        {this.renderPagination(currentViewIndex, total)}
         {this.renderArrows({currentViewIndex, total, styles})}
       </View>
     );

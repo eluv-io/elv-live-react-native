@@ -209,6 +209,13 @@ export default class App extends React.Component {
 
     pendingPurchases.push(productId);
     await this.handleSetState({pendingPurchases});
+
+    //Timeout
+    const pendingTimeOut = () => {
+      console.log('Pending TIMEOUT', productId);
+      this.removePendingPurchase(productId);
+    };
+    setTimeout(pendingTimeOut, 10000);
   };
 
   removeItemAll = (arr, value) => {
@@ -225,11 +232,16 @@ export default class App extends React.Component {
 
   removePendingPurchase = async (productId) => {
     let pendingPurchases = this.state.pendingPurchases;
+    console.log('removePendingPurchase: ', pendingPurchases);
     if (!pendingPurchases) {
       pendingPurchases = [];
+      await this.handleSetState({pendingPurchases});
+      return;
     }
 
-    pendingPurchases = this.removeItemAll(pendingPurchases, productId);
+    if (productId) {
+      pendingPurchases = this.removeItemAll(pendingPurchases, productId);
+    }
     await this.handleSetState({pendingPurchases});
   };
 
@@ -904,7 +916,6 @@ const styles = StyleSheet.create({
     color: '#FFF',
   },
   buttonText: {
-    fontSize: 18,
     color: 'white',
     fontWeight: 'bold',
     alignSelf: 'center',

@@ -42,7 +42,6 @@
     "react-native-safe-area-context": "^3.1.9",
     "react-native-side-drawer": "^1.2.8",
     "react-native-simple-animations": "^0.2.3",
-    "react-native-swiper": "^1.6.0-rc.3",
     "react-native-tvos-controller": "^0.2.4",
     "react-native-unimodules": "^0.12.0",
     "react-native-uuid": "^2.0.1",

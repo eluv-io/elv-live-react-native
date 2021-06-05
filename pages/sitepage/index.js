@@ -45,7 +45,6 @@ class SitePage extends React.Component {
   componentDidMount = async () => {
     console.log('Sitepage componentDidMount');
     this.updateInterval = setInterval(this.onUpdate, 1000);
-    await this.onUpdate();
   };
 
   getExtras = async () => {
