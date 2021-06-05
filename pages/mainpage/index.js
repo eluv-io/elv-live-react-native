@@ -429,8 +429,7 @@ class MainPage extends React.Component {
             if (!isEmpty(data)) {
               navigation.replace('gallery', data);
             } else {
-              navigation.re;
-              place('error', {
+              navigation.replace('error', {
                 text: 'Could not retrieve event info.',
                 next: ['redeem', {extra: index}],
               });

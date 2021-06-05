@@ -420,7 +420,7 @@ class PlayerPage extends React.Component {
           color="#ffffff"
           size={40}
         />
-        <Text style={styles.hintsText}>Tap up to switch views</Text>
+        <Text style={styles.hintsText}>Swipe up to switch views</Text>
       </FadeInView>
     );
   };

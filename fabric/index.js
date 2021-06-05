@@ -100,12 +100,12 @@ export default class Fabric {
         return null;
       }
 
-      console.log('Redeem response: ' + JQ(token));
+      //console.log('Redeem response: ' + JQ(token));
 
       let decoded = base64.decode(token);
       let json = JSON.parse(decoded);
 
-      console.log('response decoded: ' + json);
+      //console.log('response decoded: ' + json);
 
       let {oid} = json;
 

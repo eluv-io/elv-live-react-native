@@ -125,7 +125,7 @@ class Gallery extends React.Component {
     this.tvEventHandler.enable(this, async function (page, evt) {
       //console.log("Gallery event: " + evt.eventType + " Active? " + isActive);
       const {isActive} = page.props;
-      if (!isActive) {
+      if (!isActive || !evt) {
         return;
       }
 
@@ -135,11 +135,11 @@ class Gallery extends React.Component {
 
       console.log('Gallery event active: ' + evt.eventType);
 
-      if (evt && evt.eventType === 'right') {
+      if (evt.eventType === 'right' || evt.eventType === 'swipeRight') {
         page._next();
-      } else if (evt && evt.eventType === 'left') {
+      } else if (evt.eventType === 'left' || evt.eventType === 'swipeLeft') {
         page._previous();
-      } else if (evt && evt.eventType === 'select') {
+      } else if (evt.eventType === 'select') {
         page._select();
       }
     });

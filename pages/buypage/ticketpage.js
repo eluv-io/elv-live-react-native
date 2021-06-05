@@ -127,20 +127,50 @@ class TicketPage extends React.Component {
         item={item}
         index={index}
         separator={separator}
-        onPress={async () => {
-          console.log('Ticket Button pressed: ' + JQ(item));
-          try {
-            navigation.navigate('buyconfirm', item);
-          } catch (e) {
-            console.error('Ticket button error: ', e);
-          }
-        }}
-        onFocus={(focus) => {
-          console.log('OnFocus ', focus);
+        isFocused={currentIndex === index}
+        onFocus={() => {
           this.setState({currentIndex: index});
         }}
-        isFocused={index === currentIndex}
         isActive={isActive}
+        onPress={async () => {
+          const {
+            addPendingPurchase,
+            pendingPurchases,
+            restorePurchases,
+            removePendingPurchase,
+          } = this.context;
+          console.log('Confirm Buy pressed.');
+          try {
+            if (pendingPurchases.includes(item.id)) {
+              console.warn('Purchase already pending.');
+              return;
+            }
+
+            navigation.navigate('progress');
+
+            await InApp.requestPurchase(item.id);
+            console.log('Confirm Buy Purchase succesful!');
+            //TODO: set pending state for app
+            if (addPendingPurchase) {
+              console.log('Buy Confirm adding pending purchase.');
+              await addPendingPurchase(item.id);
+            }
+          } catch (e) {
+            console.error('Buy Confirm Purchase error ', e);
+            //unknown error can be thrown if the product has already been purchased.
+            try {
+              if (addPendingPurchase) {
+                console.log('Buy Confirm adding pending purchase.');
+                await addPendingPurchase(item.id);
+              }
+              await restorePurchases();
+            } catch (err) {
+              console.error('ByConfirm error restoring purchases: ', err);
+              await removePendingPurchase(item.id);
+            }
+          }
+          navigation.goBack(true);
+        }}
       />
     );
 

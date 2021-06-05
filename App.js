@@ -866,7 +866,6 @@ export default class App extends React.Component {
         <Navigation ref={this.navigationRef} default="main">
           <Route name="main" component={MainPage} />
           <Route name="buy" component={TicketPage} />
-          <Route name="buyconfirm" component={BuyConfirm} />
           <Route name="login" component={LoginPage} />
           <Route name="site" component={SitePage} />
           <Route name="player" component={PlayerPage} />
