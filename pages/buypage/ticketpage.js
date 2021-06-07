@@ -138,9 +138,13 @@ class TicketPage extends React.Component {
             pendingPurchases,
             restorePurchases,
             removePendingPurchase,
+            setAppState,
           } = this.context;
-          console.log('Confirm Buy pressed.');
+          console.log('TicketPage buy pressed.');
           try {
+            //This is needed because the OS screens will bring the app back
+            // into the forground which triggers a reload. Any ticketCodes in the state will try to redeem
+            await setAppState({ticketCode: null});
             if (pendingPurchases.includes(item.id)) {
               console.warn('Purchase already pending.');
               return;
@@ -156,18 +160,25 @@ class TicketPage extends React.Component {
               await addPendingPurchase(item.id);
             }
           } catch (e) {
-            console.error('Buy Confirm Purchase error ', e);
+            console.error('TicketPage Purchase error ', e);
             //unknown error can be thrown if the product has already been purchased.
+            this.removePendingPurchase(e.productId);
+            navigation.replace('error', {
+              text: 'Purchase failed.',
+            });
+            return;
+            /*
             try {
               if (addPendingPurchase) {
-                console.log('Buy Confirm adding pending purchase.');
+                console.log('TicketPage adding pending purchase.');
                 await addPendingPurchase(item.id);
               }
               await restorePurchases();
             } catch (err) {
-              console.error('ByConfirm error restoring purchases: ', err);
+              console.error('TicketPage error restoring purchases: ', err);
               await removePendingPurchase(item.id);
             }
+            */
           }
           navigation.goBack(true);
         }}

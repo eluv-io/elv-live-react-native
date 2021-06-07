@@ -287,11 +287,11 @@ export default class App extends React.Component {
 
       let ticket = await this.getTicketFromPurchase(purchase);
       console.log('onPurchaseUpdated ticket ', ticket);
-      if (isEmpty(ticket)) {
+      if (isEmpty(ticket) || isEmpty(ticket.code)) {
         throw 'could not get ticket from Eluvio Live Server';
       }
       let item = {
-        ticketCode: ticket,
+        ticketCode: ticket.code,
         productId: purchase.productId,
       };
       let {redeemItems} = this.state;
@@ -565,12 +565,13 @@ export default class App extends React.Component {
   };
 
   restorePurchases = async () => {
+    console.log('****************** Restore Purchases ******************');
     let {redeemItems, platform} = this.state;
     let purchases = null;
     try {
       let sites = platform.getSites();
       purchases = await InApp.getAvailablePurchases();
-      console.log('****************** Available InApp Purchases: ');
+      console.log('Available InApp Purchases: ');
       for (var p in purchases) {
         console.log(p.productId);
       }
@@ -593,7 +594,8 @@ export default class App extends React.Component {
             }
             //Try to get the ticket
             let ticket = await this.getTicketFromPurchase(purchase);
-            if (!isEmpty(ticket.error)) {
+            if (isEmpty(ticket) || isEmpty(ticket.code)) {
+              console.log('No ticket from purchase');
               continue;
             }
             //console.log('Found ticket: ', ticket);
@@ -689,29 +691,35 @@ export default class App extends React.Component {
   };
 
   getTicketFromPurchase = async (purchase) => {
-    console.log('getTicketFromPurchase');
+    console.log('App getTicketFromPurchase');
     if (!isEmpty(purchase.ticket)) {
       return purchase.ticket;
     }
-    let url = Config.server.production;
-    if (__DEV__) {
-      url = Config.server.development;
-    }
+    try {
+      let url = Config.server.production;
+      if (__DEV__) {
+        url = Config.server.development;
+      }
 
-    url = UrlJoin(url, 'products', purchase.productId);
+      url = UrlJoin(url, 'products', purchase.productId);
 
-    console.log('Using ELuvio Live Server url: ', url);
-    let response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({receipt: purchase.transactionReceipt}),
-    });
+      console.log('Using ELuvio Live Server url: ', url);
+      let response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({receipt: purchase.transactionReceipt}),
+      });
 
-    if (response.ok) {
-      return await response.text();
+      console.log('Response code ', response.responseCode);
+
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('getTicketFromPurchase error ', error);
     }
 
     return null;

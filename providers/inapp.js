@@ -3,7 +3,6 @@ import {JQ} from '../utils';
 import * as RNIap from 'react-native-iap';
 //import {NativeModules} from 'react-native';
 //const {RNStoreKit} = NativeModules;
-import * as StoreKit from '../ios/StoreKit';
 
 let purchaseEmitter = null;
 let purchaseErrorEmitter = null;
@@ -13,12 +12,29 @@ export const initConnection = async (
 ) => {
   try {
     console.log('InApp initConnection');
+    await RNIap.clearProductsIOS();
+    await RNIap.clearTransactionIOS();
     await RNIap.initConnection();
-    purchaseEmitter = RNIap.purchaseUpdatedListener(purchaseListener);
-    purchaseErrorEmitter = RNIap.purchaseErrorListener(purchaseErrorListener);
-    //console.log('******* NATIVEMODULES ', Object.keys(NativeModules));
-    //console.log('testing storekit ', RNStoreKit);
-    //StoreKit.setBundleIdentifier('live.eluv.io');
+    purchaseEmitter = RNIap.purchaseUpdatedListener(async (purchase) => {
+      try {
+        if (purchaseListener) {
+          await purchaseListener(purchase);
+        }
+        RNIap.finishTransaction(purchase);
+      } catch (error) {
+        console.error('purchaseUpdatedListener error: ', error);
+      }
+    });
+    purchaseErrorEmitter = RNIap.purchaseErrorListener(async (purchase) => {
+      try {
+        if (purchaseListener) {
+          await purchaseErrorListener(purchase);
+        }
+        RNIap.finishTransaction(purchase);
+      } catch (error) {
+        console.error('purchaseUpdatedListener error: ', error);
+      }
+    });
   } catch (e) {
     console.error('InApp purchase initConnection error: ', e);
   }
@@ -129,7 +145,7 @@ export const getAvailablePurchases = async () => {
 //Could throw an error.
 export const requestPurchase = async (productId) => {
   console.log('RequestPurchase: ', productId);
-  await RNIap.requestPurchase(productId);
+  await RNIap.requestPurchase(productId, false);
 };
 
 export default {
