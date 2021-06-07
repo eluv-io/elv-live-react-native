@@ -309,7 +309,7 @@ export default class App extends React.Component {
       console.error('onPurchaseUpdated ', e);
       this.navigationRef.current.navigate('error', {text: 'Purchase failed.'});
     }
-    await this.removePendingPurchase(purchase.productId);
+    this.removePendingPurchase(purchase.productId);
   };
 
   onPurchaseError = (error) => {
@@ -318,7 +318,7 @@ export default class App extends React.Component {
       //responseCode 0 seems to be some failure from the library itself and not from Apple
       this.removePendingPurchase(error.productId);
       this.navigationRef.current.replace('error', {
-        text: 'Purchase failed.',
+        text: `Purchase failed.\n${JSON.stringify(error)}`,
       });
     } catch (e) {
       console.error('onPurchaseError ', e);
