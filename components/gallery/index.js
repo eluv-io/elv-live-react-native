@@ -596,7 +596,7 @@ class Gallery extends React.Component {
       image = item.image;
     } catch (e) {}
 
-    let buttonText = 'Buy';
+    let buttonText = 'View Tickets';
 
     if (item.isPending) {
       buttonText = 'Pending';

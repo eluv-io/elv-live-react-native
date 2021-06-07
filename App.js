@@ -316,12 +316,10 @@ export default class App extends React.Component {
     console.log('******** onPurchaseError ', error);
     try {
       //responseCode 0 seems to be some failure from the library itself and not from Apple
-      if (error.responseCode !== '0') {
-        this.removePendingPurchase(error.productId);
-        this.navigationRef.current.navigate('error', {
-          text: 'Purchase failed.',
-        });
-      }
+      this.removePendingPurchase(error.productId);
+      this.navigationRef.current.replace('error', {
+        text: 'Purchase failed.',
+      });
     } catch (e) {
       console.error('onPurchaseError ', e);
     }
@@ -697,10 +695,6 @@ export default class App extends React.Component {
     }
     try {
       let url = Config.server.production;
-      if (__DEV__) {
-        url = Config.server.development;
-      }
-
       url = UrlJoin(url, 'products', purchase.productId);
 
       console.log('Using ELuvio Live Server url: ', url);

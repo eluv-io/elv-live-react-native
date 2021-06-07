@@ -83,6 +83,7 @@
    </AnalyzeAction>
    <ArchiveAction
       buildConfiguration = "Release"
+      customArchiveName = "EluvioLive-TVOS"
       revealArchiveInOrganizer = "YES">
    </ArchiveAction>
 </Scheme>
