@@ -55,20 +55,15 @@ export const endConnection = async () => {
 };
 
 export const loadInAppPurchases = async (productIds) => {
-  try {
-    console.log('Loading InApp Purchases, ', productIds);
+  console.log('Loading InApp Purchases, ', productIds);
 
-    // Retrieve product details
-    let products = await RNIap.getProducts(productIds);
-    //console.log('InApp Products: ', products);
-    //let products2 = await StoreKit.RequestProducts(productIds);
-    //console.log('Products2: ', products2);
+  // Retrieve product details
+  let products = await RNIap.getProducts(productIds);
+  //console.log('InApp Products: ', products);
+  //let products2 = await StoreKit.RequestProducts(productIds);
+  //console.log('Products2: ', products2);
 
-    return products;
-  } catch (e) {
-    console.error('Error loading InApp Purchases', e);
-  }
-  return null;
+  return products;
 };
 
 // returns list of available tickets based on the skus per platform

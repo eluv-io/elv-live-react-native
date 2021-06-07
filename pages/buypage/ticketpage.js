@@ -72,14 +72,23 @@ class TicketPage extends React.Component {
 
   async componentDidMount() {
     const {site} = this.context;
+    const {isActive, navigation, data} = this.props;
     this.enableTVEventHandler();
+
     try {
-      let products = await InApp.getAvailableTickets(site);
-      //console.log('Ticket page: ', products);
-      // eslint-disable-next-line react/no-did-mount-set-state
-      this.setState({products});
+      let products = data.products;
+      if (isEmpty(products)) {
+        console.log('TicketPage: No products passed in. Retrieving...');
+        products = await InApp.getAvailableTickets(site);
+        //console.log('Ticket page: ', products);
+        // eslint-disable-next-line react/no-did-mount-set-state
+        this.setState({products});
+      }
     } catch (e) {
       console.error('Error getting products: ', e);
+      navigation.replace('error', {
+        text: `Eluvio Retrieving Tickets:\n ${JQ(e)}`,
+      });
     }
   }
 
@@ -119,8 +128,13 @@ class TicketPage extends React.Component {
 
   render() {
     const {platform, network} = this.context;
-    const {isActive, navigation} = this.props;
-    const {products, currentIndex} = this.state;
+    const {isActive, navigation, data} = this.props;
+    const {currentIndex} = this.state;
+
+    let products = [];
+    if (data && data.products) {
+      products = data.products;
+    }
 
     const renderItem = ({item, index, separator}) => (
       <Item

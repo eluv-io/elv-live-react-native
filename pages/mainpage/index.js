@@ -340,12 +340,6 @@ class MainPage extends React.Component {
       console.log('select site is free? ' + JQ(site.info.free));
       console.log('select site tv_main_logo ' + JQ(site.tv_main_logo));
 
-      let products = await InApp.getAvailableTickets(site);
-      if (isEmpty(products)) {
-        console.error('No Available InApp purchases for tickets.');
-        return;
-      }
-
       if (site.info.free) {
         try {
           await setAppState({site, ticketCode: null});
@@ -380,11 +374,15 @@ class MainPage extends React.Component {
           });
         }
       } else {
+        let products = await InApp.getAvailableTickets(site);
         await setAppState({site});
-        navigation.navigate('buy');
+        navigation.navigate('buy', {products});
       }
     } catch (e) {
       console.error(e);
+      navigation.navigate('error', {
+        text: `Eluvio Live Error:\n ${JSON.stringify(e)}`,
+      });
     }
   };
 
