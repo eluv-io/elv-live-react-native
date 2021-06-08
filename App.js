@@ -767,7 +767,7 @@ export default class App extends React.Component {
   //Internal
   redeemCode = async (fabric, site, redeemItems, tenantId, ticketCode) => {
     console.time('* App redeemCode *');
-    //console.log('RedeemCode ticketCode: ' + ticketCode);
+    console.log('RedeemCode ticketCode: ' + ticketCode);
     let otpId = await fabric.redeemCode(tenantId, ticketCode);
     console.log('App redeemCode response: ' + otpId);
     if (otpId != null) {

@@ -233,11 +233,30 @@ export default class Fabric {
       let playoutOptions = await res.json();
       console.log('linkReponse response: ' + JQ(playoutOptions));
 
+      //TODO: hls-fairplay
+      let formatOrder = ['hls-clear', 'hls-sample-aes', 'hls-aes128'];
+      let format = 'hls-clear';
+
+      for (var i = 0; i < formatOrder.length; i++) {
+        try {
+          format = formatOrder[i];
+          if (
+            !isEmpty(playoutOptions[format]) &&
+            !isEmpty(playoutOptions[format].uri)
+          ) {
+            console.log('Using format: ', format);
+            break;
+          }
+        } catch (e) {
+          console.log('No format for ', format);
+        }
+      }
+
       let videoUrl = URI(
         UrlJoin(
           this.baseUrl({versionHash}),
           '/rep/playout/default/',
-          playoutOptions['hls-clear'].uri,
+          playoutOptions[format].uri,
         ),
       ).toString();
       console.log('video url: ' + JQ(videoUrl));
@@ -260,6 +279,7 @@ export default class Fabric {
     try {
       let endpoint = this.baseUrl({});
       offerings = await this.getOfferings(channelHash);
+      console.log('Offerings: ', offerings);
       offering = Object.keys(offerings)[0];
       console.log('Offering: ', offering);
 
@@ -285,8 +305,22 @@ export default class Fabric {
 
       console.log('Formats: ' + JQ(formats));
 
-      // Pick HLS - prefer clear if multiple
+      //TODO: hls-fairplay
+      let formatOrder = ['hls-clear', 'hls-sample-aes', 'hls-aes128'];
       let format = 'hls-clear';
+
+      for (var i = 0; i < formatOrder.length; i++) {
+        try {
+          format = formatOrder[i];
+          if (!isEmpty(formats[format]) && !isEmpty(formats[format].uri)) {
+            console.log('Using format: ', format);
+            break;
+          }
+        } catch (e) {
+          console.log('No format for ', format);
+        }
+      }
+
       try {
         sessionId = formats[format].sid;
       } catch (e) {}

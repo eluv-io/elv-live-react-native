@@ -287,7 +287,7 @@ PODS:
     - React
   - RNDeviceInfo (8.1.2):
     - React-Core
-  - RNIap (6.0.0-rc.23):
+  - RNIap (6.0.9):
     - React-Core
   - RNTVOSController (0.2.4):
     - React-Core
@@ -471,7 +471,7 @@ SPEC CHECKSUMS:
   RNCPicker: 5256da29a92406cac439ac6605719e233714a86a
   RNDefaultPreference: 2f8d6d54230edbd78708ada8d63bb275e5a8415b
   RNDeviceInfo: 3266783bcb6aa4b0c785d6080a407f8a5fc68326
-  RNIap: eaf3874cb404ad595f410c83a529949a86ad54d7
+  RNIap: 31c749558dcaa07c3991ecca8444fc3f75ca1899
   RNTVOSController: 50806e5e5140685c9b74560f65adca10904d0dd7
   RNVectorIcons: 31cebfcf94e8cf8686eb5303ae0357da64d7a5a4
   Yoga: 1cb424a95ffa7e14cacce4c0ac07ba8e59393ebf
