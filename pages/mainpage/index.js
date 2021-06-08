@@ -380,9 +380,11 @@ class MainPage extends React.Component {
       }
     } catch (e) {
       console.error(e);
+      /*
       navigation.navigate('error', {
         text: `Eluvio Live Error:\n ${JSON.stringify(e)}`,
       });
+      */
     }
   };
 

@@ -178,21 +178,9 @@ class TicketPage extends React.Component {
             //unknown error can be thrown if the product has already been purchased.
             removePendingPurchase(e.productId);
             navigation.replace('error', {
-              text: `Purchase failed.\n${JSON.stringify(e)}`,
+              text: 'Purchase failed',
             });
             return;
-            /*
-            try {
-              if (addPendingPurchase) {
-                console.log('TicketPage adding pending purchase.');
-                await addPendingPurchase(item.id);
-              }
-              await restorePurchases();
-            } catch (err) {
-              console.error('TicketPage error restoring purchases: ', err);
-              await removePendingPurchase(item.id);
-            }
-            */
           }
           navigation.goBack(true);
         }}

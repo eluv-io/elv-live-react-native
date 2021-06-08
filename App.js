@@ -317,8 +317,12 @@ export default class App extends React.Component {
     try {
       //responseCode 0 seems to be some failure from the library itself and not from Apple
       this.removePendingPurchase(error.productId);
+      if (error.code === 'E_USER_CANCELLED') {
+        this.navigationRef.current.goBack();
+        return;
+      }
       this.navigationRef.current.replace('error', {
-        text: `Purchase failed.\n${JSON.stringify(error)}`,
+        text: 'Purchase failed',
       });
     } catch (e) {
       console.error('onPurchaseError ', e);
