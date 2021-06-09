@@ -82,6 +82,10 @@ export default class Fabric {
     try {
       let url = this.asUrl() + '/otp/ntp/' + tenantId;
       console.log('Redeem URL: ', url);
+      let body = JSON.stringify({
+        _PASSWORD: code,
+      });
+      console.log('Redeem body: ', body);
 
       let res = await fetch(normalizeUrl(url), {
         method: 'POST',
@@ -90,9 +94,7 @@ export default class Fabric {
           'Content-Type': 'application/json',
           'cache-control': 'no-store', //Important or else you might get a cached response from a previous bad ticket
         },
-        body: JSON.stringify({
-          _PASSWORD: code,
-        }),
+        body,
       });
 
       let token = await res.text();

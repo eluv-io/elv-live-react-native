@@ -292,7 +292,7 @@ export default class App extends React.Component {
       }
       let item = {
         ticketCode: ticket.code,
-        productId: purchase.productId,
+        productId: purchase.productIdentifier,
       };
       let {redeemItems} = this.state;
       redeemItems[site.objectId] = item;
@@ -316,7 +316,7 @@ export default class App extends React.Component {
     console.log('******** onPurchaseError ', error);
     try {
       //responseCode 0 seems to be some failure from the library itself and not from Apple
-      this.removePendingPurchase(error.productId);
+      this.removePendingPurchase(error.productIdentifer);
       if (error.code === 'E_USER_CANCELLED') {
         this.navigationRef.current.goBack();
         return;
@@ -573,24 +573,21 @@ export default class App extends React.Component {
     try {
       let sites = platform.getSites();
       purchases = await InApp.getAvailablePurchases();
-      console.log('Available InApp Purchases: ');
-      for (var p in purchases) {
-        console.log(p.productId);
-      }
+      console.log('Available InApp Purchases: ', purchases);
 
       //Adding purchases to site object
       //console.log('Processing purchases for sites ', sites);
-      for (var index in sites) {
+      for (var index = 0; index < sites.length; index++) {
         let s = sites[index];
         console.log('Processing site: ', s.display_title);
         let productIdToInfo = InApp.getAllSiteProductUUIDs(s);
         let productIds = Object.keys(productIdToInfo);
         console.log('ProductIds for site.', productIds);
-        for (var i in purchases) {
+        for (var i = 0; i < purchases.length; i++) {
           let purchase = purchases[i];
-          console.log('testing purchase', purchase.productId);
-          if (productIds.includes(purchase.productId)) {
-            console.log('Found id ', purchase.productId);
+          console.log('testing purchase', purchase);
+          if (productIds.includes(purchase.productIdentifier)) {
+            console.log('Found id ', purchase.productIdentifier);
             if (!s.purchases) {
               s.purchases = {};
             }
@@ -601,12 +598,12 @@ export default class App extends React.Component {
               continue;
             }
             //console.log('Found ticket: ', ticket);
-            purchase.ticket = ticket;
-            s.purchases[purchase.productId] = purchase;
+            purchase.ticket = ticket.code;
+            s.purchases[purchase.productIdentifier] = purchase;
             //TODO: Handle multiple purchased tickets
             let item = {
-              ticketCode: ticket,
-              productId: purchase.productId,
+              ticketCode: ticket.code,
+              productId: purchase.productIdentifier,
             };
             redeemItems[s.objectId] = item;
             s.currentTicket = ticket;
@@ -699,7 +696,7 @@ export default class App extends React.Component {
     }
     try {
       let url = Config.server.production;
-      url = UrlJoin(url, 'products', purchase.productId);
+      url = UrlJoin(url, 'products', purchase.productIdentifier);
 
       console.log('Using ELuvio Live Server url: ', url);
       let response = await fetch(url, {
@@ -879,6 +876,8 @@ export default class App extends React.Component {
           restorePurchases: this.restorePurchases,
           addPendingPurchase: this.addPendingPurchase,
           isSitePending: this.isSitePending,
+          onPurchaseUpdated: this.onPurchaseUpdated,
+          onPurchaseError: this.onPurchaseError,
           reloadFinished: reloadFinished,
         }}>
         <Navigation ref={this.navigationRef} default="main">

@@ -93,7 +93,16 @@ class MainPage extends React.Component {
         item.logo = site.tv_main_logo;
         item.release_date = site.info.event_info.date;
         item.ticket = site.currentTicket;
-        item.isAvailable = true;
+
+        //TODO: clean this things up...
+        //Available means it doesn't show at all,
+        //Accessible means no buy button
+        item.isAvailable = site.isAvailable;
+
+        if (!item.isAvailable) {
+          continue;
+        }
+
         item.isAccessible =
           (site.info.state && site.info.state !== 'Inaccessible') ||
           site.info.accessible;
@@ -374,9 +383,8 @@ class MainPage extends React.Component {
           });
         }
       } else {
-        let products = await InApp.getAvailableTickets(site);
         await setAppState({site});
-        navigation.navigate('buy', {products});
+        navigation.navigate('buy');
       }
     } catch (e) {
       console.error(e);

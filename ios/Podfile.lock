@@ -222,6 +222,8 @@ PODS:
   - React-jsinspector (0.63.4-0)
   - react-native-get-random-values (1.5.0):
     - React
+  - react-native-in-app-utils (6.1.0):
+    - React
   - react-native-safe-area-context (3.1.9):
     - React-Core
   - react-native-video (5.1.0-alpha8):
@@ -325,6 +327,7 @@ DEPENDENCIES:
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
+  - react-native-in-app-utils (from `../node_modules/react-native-in-app-utils`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-video (from `../node_modules/react-native-video`)
   - React-RCTAnimation (from `../node_modules/react-native/Libraries/NativeAnimation`)
@@ -394,6 +397,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
   react-native-get-random-values:
     :path: "../node_modules/react-native-get-random-values"
+  react-native-in-app-utils:
+    :path: "../node_modules/react-native-in-app-utils"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-video:
@@ -458,6 +463,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: a2d57cd174d11835a2e1369820664db94dc68244
   React-jsinspector: b02749ab9b71584a1a93e93bdf2b483179f5f4af
   react-native-get-random-values: 1404bd5cc0ab0e287f75ee1c489555688fc65f89
+  react-native-in-app-utils: 96cdefc90ad74a79a95d19239a183995a6face0b
   react-native-safe-area-context: b6e0e284002381d2ff29fa4fff42b4d8282e3c94
   react-native-video: dbb8df4f0bbdf80de6797c90fcad8bc12b19401d
   React-RCTAnimation: 325e04d9a829ebf8199cf97dd93fbde540473ebe

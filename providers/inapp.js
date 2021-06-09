@@ -1,46 +1,24 @@
 //import products from '../testdata/products';
 import {JQ} from '../utils';
-import * as RNIap from 'react-native-iap';
-//import {NativeModules} from 'react-native';
-//const {RNStoreKit} = NativeModules;
+//import * as RNIap from 'react-native-iap';
+import {NativeModules} from 'react-native';
+const {InAppUtils} = NativeModules;
 
-let purchaseEmitter = null;
-let purchaseErrorEmitter = null;
+//import StoreKit from '../ios/StoreKit/index';
+
+let _purchaseListener = null;
+let _purchaseErrorListener = null;
 export const initConnection = async (
   purchaseListener,
   purchaseErrorListener,
 ) => {
-  try {
-    console.log('InApp initConnection');
-    await RNIap.clearProductsIOS();
-    await RNIap.clearTransactionIOS();
-    await RNIap.initConnection();
-    purchaseEmitter = RNIap.purchaseUpdatedListener(async (purchase) => {
-      try {
-        if (purchaseListener) {
-          await purchaseListener(purchase);
-        }
-        RNIap.finishTransaction(purchase);
-      } catch (error) {
-        console.error('purchaseUpdatedListener error: ', error);
-      }
-    });
-    purchaseErrorEmitter = RNIap.purchaseErrorListener(async (purchase) => {
-      try {
-        if (purchaseListener) {
-          await purchaseErrorListener(purchase);
-        }
-        RNIap.finishTransaction(purchase);
-      } catch (error) {
-        console.error('purchaseUpdatedListener error: ', error);
-      }
-    });
-  } catch (e) {
-    console.error('InApp purchase initConnection error: ', e);
-  }
+  _purchaseListener = purchaseListener;
+  _purchaseErrorListener = purchaseErrorListener;
+  console.log('InAppUtils: ', InAppUtils);
 };
 
 export const endConnection = async () => {
+  /*
   try {
     if (purchaseEmitter) {
       purchaseEmitter.remove();
@@ -52,18 +30,26 @@ export const endConnection = async () => {
   } catch (e) {
     console.error('InApp purchase endConnection error: ', e);
   }
+  */
 };
 
 export const loadInAppPurchases = async (productIds) => {
   console.log('Loading InApp Purchases, ', productIds);
 
-  // Retrieve product details
-  let products = await RNIap.getProducts(productIds);
-  //console.log('InApp Products: ', products);
-  //let products2 = await StoreKit.RequestProducts(productIds);
-  //console.log('Products2: ', products2);
+  return new Promise((resolve, reject) => {
+    InAppUtils.loadProducts(productIds, (error, products) => {
+      //update store here.
+      if (error) {
+        return reject(error);
+      }
 
-  return products;
+      resolve(products);
+    });
+  });
+
+  /*let products = await StoreKit.RequestProducts(productIds);
+  console.log('Products returned: ', products);
+  return products; */
 };
 
 // returns list of available tickets based on the skus per platform
@@ -77,22 +63,27 @@ export const getAvailableTickets = async (site, purchases = null) => {
     purchases = await loadInAppPurchases(Object.keys(productIdToInfo));
   }
 
-  for (var index in purchases) {
+  console.log('getAvailableTickets products: ', products);
+
+  for (var index = 0; index < purchases.length; index++) {
     //console.log('index: ', index);
     var purchase = purchases[index];
-    var info = productIdToInfo[purchase.productId];
-    info.price = purchase.price;
+    console.log('purchase: ', purchase);
+    var info = productIdToInfo[purchase.identifier];
     console.log('info: ', info);
     if (!info) {
       continue;
     }
+    if (purchase.price !== undefined && purchase.price !== null) {
+      info.price = purchase.priceString;
+    }
+
     products.push(info);
   }
   return products;
 };
 
 export const getAllSiteProductUUIDs = (site) => {
-  //let productIds = ['5SysrEw4RLqkaCwDD7krAz', 'WrS3eNnVwX5Wpf2dPpDk8D'];
   console.log('getAllSiteProductUUIDs');
 
   let productIds = {};
@@ -100,7 +91,7 @@ export const getAllSiteProductUUIDs = (site) => {
     for (var i1 in site.info.tickets) {
       //console.log('tickets index ', i1);
       var ticket = site.info.tickets[i1];
-      //console.log('ticket ', ticket);
+      console.log('ticket ', ticket);
 
       for (var i2 in ticket.skus) {
         var sku = ticket.skus[i2];
@@ -122,25 +113,50 @@ export const getAllSiteProductUUIDs = (site) => {
 };
 
 export const getAvailablePurchases = async () => {
-  try {
-    console.log('******* InApp.getAvailablePurchases');
-    const purchases = await RNIap.getAvailablePurchases();
-    //var purchases = null;
-    //console.log('Available purchases => ', purchases);
-    if (purchases && purchases.length > 0) {
-      return purchases;
-    }
-  } catch (err) {
-    console.warn(err.code, err.message);
-    console.log('getAvailablePurchases error => ', err);
-  }
-  return null;
+  return new Promise((resolve, reject) => {
+    InAppUtils.restorePurchases((error, response) => {
+      console.log('IAP restorePurchases called error', error);
+      console.log('IAP restorePurchases called response', response);
+      if (error) {
+        return reject(error);
+      } else {
+        resolve(response);
+      }
+    });
+  });
 };
 
 //Could throw an error.
 export const requestPurchase = async (productId) => {
   console.log('RequestPurchase: ', productId);
-  await RNIap.requestPurchase(productId, false);
+  //await RNIap.requestPurchase(productId, false);
+
+  return new Promise((resolve, reject) => {
+    InAppUtils.canMakePayments((canMakePayments) => {
+      if (!canMakePayments) {
+        return reject(
+          'This device is not allowed to make purchases. Please check restrictions on device',
+        );
+      }
+
+      InAppUtils.purchaseProduct(productId, (error, response) => {
+        // NOTE for v3.0: User can cancel the payment which will be available as error object here.
+        console.log('purchaseProduct response ', error);
+        if (error) {
+          if (_purchaseErrorListener) {
+            _purchaseErrorListener(error);
+          }
+          return;
+        }
+        if (response && response.productIdentifier) {
+          if (_purchaseListener) {
+            _purchaseListener(response);
+          }
+        }
+      });
+    });
+    resolve();
+  });
 };
 
 export default {

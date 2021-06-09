@@ -8890,6 +8890,11 @@ react-native-images-collage@^3.3.0:
   resolved "https://registry.yarnpkg.com/react-native-images-collage/-/react-native-images-collage-3.3.0.tgz#a2e01b10f2be8c2caac9d4a7e09e54ea3e9dae1c"
   integrity sha512-lZcJMSiMSkm0aMINhrFvbwnRzXWD3op9BvAN0hFk3DlE2fxnqAgwYyRfh1yxkebBCBGJq7+KiO8PRtYpwkYbpA==
 
+react-native-in-app-utils@^6.1.0:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/react-native-in-app-utils/-/react-native-in-app-utils-6.1.0.tgz#e40ac25a5f8720ea7ef164eda3cc747693314c9c"
+  integrity sha512-sFeSzPOxQbtuzZazWGeNJseZMWzIYKQilYQ/h/cwGtOonpylNePD3RvoUmg1wm5heb1JAr5qf7jh7E1N26DjqQ==
+
 react-native-input-style@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/react-native-input-style/-/react-native-input-style-1.0.2.tgz#7d9d7b6bf81130b435895b0ca7cfcd8bc3151548"

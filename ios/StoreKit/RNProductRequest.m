@@ -46,16 +46,20 @@ RCT_EXPORT_METHOD(cancel)
     [products removeAllObjects];
   }
   
-  for (SKProduct * product in [response products]) {
-    //NSLog(@"Found product: %@ – Product: %@ – Price: %0.2f", product.productIdentifier, product.localizedTitle, product.price.floatValue);
-    NSLog(@"Found product: %@", product);
+  for (SKProduct * item in [response products]) {
     //RNProduct *p = [[RNProduct alloc] initWithProduct:product];
     
-    NSDictionary *p = @{ @"productIdentifier" : product.productIdentifier,
-                         @"localizedTitle" : product.localizedTitle,
-                         @"price" : [NSNumber numberWithFloat:[product.price floatValue]]
-                       };
-    [products addObject:p];
+    NSDictionary *product = @{
+        @"productIdentifier": item.productIdentifier,
+        @"price": item.price,
+        @"currencySymbol": [item.priceLocale objectForKey:NSLocaleCurrencySymbol],
+        @"currencyCode": [item.priceLocale objectForKey:NSLocaleCurrencyCode],
+        @"countryCode": [item.priceLocale objectForKey: NSLocaleCountryCode],
+        @"downloadable": item.isDownloadable ? @"true" : @"false" ,
+        @"description": item.localizedDescription ? item.localizedDescription : @"",
+        @"title": item.localizedTitle ? item.localizedTitle : @"",
+    };
+    [products addObject:product];
   }
   
   NSLog(@"GOOD ARRAY: %@", products);

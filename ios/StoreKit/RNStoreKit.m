@@ -15,6 +15,10 @@
 #import <React/RCTLog.h>
 
 @implementation RNStoreKit
+{
+  NSArray *products;
+  NSMutableDictionary *_callbacks;
+}
 
 - (instancetype)init
 {
@@ -22,6 +26,8 @@
         receiptVerificationSandbox = NO;
         transactionObserverSet = NO;
         autoFinishTransactions = YES;
+      _callbacks = [[NSMutableDictionary alloc] init];
+      [[SKPaymentQueue defaultQueue] addTransactionObserver:self];
     }
     
     return self;
@@ -75,6 +81,7 @@ RCT_EXPORT_METHOD(requestProducts:(NSArray *)ids
 
 RCT_EXPORT_METHOD(purchase:(NSDictionary *)args)
 {
+
     RNProduct *product = [args objectForKey:@"product"];
     int quantity = [RCTConvert int:[args objectForKey:@"quantity"]];
     NSString *username = [RCTConvert NSString:[args objectForKey:@"applicationUsername"]];
@@ -96,6 +103,7 @@ RCT_EXPORT_METHOD(purchase:(NSDictionary *)args)
         [self logAddTransactionObserverFirst:@"purchase"];
     }
 }
+
 
 RCT_EXPORT_METHOD(addTransactionObserver:(id)args)
 {

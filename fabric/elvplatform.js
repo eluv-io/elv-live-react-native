@@ -1,6 +1,7 @@
 var {isEmpty, JQ, decodeVersionHash} = require('../utils');
 var URI = require('urijs');
 var UrlJoin = require('url-join');
+import InApp from '../providers/inapp';
 
 class ElvPlatform {
   constructor({fabric, libraryId, siteId}) {
@@ -86,7 +87,9 @@ class ElvPlatform {
             return site.channels;
           };
           //console.log("Featured site extras: " + JQ(site.info.extras));
-          this.availableSites.push(site);
+          if (site.isAvailable) {
+            this.availableSites.push(site);
+          }
         } catch (error) {
           console.error('Failed to load site: ');
           console.error(error);
@@ -280,6 +283,12 @@ class ElvPlatform {
         );
       }
     }
+
+    site.availableTickets = await InApp.getAvailableTickets(site);
+    site.isAvailable =
+      !isEmpty(site.info.tv_state) && site.info.tv_state !== 'Inaccessible';
+    console.log('Site site.info.tv_state: ', site.info.tv_state);
+    console.log('Site isAvailable: ', site.isAvailable);
 
     return site;
   };

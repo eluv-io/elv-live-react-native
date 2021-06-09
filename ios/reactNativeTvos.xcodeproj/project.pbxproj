@@ -51,6 +51,9 @@
 		B012C58E254FC34700993400 /* libRNExitApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B012C58D254FC34700993400 /* libRNExitApp.a */; };
 		B01BE66D2649A9A600931D75 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B01BE66C2649A9A600931D75 /* StoreKit.framework */; };
 		B071D6D22660B0B20070995A /* TVServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B071D6D12660B0B20070995A /* TVServices.framework */; };
+		B0D2D65726701D2F00A76E2C /* InAppUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = B0D2D65626701D2F00A76E2C /* InAppUtils.m */; };
+		B0D2D65926701D8000A76E2C /* index2.js in Resources */ = {isa = PBXBuildFile; fileRef = B0D2D65826701D8000A76E2C /* index2.js */; };
+		B0D2D65C26701DB200A76E2C /* SKProduct+StringPrice.m in Sources */ = {isa = PBXBuildFile; fileRef = B0D2D65A26701DB200A76E2C /* SKProduct+StringPrice.m */; };
 		CE2D20D3BCFE46589283B451 /* FontAwesome5_Brands.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 763BE1A2577A43FB964AFDD0 /* FontAwesome5_Brands.ttf */; };
 		CF9C1A3812DD41D699147FC0 /* MaterialIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 903F0A197D24469AAF310CB5 /* MaterialIcons.ttf */; };
 		E3FBE682CC6E4A298C3FBAB8 /* AntDesign.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FDC10FAFBDFA4B788FBD09ED /* AntDesign.ttf */; };
@@ -126,6 +129,12 @@
 		B01BE66C2649A9A600931D75 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS14.5.sdk/System/Library/Frameworks/StoreKit.framework; sourceTree = DEVELOPER_DIR; };
 		B071D6D12660B0B20070995A /* TVServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = TVServices.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS14.5.sdk/System/Library/Frameworks/TVServices.framework; sourceTree = DEVELOPER_DIR; };
 		B099B4BA257ECAA000CC8765 /* reactNativeTvos-tvOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = "reactNativeTvos-tvOS.entitlements"; path = "reactNativeTvos-tvOS/reactNativeTvos-tvOS.entitlements"; sourceTree = "<group>"; };
+		B0D2D653266FF6B100A76E2C /* libreact-native-in-app-utils.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libreact-native-in-app-utils.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0D2D65526701CFB00A76E2C /* InAppUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InAppUtils.h; sourceTree = "<group>"; };
+		B0D2D65626701D2F00A76E2C /* InAppUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = InAppUtils.m; sourceTree = "<group>"; };
+		B0D2D65826701D8000A76E2C /* index2.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = index2.js; sourceTree = "<group>"; };
+		B0D2D65A26701DB200A76E2C /* SKProduct+StringPrice.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "SKProduct+StringPrice.m"; sourceTree = "<group>"; };
+		B0D2D65B26701DB200A76E2C /* SKProduct+StringPrice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SKProduct+StringPrice.h"; sourceTree = "<group>"; };
 		C0073C4BD35243BEA755FED3 /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
 		CCE9A90FED9D09047497AB6D /* Pods-reactNativeTvos-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-reactNativeTvos-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-reactNativeTvos-tvOS/Pods-reactNativeTvos-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		D1AFD415CB4743E79184EC44 /* Zocial.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Zocial.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Zocial.ttf"; sourceTree = "<group>"; };
@@ -212,6 +221,7 @@
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B0D2D653266FF6B100A76E2C /* libreact-native-in-app-utils.a */,
 				B071D6D12660B0B20070995A /* TVServices.framework */,
 				B01BE66C2649A9A600931D75 /* StoreKit.framework */,
 				B012C599254FC41200993400 /* libRNExitApp.a */,
@@ -315,6 +325,11 @@
 				B00F17C5266411B000BD6D67 /* RNTransaction.h */,
 				B00F17CB266411B100BD6D67 /* RNTransaction.m */,
 				B00F17DC2665473700BD6D67 /* index.js */,
+				B0D2D65B26701DB200A76E2C /* SKProduct+StringPrice.h */,
+				B0D2D65A26701DB200A76E2C /* SKProduct+StringPrice.m */,
+				B0D2D65526701CFB00A76E2C /* InAppUtils.h */,
+				B0D2D65626701D2F00A76E2C /* InAppUtils.m */,
+				B0D2D65826701D8000A76E2C /* index2.js */,
 			);
 			path = StoreKit;
 			sourceTree = "<group>";
@@ -492,6 +507,7 @@
 			files = (
 				2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */,
 				B00F17DE2665473700BD6D67 /* index.js in Resources */,
+				B0D2D65926701D8000A76E2C /* index2.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -889,6 +905,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B0D2D65726701D2F00A76E2C /* InAppUtils.m in Sources */,
 				B00F17D4266411B100BD6D67 /* RNProduct.m in Sources */,
 				2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */,
 				B00F17D7266411B100BD6D67 /* RNTransaction.m in Sources */,
@@ -896,6 +913,7 @@
 				B00F17CE266411B100BD6D67 /* RNStoreKit.m in Sources */,
 				2D02E4BC1E0B4A80006451C7 /* AppDelegate.m in Sources */,
 				B00F17D1266411B100BD6D67 /* RNProductRequest.m in Sources */,
+				B0D2D65C26701DB200A76E2C /* SKProduct+StringPrice.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1028,7 +1046,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = CCE9A90FED9D09047497AB6D /* Pods-reactNativeTvos-tvOS.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = "Brand Assets";
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -1036,9 +1053,11 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CODE_SIGN_ENTITLEMENTS = "reactNativeTvos-tvOS/reactNativeTvos-tvOS.entitlements";
-				CURRENT_PROJECT_VERSION = 55;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 58;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 2KH8KC3MMX;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				ENABLE_TESTABILITY = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1052,6 +1071,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.eluvio.live;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = appletvos;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 12.0;
@@ -1062,7 +1082,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 388308430DF4BE056B0CEF13 /* Pods-reactNativeTvos-tvOS.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = "Brand Assets";
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -1070,10 +1089,12 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CODE_SIGN_ENTITLEMENTS = "reactNativeTvos-tvOS/reactNativeTvos-tvOS.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 55;
+				CURRENT_PROJECT_VERSION = 58;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 2KH8KC3MMX;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = "reactNativeTvos-tvOS/Info.plist";
@@ -1086,6 +1107,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.eluvio.live;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = appletvos;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 12.0;

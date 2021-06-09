@@ -45,7 +45,7 @@ const Item = ({
           <Text style={styles.description}>{item.description}</Text>
         </View>
         <View style={[styles.row]}>
-          <Text style={styles.price}>${item.price}</Text>
+          <Text style={styles.price}>{item.price}</Text>
           <AppButton
             hasTVPreferredFocus={isFocused}
             onPress={onPress}
@@ -72,22 +72,31 @@ class TicketPage extends React.Component {
 
   async componentDidMount() {
     const {site} = this.context;
-    const {isActive, navigation, data} = this.props;
+    const {isActive, navigation} = this.props;
+    if (!isActive) {
+      return;
+    }
     this.enableTVEventHandler();
 
     try {
-      let products = data.products;
-      if (isEmpty(products)) {
-        console.log('TicketPage: No products passed in. Retrieving...');
-        products = await InApp.getAvailableTickets(site);
-        //console.log('Ticket page: ', products);
-        // eslint-disable-next-line react/no-did-mount-set-state
-        this.setState({products});
-      }
+      let products = site.availableTickets;
+
+      let that = this;
+
+      //Always need to call this to refresh the product cache in the native lib before purchasing
+      InApp.getAvailableTickets(site).then((results) => {
+        if (!isEmpty(results)) {
+          that.setState({products: results});
+        }
+      });
+
+      console.log('Ticket page: ', products);
+
+      this.setState({products});
     } catch (e) {
       console.error('Error getting products: ', e);
       navigation.replace('error', {
-        text: `Eluvio Retrieving Tickets:\n ${JQ(e)}`,
+        text: 'Eluvio Retrieving Tickets',
       });
     }
   }
@@ -128,13 +137,8 @@ class TicketPage extends React.Component {
 
   render() {
     const {platform, network} = this.context;
-    const {isActive, navigation, data} = this.props;
-    const {currentIndex} = this.state;
-
-    let products = [];
-    if (data && data.products) {
-      products = data.products;
-    }
+    const {isActive, navigation} = this.props;
+    const {currentIndex, products} = this.state;
 
     const renderItem = ({item, index, separator}) => (
       <Item
